@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { MOCK_MANDI_RATES, MANDI_LOCATIONS } from '../data/mockData';
 import { CropSelector } from '../components/CropSelector';
 import { Card } from '../components/Card';
@@ -18,15 +18,13 @@ import {
 import {
   Calculator,
   Award,
-  Sparkles,
   AlertTriangle,
   RotateCcw,
   ChevronDown,
   ChevronUp,
   CheckSquare,
   Square,
-  Sprout,
-  ArrowRight
+  Sprout
 } from 'lucide-react';
 
 const CROP_DEFAULT_YIELDS: Record<string, number> = {
@@ -56,7 +54,6 @@ interface MandiProfitResult {
 
 export const ProfitabilityCalculatorPage: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const initialCrop = searchParams.get('crop') || 'Onion';
@@ -446,12 +443,12 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
                         dataKey="mandiName"
                         stroke="#4B5563"
                         fontSize={11}
-                        tickFormatter={(m) => t(`mandis.${m}`, m)}
+                        tickFormatter={(m: string) => String(t(`mandis.${m}`, m))}
                       />
                       <YAxis
                         stroke="#4B5563"
                         fontSize={11}
-                        tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
+                        tickFormatter={(val: number) => `₹${(val / 1000).toFixed(0)}k`}
                       />
                       <Tooltip
                         content={({ active, payload }) => {

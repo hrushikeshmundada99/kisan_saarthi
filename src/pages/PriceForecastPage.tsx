@@ -75,7 +75,6 @@ export const PriceForecastPage: React.FC = () => {
     .filter((p): p is number => p !== null);
 
   const peakPrice = futurePrices.length > 0 ? Math.max(...futurePrices) : currentPrice;
-  const lowPrice = futurePrices.length > 0 ? Math.min(...futurePrices) : currentPrice;
 
   // Auto-generated Plain Language Insight Calculation
   const startPrice = currentPrice;

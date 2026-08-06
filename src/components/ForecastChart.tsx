@@ -13,7 +13,7 @@ import {
   CartesianGrid,
   Legend
 } from 'recharts';
-import { Calendar, Info, Sparkles } from 'lucide-react';
+import { Calendar, Sparkles } from 'lucide-react';
 
 interface ForecastChartProps {
   crop: string;

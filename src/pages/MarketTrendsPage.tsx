@@ -28,8 +28,7 @@ import {
   TrendingUp,
   Lightbulb,
   ShieldCheck,
-  AlertCircle,
-  Sparkles
+  AlertCircle
 } from 'lucide-react';
 
 type RangeOption = '7d' | '30d' | '3m' | '1y';

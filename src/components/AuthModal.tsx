@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from './Toast';
 import { Button } from './Button';
-import { User, Phone, Lock, MapPin, Sprout, X, LogIn, UserPlus, Sparkles, CheckCircle2 } from 'lucide-react';
+import { User, Phone, Lock, Sprout, X, LogIn, UserPlus, Sparkles, CheckCircle2 } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;

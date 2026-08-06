@@ -3,9 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   MOCK_DATEWISE_COMPARISON_DATA,
-  CROPS,
-  MANDIS,
-  type DateWiseMandiPrice
+  MANDIS
 } from '../data/mockMandiComparisonData';
 import { MANDI_LOCATIONS } from '../data/mockData';
 import { MandiComparisonRow } from '../components/MandiComparisonRow';

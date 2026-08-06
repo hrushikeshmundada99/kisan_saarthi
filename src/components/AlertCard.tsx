@@ -20,7 +20,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onToggleStatus, onD
   const { user } = useAuth();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
-  const { status, currentPrice, distanceToTarget, isTriggered } = evaluateAlertStatus(alert);
+  const { currentPrice, distanceToTarget, isTriggered } = evaluateAlertStatus(alert);
   const isDisabled = alert.status === 'DISABLED';
 
   const isAbove = alert.condition === 'ABOVE';
