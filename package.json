@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "start": "vite preview --port $PORT --host 0.0.0.0",
+    "start": "serve -s dist -l $PORT",
     "lint": "oxlint",
     "preview": "vite preview"
   },
@@ -20,6 +20,7 @@
     "react-i18next": "^17.0.11",
     "react-router-dom": "^7.18.1",
     "recharts": "^3.10.1",
+    "serve": "^14.2.4",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.3"
   },
