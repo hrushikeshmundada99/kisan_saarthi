@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Inter', 'Noto Sans Devanagari', -apple-system, sans-serif;
+    --font-heading: 'Inter', 'Noto Sans Devanagari', -apple-system, sans-serif;
+
+    --color-primary: #2E7D32;
+    --color-primary-light: #4CAF50;
+    --color-secondary: #81C784;
+    --color-bg-light: #F7FBF7;
+    --color-card: #FFFFFF;
+    --color-accent: #FFC107;
+    --color-danger: #E53935;
+    --color-success: #43A047;
+    --color-text-body: #1B4332;
+    --color-text-muted: #6B7280;
+    --color-border: #E1EBE1;
+
+    --radius-standard: 16px;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-bg-light);
+    color: var(--color-text-body);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    color: var(--color-text-body);
+    font-weight: 800; /* Increased heading weight */
+  }
+
+  h1 {
+    font-size: 32px;
+    line-height: 1.25;
+    font-weight: 900;
+  }
+
+  h2 {
+    font-size: 24px;
+    line-height: 1.33;
+    font-weight: 800;
+  }
+
+  h3 {
+    font-size: 18px;
+    line-height: 1.4;
+    font-weight: 800;
+  }
+}
+
+/* Scrollbar refinement */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F7FBF7;
+}
+::-webkit-scrollbar-thumb {
+  background: #C8E6C9;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2E7D32;
+}
+
+/* Global Utility Classes - Exactly 16px border radius */
+.btn-primary {
+  background-color: #2E7D32;
+  color: #FFFFFF;
+  border-radius: 16px; /* 16px border radius */
+  font-weight: 700;
+  font-size: 0.875rem; /* 14px */
+  min-height: 48px;
+  padding: 0.75rem 1.5rem;
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.btn-primary:hover {
+  background-color: #1B4332;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(46, 125, 50, 0.25);
+}
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-secondary {
+  background-color: #FFFFFF;
+  color: #2E7D32;
+  border: 2px solid #81C784;
+  border-radius: 16px; /* 16px border radius */
+  font-weight: 700;
+  font-size: 0.875rem;
+  min-height: 48px;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.btn-secondary:hover {
+  background-color: #F7FBF7;
+  border-color: #2E7D32;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.1);
+}
+.btn-secondary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.card-base {
+  background-color: #FFFFFF;
+  border: 1px solid #E1EBE1;
+  border-radius: 16px; /* 16px border radius */
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px -2px rgba(27, 67, 50, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-base:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px -4px rgba(27, 67, 50, 0.08);
+  border-color: #81C784;
+}
+
+/* Table zebra styling */
+.custom-table tbody tr:nth-child(even) {
+  background-color: #F7FBF7;
+}
+.custom-table tbody tr:hover {
+  background-color: #E8F5E9;
+}
