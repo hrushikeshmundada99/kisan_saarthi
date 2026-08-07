@@ -17,6 +17,7 @@ import { Sprout, Heart } from 'lucide-react';
 const LandingPage = lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
 const PriceForecastPage = lazy(() => import('./pages/PriceForecastPage').then((m) => ({ default: m.PriceForecastPage })));
+const CropRecommendationPage = lazy(() => import('./pages/CropRecommendationPage').then((m) => ({ default: m.CropRecommendationPage })));
 const MandiComparisonPage = lazy(() => import('./pages/MandiComparisonPage').then((m) => ({ default: m.MandiComparisonPage })));
 const MarketTrendsPage = lazy(() => import('./pages/MarketTrendsPage').then((m) => ({ default: m.MarketTrendsPage })));
 const ProfitabilityCalculatorPage = lazy(() => import('./pages/ProfitabilityCalculatorPage').then((m) => ({ default: m.ProfitabilityCalculatorPage })));
@@ -75,6 +76,7 @@ function AppContent() {
                 }
               />
               <Route path="/forecast" element={<PriceForecastPage />} />
+              <Route path="/recommendation" element={<CropRecommendationPage />} />
               <Route path="/comparison" element={<MandiComparisonPage />} />
               <Route path="/trends" element={<MarketTrendsPage />} />
               <Route path="/calculator" element={<ProfitabilityCalculatorPage />} />

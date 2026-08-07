@@ -7,6 +7,10 @@ import {
   getForecastDataForCombination,
   type ForecastPointItem
 } from '../data/mockForecastData';
+import {
+  MOCK_WEATHER_SIGNALS,
+  MOCK_PROCESSING_LINKAGES
+} from '../data/mockWeatherAndRecommendationData';
 import { ForecastChart } from '../components/ForecastChart';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -23,7 +27,11 @@ import {
   SearchX,
   TrendingUp,
   TrendingDown,
-  DollarSign
+  DollarSign,
+  CloudRain,
+  Zap,
+  Building2,
+  AlertTriangle
 } from 'lucide-react';
 
 export const PriceForecastPage: React.FC = () => {
@@ -99,6 +107,10 @@ export const PriceForecastPage: React.FC = () => {
     }
   }, [pctChangeNum, isRising, horizonDays, i18n.language]);
 
+  // Weather signal data
+  const todayWeatherSignal = MOCK_WEATHER_SIGNALS[0];
+  const processingLinkage = MOCK_PROCESSING_LINKAGES[crop] || MOCK_PROCESSING_LINKAGES['Onion'];
+
   return (
     <div className="space-y-6 pb-12 max-w-7xl mx-auto animate-in fade-in duration-300">
       
@@ -106,7 +118,7 @@ export const PriceForecastPage: React.FC = () => {
       <Card hoverable={false} className="p-6 sm:p-8 bg-gradient-to-br from-[#FFFFFF] via-[#F7FBF7] to-[#E8F5E9] border-2 border-[#81C784]/60 rounded-2xl shadow-md space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E1EBE1] pb-6">
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#2E7D32]/10 text-[#2E7D32] text-xs font-black">
                 <Sparkles className="w-4 h-4 text-[#FFC107] animate-pulse" />
                 <span>AI मॉडेल अंदाज प्रणाली (Agmarknet Live Engine)</span>
@@ -116,6 +128,12 @@ export const PriceForecastPage: React.FC = () => {
               <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-xs">
                 <ShieldCheck className="w-4 h-4 text-[#43A047]" />
                 <span>88% High Confidence</span>
+              </span>
+
+              {/* 4. Climate Risk Advisory Flag */}
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black bg-amber-100 text-amber-950 border border-amber-300 shadow-xs animate-pulse">
+                <AlertTriangle className="w-4 h-4 text-[#D97706]" />
+                <span>हवामान इशारा: अवकाळी पाऊस</span>
               </span>
             </div>
 
@@ -184,6 +202,46 @@ export const PriceForecastPage: React.FC = () => {
         </div>
       </Card>
 
+      {/* 1. Feature 1: Weather Signal Integration Input Bar */}
+      <Card hoverable={false} className="p-5 bg-[#FFFFFF] border-2 border-[#81C784]/60 rounded-2xl shadow-sm space-y-3">
+        <div className="flex items-center justify-between gap-3 pb-3 border-b border-[#E1EBE1]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-2xl bg-amber-100 text-[#D97706] flex items-center justify-center font-black shrink-0">
+              <CloudRain className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-black text-[#1B4332]">
+                हवामान इनपुट सिग्नल (Weather Signal to AI Model)
+              </h3>
+              <p className="text-xs text-[#6B7280] font-bold">
+                कोपरगाव हवामान अंदाज AI दर मॉडेलमध्ये थेट इनपुट सिग्नल म्हणून समाविष्ट
+              </p>
+            </div>
+          </div>
+
+          <span className="hidden sm:inline-flex items-center gap-1 px-3 py-1 bg-emerald-50 text-emerald-950 border border-emerald-300 text-xs font-black rounded-full">
+            <Zap className="w-3.5 h-3.5 text-[#FFC107]" />
+            Supply Shock Signal: Active
+          </span>
+        </div>
+
+        <div className="p-4 bg-[#F7FBF7] rounded-2xl border border-[#E1EBE1] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-bold">
+          <div className="flex items-center gap-3">
+            <span className="text-base font-black text-[#2E7D32]">
+              🌧️ {todayWeatherSignal.rainfallMm}mm पाऊस ({todayWeatherSignal.tempC}°C)
+            </span>
+            <span className="text-[#6B7280]">|</span>
+            <span className="text-[#D97706] font-black">
+              भावावर प्रभाव: +{todayWeatherSignal.supplyShockImpactPct}% (आवक तुटवडा)
+            </span>
+          </div>
+
+          <span className="text-[#1B4332] font-black text-right">
+            "{i18n.language === 'mr' ? todayWeatherSignal.descriptionMr : todayWeatherSignal.descriptionEn}"
+          </span>
+        </div>
+      </Card>
+
       {/* Loading Skeleton State */}
       {isLoading ? (
         <div className="space-y-6">
@@ -196,7 +254,7 @@ export const PriceForecastPage: React.FC = () => {
         </div>
       ) : forecastData.length > 0 ? (
         <>
-          {/* 3 & 4. Expected Price Cards & Profit Card Row */}
+          {/* Expected Price Cards & Profit Card Row */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             
             {/* Current Price Card */}
@@ -269,7 +327,59 @@ export const PriceForecastPage: React.FC = () => {
             onHorizonChange={(h) => setHorizonDays(h)}
           />
 
-          {/* 5, 6 & 8. Recommendation Box & Risk Indicator Card */}
+          {/* 3. Feature 3: Post-Harvest Processing & Market Linkage Advice Card */}
+          <Card hoverable={false} className="p-6 sm:p-8 bg-gradient-to-br from-[#FFFFFF] via-[#F7FBF7] to-[#E8F5E9] border-2 border-[#2E7D32] rounded-2xl shadow-md space-y-4">
+            <div className="flex items-center justify-between gap-3 pb-3 border-b border-[#E1EBE1]">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#2E7D32] text-[#FFC107] flex items-center justify-center font-black shrink-0 shadow-md">
+                  <Building2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-[#1B4332]">
+                    काढणी पश्चात प्रक्रिया व थेट बाजार जोडणी (Market Linkage & Processing)
+                  </h3>
+                  <span className="text-xs font-extrabold text-[#6B7280]">
+                    "केवळ कच्चा माल मंडीत विकण्याऐवजी प्रक्रिया केंद्राशी जोडल्यास जास्त नफा मिळवा"
+                  </span>
+                </div>
+              </div>
+
+              <span className="px-3.5 py-1.5 bg-[#FFC107] text-[#1B4332] font-black text-xs rounded-2xl shadow-xs shrink-0">
+                +{processingLinkage.netExtraProfitPerQ} ₹/q अतिरिक्त नफा
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-bold">
+              <div className="p-4 bg-[#FFFFFF] border border-[#E1EBE1] rounded-2xl space-y-1">
+                <span className="text-[#6B7280] font-extrabold">साधा मंडी भाव:</span>
+                <div className="text-xl font-black text-[#1B4332]">
+                  ₹{processingLinkage.rawMandiPrice} / क्विंटल
+                </div>
+              </div>
+
+              <div className="p-4 bg-[#FFFFFF] border border-[#E1EBE1] rounded-2xl space-y-1">
+                <span className="text-[#2E7D32] font-extrabold">प्रक्रिया / चॅनेल नाव:</span>
+                <div className="text-sm font-black text-[#2E7D32]">
+                  {i18n.language === 'mr' ? processingLinkage.channelNameMr : processingLinkage.channelNameEn}
+                </div>
+              </div>
+
+              <div className="p-4 bg-emerald-100 border border-emerald-300 rounded-2xl space-y-1">
+                <span className="text-emerald-950 font-extrabold">मिळणारा निव्वळ जादा भाव:</span>
+                <div className="text-xl font-black text-[#2E7D32]">
+                  +₹{processingLinkage.netExtraProfitPerQ} / क्विंटल
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-[#FFFFFF] border-l-4 border-[#FFC107] rounded-r-2xl border border-[#E1EBE1]">
+              <p className="text-sm font-black text-[#1B4332] leading-relaxed">
+                👉 {i18n.language === 'mr' ? processingLinkage.recommendedActionMr : processingLinkage.recommendedActionEn}
+              </p>
+            </div>
+          </Card>
+
+          {/* Recommendation Box & Risk Indicator Card */}
           <Card hoverable={false} className="p-6 sm:p-8 bg-[#FFFFFF] border-2 border-[#81C784]/40 rounded-2xl shadow-md space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-[#2E7D32] text-[#FFC107] flex items-center justify-center font-black shrink-0 shadow-md">
@@ -292,7 +402,7 @@ export const PriceForecastPage: React.FC = () => {
               </p>
             </div>
 
-            {/* 6. Risk Indicator Pill */}
+            {/* Risk Indicator Pill */}
             <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[#6B7280] pt-2 border-t border-[#E1EBE1]">
               <span className="flex items-center gap-1.5 font-extrabold text-[#2E7D32]">
                 <ShieldCheck className="w-4 h-4 text-[#43A047]" />
