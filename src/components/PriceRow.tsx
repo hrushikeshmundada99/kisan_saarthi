@@ -83,7 +83,7 @@ export const PriceRow: React.FC<PriceRowProps> = ({ card, onCompareClick, onFore
           {/* Min - Max Range */}
           <div>
             <div className="text-[11px] font-extrabold text-[#4B5563] uppercase tracking-wider">
-              किमान - कमाल
+              {t('dashboard.minMax')}
             </div>
             <div className="text-xs font-black text-[#1F2937] mt-1">
               ₹{card.minPrice} - ₹{card.maxPrice}

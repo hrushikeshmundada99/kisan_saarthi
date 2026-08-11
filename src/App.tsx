@@ -58,7 +58,7 @@ function AppContent() {
           onOpenAuthModal={() => setAuthModalOpen(true)}
         />
 
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-8">
           <Breadcrumb />
           
           <Suspense fallback={<LoadingSkeleton type="card" count={3} />}>
@@ -87,15 +87,15 @@ function AppContent() {
           </Suspense>
         </main>
 
-        <footer className="bg-[#FFFFFF] border-t border-[#E1EBE1] py-6 text-center text-xs text-[#6B7280]">
-          <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <footer className="bg-[#FFFFFF] border-t border-[#E1EBE1] py-4 text-center text-xs text-[#6B7280]">
+          <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2 font-bold text-[#2E7D32]">
               <Sprout className="w-5 h-5 text-[#FFC107]" />
               <span>किसान सारथी (Kisan Saarthi) - कोपरगाव कृषी बाजार बुद्धिमत्ता</span>
             </div>
 
-            <div className="flex items-center gap-6 text-[#6B7280] font-semibold">
-              <span>कोपरगाव • राहाता • श्रीरामपूर • संगमनेर • येवला • नाशिक • अहमदनगर</span>
+            <div className="flex items-center gap-4 text-[#6B7280] font-semibold flex-wrap justify-center">
+              <span>कोपरगाव • राहाता • श्रीरामपूर • येवला • लासलगाव • संगमनेर • नाशिक • अहमदनगर</span>
             </div>
 
             <div className="flex items-center gap-1 text-[#6B7280] font-semibold">

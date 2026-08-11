@@ -31,7 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
 
   const navItems = [
     { id: 'dashboard', path: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
-    { id: 'recommendation', path: '/recommendation', label: 'पिक निवड सल्लागार', icon: Sprout },
+    { id: 'recommendation', path: '/recommendation', label: t('nav.recommendation'), icon: Sprout },
     { id: 'forecast', path: '/forecast', label: t('nav.forecast'), icon: LineChart },
     { id: 'comparison', path: '/comparison', label: t('nav.comparison'), icon: Scale },
     { id: 'trends', path: '/trends', label: t('nav.trends'), icon: BarChart3 },

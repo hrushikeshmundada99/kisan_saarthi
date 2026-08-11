@@ -112,35 +112,35 @@ export const PriceForecastPage: React.FC = () => {
   const processingLinkage = MOCK_PROCESSING_LINKAGES[crop] || MOCK_PROCESSING_LINKAGES['Onion'];
 
   return (
-    <div className="space-y-6 pb-12 max-w-7xl mx-auto animate-in fade-in duration-300">
+    <div className="space-y-4 sm:space-y-5 pb-6 max-w-7xl mx-auto animate-in fade-in duration-200">
       
       {/* 1. Large Prediction Summary Header Card */}
-      <Card hoverable={false} className="p-6 sm:p-8 bg-gradient-to-br from-[#FFFFFF] via-[#F7FBF7] to-[#E8F5E9] border-2 border-[#81C784]/60 rounded-2xl shadow-md space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E1EBE1] pb-6">
+      <Card hoverable={false} className="p-4 sm:p-6 bg-gradient-to-br from-[#FFFFFF] via-[#F7FBF7] to-[#E8F5E9] border-2 border-[#81C784]/60 rounded-2xl shadow-sm space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E1EBE1] pb-4">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#2E7D32]/10 text-[#2E7D32] text-xs font-black">
-                <Sparkles className="w-4 h-4 text-[#FFC107] animate-pulse" />
-                <span>AI मॉडेल अंदाज प्रणाली (Agmarknet Live Engine)</span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2E7D32]/10 text-[#2E7D32] text-xs font-black">
+                <Sparkles className="w-3.5 h-3.5 text-[#FFC107] animate-pulse" />
+                <span>{i18n.language === 'mr' ? 'AI दर अंदाज प्रणाली' : 'AI Price Forecast Engine'}</span>
               </div>
 
               {/* 2. Confidence Badge */}
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-xs">
-                <ShieldCheck className="w-4 h-4 text-[#43A047]" />
-                <span>88% High Confidence</span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-xs">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#43A047]" />
+                <span>{i18n.language === 'mr' ? '८८% उच्च अचूकता' : '88% High Confidence'}</span>
               </span>
 
               {/* 4. Climate Risk Advisory Flag */}
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black bg-amber-100 text-amber-950 border border-amber-300 shadow-xs animate-pulse">
-                <AlertTriangle className="w-4 h-4 text-[#D97706]" />
-                <span>हवामान इशारा: अवकाळी पाऊस</span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-950 border border-amber-300 shadow-xs">
+                <AlertTriangle className="w-3.5 h-3.5 text-[#D97706]" />
+                <span>{i18n.language === 'mr' ? 'हवामान इशारा: अवकाळी पाऊस' : 'Weather Risk Flag'}</span>
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-black text-[#1B4332] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1B4332] tracking-tight">
               {t('forecast.title')}
             </h1>
-            <p className="text-sm text-[#6B7280] font-medium">
+            <p className="text-xs sm:text-sm text-[#6B7280] font-semibold">
               {t('forecast.subtitle')}
             </p>
           </div>

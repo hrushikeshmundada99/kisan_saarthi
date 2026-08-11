@@ -181,20 +181,20 @@ export const MandiComparisonPage: React.FC = () => {
   }, [selectedDate]);
 
   return (
-    <div className="space-y-6 pb-12 max-w-7xl mx-auto animate-in fade-in duration-300">
+    <div className="space-y-4 sm:space-y-5 pb-6 max-w-7xl mx-auto animate-in fade-in duration-200">
       
       {/* 1. Header & Controls Card (Crop + Date Selector) */}
-      <Card hoverable={false} className="space-y-4">
+      <Card hoverable={false} className="p-4 sm:p-6 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#2E7D32]/10 text-[#2E7D32] text-xs font-extrabold mb-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2E7D32]/10 text-[#2E7D32] text-xs font-black mb-1.5">
               <Scale className="w-3.5 h-3.5 text-[#FFC107]" />
-              <span>निव्वळ हातात पडणारा नफा गणित (Net Payout Engine)</span>
+              <span>{i18n.language === 'mr' ? 'हातात पडणारा निखळ नफा गणित' : 'Net Payout Engine'}</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1B4332]">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1B4332] tracking-tight">
               {t('comparison.title')}
             </h1>
-            <p className="text-sm text-[#6B7280] font-medium mt-1">
+            <p className="text-xs sm:text-sm text-[#6B7280] font-semibold mt-1">
               {t('comparison.subtitle')}
             </p>
           </div>

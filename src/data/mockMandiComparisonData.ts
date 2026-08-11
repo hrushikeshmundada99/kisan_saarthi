@@ -12,13 +12,14 @@ export interface DateWiseMandiPrice {
 }
 
 export const CROPS = ['Onion', 'Soybean', 'Cotton', 'Sugarcane', 'Pomegranate', 'Wheat', 'Tomato'];
-export const MANDIS = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Sangamner', 'Nashik', 'Ahmednagar'];
+export const MANDIS = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Lasalgaon', 'Sangamner', 'Nashik', 'Ahmednagar'];
 
 const MANDI_BASE_OFFSETS: Record<string, number> = {
   Kopargaon: 0,
   Rahata: 70,
   Shrirampur: 15,
   Yeola: 130,
+  Lasalgaon: 270,
   Sangamner: -40,
   Nashik: 200,
   Ahmednagar: 40

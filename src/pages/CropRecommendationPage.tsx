@@ -39,22 +39,22 @@ export const CropRecommendationPage: React.FC = () => {
   }, [selectedSoil, selectedSeason, selectedWater]);
 
   return (
-    <div className="space-y-6 pb-12 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-3 duration-300">
+    <div className="space-y-4 sm:space-y-5 pb-6 max-w-7xl mx-auto animate-in fade-in duration-200">
       
       {/* Page Header Card */}
-      <Card hoverable={false} className="p-6 sm:p-8 space-y-4 border border-[#E1EBE1] rounded-2xl shadow-sm bg-gradient-to-r from-[#FFFFFF] via-[#F7FBF7] to-[#E8F5E9]">
+      <Card hoverable={false} className="p-4 sm:p-6 space-y-3 border border-[#E1EBE1] rounded-2xl shadow-sm bg-gradient-to-r from-[#FFFFFF] via-[#F7FBF7] to-[#E8F5E9]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#2E7D32]/10 text-[#2E7D32] text-xs font-black">
+          <div className="space-y-1.5">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2E7D32]/10 text-[#2E7D32] text-xs font-black">
               <Compass className="w-4 h-4 text-[#FFC107]" />
               <span>{t('nav.recommendation')}</span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-black text-[#1B4332] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1B4332] tracking-tight">
               {t('recommendation.title')}
             </h1>
             
-            <p className="text-sm font-extrabold text-[#2E7D32]">
+            <p className="text-xs sm:text-sm font-extrabold text-[#2E7D32]">
               "{t('recommendation.subtitle')}"
             </p>
           </div>

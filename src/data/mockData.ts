@@ -64,6 +64,7 @@ export const MANDI_LOCATIONS: Record<string, { distanceKm: number; estFreightRat
   Rahata: { distanceKm: 14, estFreightRatePerQ: 25 },
   Shrirampur: { distanceKm: 22, estFreightRatePerQ: 35 },
   Yeola: { distanceKm: 28, estFreightRatePerQ: 42 },
+  Lasalgaon: { distanceKm: 42, estFreightRatePerQ: 60 },
   Sangamner: { distanceKm: 38, estFreightRatePerQ: 55 },
   Nashik: { distanceKm: 85, estFreightRatePerQ: 110 },
   Ahmednagar: { distanceKm: 95, estFreightRatePerQ: 125 }
@@ -132,6 +133,27 @@ export const MOCK_DASHBOARD_CARDS: MandiPriceCardItem[] = [
       { date: "24 Jul", price: 1920 },
       { date: "25 Jul", price: 1950 },
       { date: "26 Jul", price: 1980 }
+    ]
+  },
+  {
+    id: "card-on-las",
+    mandiName: "Lasalgaon",
+    crop: "Onion",
+    modalPrice: 2120,
+    minPrice: 1920,
+    maxPrice: 2340,
+    priceChangePercent: 8.16,
+    priceChangeAmount: 160,
+    distanceFromKopargaon: 42,
+    lastUpdated: "आज, 10:45 AM",
+    history7Days: [
+      { date: "20 Jul", price: 1880 },
+      { date: "21 Jul", price: 1910 },
+      { date: "22 Jul", price: 1950 },
+      { date: "23 Jul", price: 2000 },
+      { date: "24 Jul", price: 2050 },
+      { date: "25 Jul", price: 2090 },
+      { date: "26 Jul", price: 2120 }
     ]
   },
   {

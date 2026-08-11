@@ -118,8 +118,8 @@ export const PriceCard: React.FC<PriceCardProps> = ({ card, onCompareClick, onFo
         {/* Min - Max Range Bar */}
         <div className="space-y-1.5">
           <div className="flex justify-between text-xs text-[#6B7280] font-semibold">
-            <span>किमान: <strong className="text-[#1B4332]">₹{card.minPrice}</strong></span>
-            <span>कमाल: <strong className="text-[#1B4332]">₹{card.maxPrice}</strong></span>
+            <span>{t('dashboard.minPrice')}: <strong className="text-[#1B4332]">₹{card.minPrice}</strong></span>
+            <span>{t('dashboard.maxPrice')}: <strong className="text-[#1B4332]">₹{card.maxPrice}</strong></span>
           </div>
           <div className="relative w-full h-2 bg-[#E1EBE1] rounded-full overflow-hidden">
             <div

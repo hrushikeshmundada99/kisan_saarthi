@@ -18,7 +18,7 @@ export const MandiDateMatrixTable: React.FC<MandiDateMatrixTableProps> = ({
   const { t } = useTranslation();
 
   // Group records by mandi
-  const mandisList = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Sangamner', 'Nashik', 'Ahmednagar'];
+  const mandisList = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Lasalgaon', 'Sangamner', 'Nashik', 'Ahmednagar'];
 
   return (
     <Card hoverable={false} className="space-y-4 overflow-hidden border border-[#E1EBE1] rounded-2xl shadow-sm">
