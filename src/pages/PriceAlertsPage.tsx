@@ -6,26 +6,32 @@ import {
   saveStoredAlerts,
   evaluateAlertStatus
 } from '../utils/alertManager';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { AlertCard } from '../components/AlertCard';
 import { EmptyState } from '../components/EmptyState';
 import { CropSelector } from '../components/CropSelector';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import { SmsGatewayModal } from '../components/SmsGatewayModal';
 import {
   Bell,
   Plus,
   Sparkles,
   ArrowUpDown,
-  CheckSquare,
-  Square,
-  Store
+  Store,
+  Smartphone,
+  CheckCircle2,
+  TrendingUp,
+  TrendingDown,
+  Key
 } from 'lucide-react';
 
-const MANDIS_WITH_ANY = ['ANY', 'Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Sangamner', 'Nashik', 'Ahmednagar'];
+const MANDIS_WITH_ANY = ['ANY', 'Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Lasalgaon', 'Sangamner', 'Nashik', 'Ahmednagar'];
 
 export const PriceAlertsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const { showToast } = useToast();
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -35,42 +41,43 @@ export const PriceAlertsPage: React.FC = () => {
   // Form State
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   const [crop, setCrop] = useState<string>('Onion');
-  const [mandi, setMandi] = useState<string>('Kopargaon');
+  const [mandi, setMandi] = useState<string>('Lasalgaon');
   const [condition, setCondition] = useState<'ABOVE' | 'BELOW'>('ABOVE');
-  const [targetPrice, setTargetPrice] = useState<number>(2000);
-  const [notificationMethods, setNotificationMethods] = useState<Array<'In-App' | 'SMS' | 'WhatsApp' | 'Email'>>([
-    'In-App',
-    'WhatsApp'
-  ]);
+  const [targetPrice, setTargetPrice] = useState<number>(2200);
+  const [farmerPhone, setFarmerPhone] = useState<string>(user?.phone || '9822154321');
+  const [gatewayModalOpen, setGatewayModalOpen] = useState<boolean>(false);
+
+  // Sync logged in user phone
+  useEffect(() => {
+    if (user?.phone) {
+      setFarmerPhone(user.phone);
+    }
+  }, [user]);
 
   // Filter & Sort State
   const [filterTab, setFilterTab] = useState<'ALL' | 'ACTIVE' | 'TRIGGERED'>('ALL');
-  const [sortBy, setSortBy] = useState<'newest' | 'closest'>('closest');
+  const [sortBy, setSortBy] = useState<'closest' | 'newest'>('closest');
 
   // Persist alerts to localStorage on change
   useEffect(() => {
     saveStoredAlerts(alerts);
   }, [alerts]);
 
-  // Target price validation
+  // Target price and phone validation
   const isTargetPriceValid = targetPrice > 0;
-
-  // Toggle notification method checkbox
-  const toggleMethod = (method: 'In-App' | 'SMS' | 'WhatsApp' | 'Email') => {
-    setNotificationMethods((prev) => {
-      if (prev.includes(method)) {
-        if (prev.length <= 1) return prev; // keep at least 1
-        return prev.filter((m) => m !== method);
-      } else {
-        return [...prev, method];
-      }
-    });
-  };
+  const isPhoneValid = farmerPhone.replace(/\D/g, '').length === 10;
 
   // Add New Alert
   const handleAddAlert = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isTargetPriceValid) return;
+    if (!isTargetPriceValid) {
+      showToast('कृपया योग्य लक्ष्य भाव प्रविष्ट करा', 'error');
+      return;
+    }
+    if (!isPhoneValid) {
+      showToast('कृपया १०-अंकी मोबाईल नंबर प्रविष्ट करा', 'error');
+      return;
+    }
 
     const newAlert: PriceAlertItem = {
       id: `alt-${Date.now()}`,
@@ -78,14 +85,15 @@ export const PriceAlertsPage: React.FC = () => {
       mandi,
       condition,
       targetPrice,
-      notificationMethods,
+      farmerPhone,
+      notificationMethods: ['SMS', 'In-App'],
       status: 'ACTIVE',
       createdAt: new Date().toISOString().split('T')[0]
     };
 
     setAlerts([newAlert, ...alerts]);
     setShowAddForm(false);
-    showToast('नवीन भाव अलर्ट यशस्वीरित्या तयार केला! (Alert Created)', 'success');
+    showToast(`मोबाईल SMS अलर्ट सेट झाला! (+91 ${farmerPhone})`, 'success');
   };
 
   // Toggle Alert Status (Enable / Pause)
@@ -94,7 +102,7 @@ export const PriceAlertsPage: React.FC = () => {
       prev.map((alt) => {
         if (alt.id === id) {
           const nextStatus = alt.status === 'DISABLED' ? 'ACTIVE' : 'DISABLED';
-          showToast(nextStatus === 'DISABLED' ? 'अलर्ट थांबवण्यात आला (Alert Paused)' : 'अलर्ट पुन्हा सुरू केला (Alert Activated)', 'info');
+          showToast(nextStatus === 'DISABLED' ? 'अलर्ट थांबवला (Alert Paused)' : 'अलर्ट पुन्हा सुरू केला (Alert Active)', 'info');
           return { ...alt, status: nextStatus };
         }
         return alt;
@@ -105,14 +113,13 @@ export const PriceAlertsPage: React.FC = () => {
   // Delete Alert
   const handleDeleteAlert = (id: string) => {
     setAlerts((prev) => prev.filter((alt) => alt.id !== id));
-    showToast('अलर्ट यशस्वीरित्या हटवला गेला (Alert Deleted)', 'error');
+    showToast('अलर्ट हटवला गेला (Alert Deleted)', 'error');
   };
 
   // Filter & Sort Alerts List (Triggered placed at top)
   const processedAlertsList = useMemo(() => {
     let result = alerts;
 
-    // Filter Tab
     if (filterTab === 'ACTIVE') {
       result = result.filter((alt) => {
         const ev = evaluateAlertStatus(alt);
@@ -125,7 +132,6 @@ export const PriceAlertsPage: React.FC = () => {
       });
     }
 
-    // Sort: Triggered always prioritized at top, then by sort parameter
     return [...result].sort((a, b) => {
       const evA = evaluateAlertStatus(a);
       const evB = evaluateAlertStatus(b);
@@ -150,76 +156,127 @@ export const PriceAlertsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-12 max-w-7xl mx-auto animate-in fade-in duration-300">
+    <div className="space-y-4 sm:space-y-5 pb-6 max-w-7xl mx-auto animate-in fade-in duration-200">
       
-      {/* Header Card */}
-      <Card hoverable={false} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D97706]/10 text-[#B45309] text-xs font-bold mb-2">
-            <Bell className="w-3.5 h-3.5" />
-            <span>थेट व्हॉट्सॲप / SMS अलर्ट प्रणाली (Price Notification Engine)</span>
+      {/* 1. Header Card with Simple SIM SMS Concept Explanation */}
+      <Card hoverable={false} className="p-4 sm:p-6 bg-gradient-to-br from-[#FFFFFF] via-[#F7FBF7] to-[#E8F5E9] border-2 border-[#81C784]/60 rounded-2xl shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1.5">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2E7D32]/10 text-[#2E7D32] text-xs font-black">
+              <Smartphone className="w-4 h-4 text-[#FFC107]" />
+              <span>{i18n.language === 'mr' ? 'थेट मोबाईल SMS अलर्ट प्रणाली' : 'Direct Mobile SIM SMS Alert'}</span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1B4332] tracking-tight">
+              {i18n.language === 'mr' ? 'मोबाईल भाव अलर्ट (SMS Alert)' : 'Mobile Price Alerts (SMS)'}
+            </h1>
+            
+            <p className="text-xs sm:text-sm font-semibold text-[#6B7280]">
+              {i18n.language === 'mr'
+                ? 'तुमचा अपेक्षित भाव बाजारात येताच थेट तुमच्या मोबाईल नंबरवर SMS मेसेज येईल.'
+                : 'Get direct SMS message on your mobile number when market price hits your target.'}
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#2D5016]">
-            {t('alerts.title')}
-          </h1>
-          <p className="text-sm text-[#4B5563] mt-1">
-            {t('alerts.subtitle')}
-          </p>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => setGatewayModalOpen(true)}
+              className="px-3.5 py-2.5 rounded-2xl bg-[#FFFFFF] border-2 border-[#1B5E20] text-[#1B5E20] text-xs font-black hover:bg-[#E8F5E9] transition-all flex items-center gap-1.5 cursor-pointer shadow-xs min-h-[44px]"
+            >
+              <Key className="w-4 h-4 text-[#FFB300]" />
+              <span>SMS गेटवे (खरा SMS)</span>
+            </button>
+
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => setShowAddForm(!showAddForm)}
+              className="shadow-md shadow-emerald-900/15 min-h-[44px]"
+            >
+              <Plus className="w-4 h-4 text-[#FFB300]" />
+              <span>{i18n.language === 'mr' ? 'नवीन भाव अलर्ट सेट करा' : 'Set New Price Alert'}</span>
+            </Button>
+          </div>
         </div>
 
-        <Button
-          variant="primary"
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4 text-[#D97706]" />
-          <span>{t('alerts.setAlertTitle')}</span>
-        </Button>
+        {/* 3-Step Simple How It Works Strip for Farmers */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-[#E1EBE1] text-xs">
+          <div className="p-3 bg-[#FFFFFF] rounded-xl border border-[#E1EBE1] flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-[#E8F5E9] text-[#2E7D32] flex items-center justify-center font-black shrink-0">
+              १
+            </div>
+            <div>
+              <span className="font-extrabold text-[#1B4332] block">पिक व बाजार निवडा</span>
+              <span className="text-[#6B7280] font-medium">कांदा, सोयाबीन व बाजार समिती</span>
+            </div>
+          </div>
+
+          <div className="p-3 bg-[#FFFFFF] rounded-xl border border-[#E1EBE1] flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-amber-100 text-[#D97706] flex items-center justify-center font-black shrink-0">
+              २
+            </div>
+            <div>
+              <span className="font-extrabold text-[#1B4332] block">अपेक्षित भाव टाका</span>
+              <span className="text-[#6B7280] font-medium">उदा. ₹२,२००/क्विंटल</span>
+            </div>
+          </div>
+
+          <div className="p-3 bg-[#FFFFFF] rounded-xl border border-[#E1EBE1] flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-[#2E7D32] flex items-center justify-center font-black shrink-0">
+              ३
+            </div>
+            <div>
+              <span className="font-extrabold text-[#1B4332] block">मोबाईलवर SMS मिळवा</span>
+              <span className="text-[#6B7280] font-medium">भाव येताच थेट SIM वर संदेश</span>
+            </div>
+          </div>
+        </div>
       </Card>
 
-      {/* 1. Set New Alert Form / Card */}
+      {/* Set New Alert Form Card */}
       {showAddForm && (
         <div ref={formRef}>
           <form onSubmit={handleAddAlert}>
-            <Card hoverable={false} className="border-2 border-[#2D5016] space-y-5 animate-in slide-in-from-top-2 duration-200">
-              <div className="flex items-center justify-between border-b border-[#E5DFD5] pb-3">
-                <h3 className="text-lg font-bold text-[#2D5016] flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-[#D97706]" />
-                  <span>नवीन भाव अलर्ट सेट करा (Create New Price Alert)</span>
+            <Card hoverable={false} className="p-5 sm:p-6 border-2 border-[#2E7D32] rounded-2xl space-y-4 animate-in slide-in-from-top-2 duration-200 bg-[#FFFFFF] shadow-md">
+              <div className="flex items-center justify-between border-b border-[#E1EBE1] pb-3">
+                <h3 className="text-lg font-black text-[#1B4332] flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-[#FFC107]" />
+                  <span>{i18n.language === 'mr' ? 'नवीन भाव अलर्ट नोंदवा' : 'Set New Price Alert'}</span>
                 </h3>
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="text-xs font-bold text-[#4B5563] hover:text-[#1F2937] min-h-[44px] px-3 cursor-pointer"
+                  className="text-xs font-black text-[#6B7280] hover:text-[#E53935] min-h-[40px] px-3 cursor-pointer"
                 >
-                  रद्द करा (Cancel)
+                  {i18n.language === 'mr' ? 'रद्द करा (Cancel)' : 'Cancel'}
                 </button>
               </div>
 
               {/* Crop & Mandi Selectors */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-[#4B5563] uppercase tracking-wider mb-2">
-                    1. पिक निवडा:
+                  <label className="block text-xs font-black text-[#1B4332] uppercase tracking-wider mb-2">
+                    १. पिक निवडा:
                   </label>
                   <CropSelector selectedCrop={crop} onSelectCrop={(c) => setCrop(c)} variant="chips" />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#4B5563] uppercase tracking-wider mb-2">
-                    2. बाजार समिती (Mandi):
+                  <label className="block text-xs font-black text-[#1B4332] uppercase tracking-wider mb-2">
+                    २. बाजार समिती:
                   </label>
                   <div className="relative flex items-center">
-                    <Store className="absolute left-3.5 w-4.5 h-4.5 text-[#D97706]" />
+                    <Store className="absolute left-3.5 w-4.5 h-4.5 text-[#2E7D32]" />
                     <select
                       value={mandi}
                       onChange={(e) => setMandi(e.target.value)}
-                      className="w-full pl-10 pr-4 min-h-[44px] bg-[#FFFFFF] border border-[#E5DFD5] rounded-xl text-[#1F2937] font-bold text-sm focus:outline-none focus:ring-2 focus:ring-[#D97706]/40 cursor-pointer shadow-xs"
+                      className="w-full pl-10 pr-4 min-h-[48px] bg-[#FFFFFF] border-2 border-[#E1EBE1] rounded-2xl text-[#1B4332] font-black text-sm focus:outline-none focus:ring-4 focus:ring-[#2E7D32]/20 cursor-pointer shadow-xs"
                     >
                       {MANDIS_WITH_ANY.map((mItem) => (
-                        <option key={mItem} value={mItem}>
+                        <option key={mItem} value={mItem} className="font-bold py-1">
                           {mItem === 'ANY'
-                            ? (i18n.language === 'mr' ? '📍 कोणतीही जवळची मंडी (Any Nearby Mandi)' : '📍 Any nearby mandi')
+                            ? (i18n.language === 'mr' ? '📍 कोणतीही जवळची बाजार समिती' : '📍 Any nearby market')
                             : `📍 ${t(`mandis.${mItem}`, mItem)}`}
                         </option>
                       ))}
@@ -228,46 +285,48 @@ export const PriceAlertsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* 1. Condition & Target Price Input */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#E5DFD5]">
+              {/* Condition, Target Price & Mobile Number */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-[#E1EBE1]">
                 
                 {/* Condition Radio Toggle */}
                 <div>
-                  <label className="block text-xs font-bold text-[#4B5563] uppercase tracking-wider mb-2">
-                    3. अट निवडा (Alert Condition):
+                  <label className="block text-xs font-black text-[#1B4332] uppercase tracking-wider mb-2">
+                    ३. अट निवडा:
                   </label>
 
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => setCondition('ABOVE')}
-                      className={`p-3 rounded-xl border text-xs font-extrabold flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer ${
+                      className={`p-3 rounded-2xl border-2 text-xs font-black flex items-center justify-center gap-1 min-h-[48px] cursor-pointer transition-all ${
                         condition === 'ABOVE'
-                          ? 'bg-[#2D5016] text-[#FFFFFF] border-[#2D5016] shadow-xs'
-                          : 'bg-[#FAF7F2] text-[#2D5016] border-[#E5DFD5]'
+                          ? 'bg-[#2E7D32] text-[#FFFFFF] border-[#2E7D32] shadow-xs'
+                          : 'bg-[#F7FBF7] text-[#1B4332] border-[#E1EBE1]'
                       }`}
                     >
-                      <span>भाव वाढल्यास (Above ₹)</span>
+                      <TrendingUp className="w-3.5 h-3.5 text-[#FFC107]" />
+                      <span>भाव वाढल्यावर</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setCondition('BELOW')}
-                      className={`p-3 rounded-xl border text-xs font-extrabold flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer ${
+                      className={`p-3 rounded-2xl border-2 text-xs font-black flex items-center justify-center gap-1 min-h-[48px] cursor-pointer transition-all ${
                         condition === 'BELOW'
-                          ? 'bg-[#2D5016] text-[#FFFFFF] border-[#2D5016] shadow-xs'
-                          : 'bg-[#FAF7F2] text-[#2D5016] border-[#E5DFD5]'
+                          ? 'bg-[#2E7D32] text-[#FFFFFF] border-[#2E7D32] shadow-xs'
+                          : 'bg-[#F7FBF7] text-[#1B4332] border-[#E1EBE1]'
                       }`}
                     >
-                      <span>भाव घटल्यास (Below ₹)</span>
+                      <TrendingDown className="w-3.5 h-3.5 text-[#E53935]" />
+                      <span>भाव कमी झाल्यावर</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Target Price Input */}
                 <div>
-                  <label className="block text-xs font-bold text-[#4B5563] uppercase tracking-wider mb-2">
-                    4. लक्ष्य भाव रु. प्रति क्विंटल (Target Price ₹):
+                  <label className="block text-xs font-black text-[#1B4332] uppercase tracking-wider mb-2">
+                    ४. अपेक्षित लक्ष्य भाव (₹/क्विंटल):
                   </label>
                   <input
                     type="number"
@@ -275,42 +334,37 @@ export const PriceAlertsPage: React.FC = () => {
                     min="100"
                     value={targetPrice}
                     onChange={(e) => setTargetPrice(Number(e.target.value))}
-                    className="w-full px-4 py-2.5 bg-[#FFFFFF] border border-[#E5DFD5] rounded-xl text-base font-extrabold text-[#1F2937] focus:ring-2 focus:ring-[#2D5016]/40 min-h-[44px] shadow-xs"
+                    className="w-full px-4 py-2.5 bg-[#FFFFFF] border-2 border-[#E1EBE1] rounded-2xl text-base font-black text-[#1B4332] focus:ring-4 focus:ring-[#2E7D32]/20 min-h-[48px] shadow-xs"
                     required
                   />
-                  {!isTargetPriceValid && (
-                    <p className="text-xs text-rose-600 font-bold mt-1">कृपया वैध लक्ष्य भाव प्रविष्ट करा</p>
-                  )}
+                </div>
+
+                {/* Farmer Mobile Number for SIM SMS */}
+                <div>
+                  <label className="block text-xs font-black text-[#1B4332] uppercase tracking-wider mb-2 flex items-center justify-between">
+                    <span>५. मोबाईल नंबर (SIM SMS):</span>
+                    <span className="text-[10px] text-[#2E7D32] font-black">१० अंक</span>
+                  </label>
+                  <div className="relative flex items-center">
+                    <Smartphone className="absolute left-3.5 w-4.5 h-4.5 text-[#2E7D32]" />
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      value={farmerPhone}
+                      onChange={(e) => setFarmerPhone(e.target.value.replace(/\D/g, ''))}
+                      placeholder="उदा. 9822154321"
+                      className="w-full pl-10 pr-4 py-2.5 bg-[#FFFFFF] border-2 border-[#E1EBE1] rounded-2xl text-sm font-black text-[#1B4332] focus:ring-4 focus:ring-[#2E7D32]/20 min-h-[48px] shadow-xs"
+                      required
+                    />
+                  </div>
                 </div>
 
               </div>
 
-              {/* 1. Notification Method Checkboxes */}
-              <div className="space-y-2 pt-2 border-t border-[#E5DFD5]">
-                <label className="block text-xs font-bold text-[#4B5563] uppercase tracking-wider">
-                  5. मेसेज पाठवण्याचे मार्ग (Notification Methods):
-                </label>
-
-                <div className="flex flex-wrap gap-2">
-                  {(['In-App', 'WhatsApp', 'SMS', 'Email'] as const).map((method) => {
-                    const isChecked = notificationMethods.includes(method);
-                    return (
-                      <button
-                        key={method}
-                        type="button"
-                        onClick={() => toggleMethod(method)}
-                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all min-h-[44px] cursor-pointer ${
-                          isChecked
-                            ? 'bg-[#2D5016] text-[#FFFFFF] shadow-xs'
-                            : 'bg-[#FAF7F2] text-[#2D5016] border border-[#E5DFD5]'
-                        }`}
-                      >
-                        {isChecked ? <CheckSquare className="w-4 h-4 text-[#D97706]" /> : <Square className="w-4 h-4 text-[#6B7280]" />}
-                        <span>{method}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+              {/* SMS Guarantee Info Strip */}
+              <div className="p-3 bg-[#F7FBF7] rounded-xl border border-[#E1EBE1] flex items-center gap-2 text-xs font-bold text-[#2E7D32]">
+                <CheckCircle2 className="w-4 h-4 text-[#43A047] shrink-0" />
+                <span>हा भाव बाजारात येताच +91 {farmerPhone || '9822154321'} या नंबरवर थेट मोफत SMS संदेश पाठवला जाईल.</span>
               </div>
 
               {/* Submit Button */}
@@ -319,10 +373,10 @@ export const PriceAlertsPage: React.FC = () => {
                   type="submit"
                   variant="primary"
                   size="md"
-                  disabled={!isTargetPriceValid}
+                  disabled={!isTargetPriceValid || !isPhoneValid}
                 >
-                  <Bell className="w-4 h-4 text-[#D97706]" />
-                  <span>{t('alerts.addAlertBtn')}</span>
+                  <Bell className="w-4 h-4 text-[#FFC107]" />
+                  <span>{i18n.language === 'mr' ? 'मोबाईल SMS अलर्ट सुरू करा' : 'Activate SMS Alert'}</span>
                 </Button>
               </div>
             </Card>
@@ -330,15 +384,15 @@ export const PriceAlertsPage: React.FC = () => {
         </div>
       )}
 
-      {/* 5. Filtering & Sorting Toolbar */}
-      <Card hoverable={false} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* Filter Tabs & Sort Toolbar */}
+      <Card hoverable={false} className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Filter Tabs */}
-        <div className="flex items-center gap-1 bg-[#FAF7F2] p-1 rounded-xl border border-[#E5DFD5] text-xs font-bold">
+        <div className="flex items-center gap-1 bg-[#F7FBF7] p-1 rounded-2xl border border-[#E1EBE1] text-xs font-bold">
           {(
             [
-              { id: 'ALL', labelMr: `सर्व (${alerts.length})`, labelEn: `All (${alerts.length})` },
+              { id: 'ALL', labelMr: `सर्व अलर्ट (${alerts.length})`, labelEn: `All (${alerts.length})` },
               { id: 'ACTIVE', labelMr: 'सक्रिय (Active)', labelEn: 'Active' },
-              { id: 'TRIGGERED', labelMr: 'ट्रिगर झालेले (Triggered)', labelEn: 'Triggered' }
+              { id: 'TRIGGERED', labelMr: 'भाव आलेले (Triggered)', labelEn: 'Triggered' }
             ] as const
           ).map((tab) => {
             const isActive = filterTab === tab.id;
@@ -346,10 +400,10 @@ export const PriceAlertsPage: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setFilterTab(tab.id)}
-                className={`px-3 py-1.5 rounded-lg transition-all min-h-[36px] cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-xl transition-all min-h-[36px] cursor-pointer font-black ${
                   isActive
-                    ? 'bg-[#2D5016] text-[#FFFFFF] shadow-xs'
-                    : 'text-[#4B5563] hover:text-[#2D5016] hover:bg-[#FFFFFF]'
+                    ? 'bg-[#2E7D32] text-[#FFFFFF] shadow-xs'
+                    : 'text-[#6B7280] hover:text-[#2E7D32] hover:bg-[#FFFFFF]'
                 }`}
               >
                 {i18n.language === 'mr' ? tab.labelMr : tab.labelEn}
@@ -359,13 +413,13 @@ export const PriceAlertsPage: React.FC = () => {
         </div>
 
         {/* Sort Dropdown */}
-        <div className="flex items-center gap-2 bg-[#FFFFFF] border border-[#E5DFD5] p-2 rounded-xl shadow-xs self-start sm:self-auto">
-          <ArrowUpDown className="w-4 h-4 text-[#D97706]" />
-          <span className="text-xs font-semibold text-[#4B5563]">क्रमवारी:</span>
+        <div className="flex items-center gap-2 bg-[#FFFFFF] border border-[#E1EBE1] p-2 rounded-2xl shadow-xs self-start sm:self-auto">
+          <ArrowUpDown className="w-4 h-4 text-[#2E7D32]" />
+          <span className="text-xs font-bold text-[#6B7280]">क्रमवारी:</span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="bg-transparent text-xs font-bold text-[#2D5016] focus:outline-none cursor-pointer pr-2"
+            className="bg-transparent text-xs font-black text-[#1B4332] focus:outline-none cursor-pointer pr-2"
           >
             <option value="closest">लक्ष्याच्या सर्वात जवळ (Closest to Target)</option>
             <option value="newest">नवीनतम प्रथम (Newest First)</option>
@@ -375,7 +429,7 @@ export const PriceAlertsPage: React.FC = () => {
 
       {/* Active & Triggered Alerts List */}
       {processedAlertsList.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
           {processedAlertsList.map((alt) => (
             <AlertCard
               key={alt.id}
@@ -388,12 +442,18 @@ export const PriceAlertsPage: React.FC = () => {
       ) : (
         /* Empty State */
         <EmptyState
-          title={t('alerts.emptyStateTitle')}
-          description={t('alerts.emptyStateDesc')}
-          actionLabel={t('alerts.setAlertTitle')}
+          title={i18n.language === 'mr' ? 'कोणतेही भाव अलर्ट्स सेट केलेले नाहीत' : 'No Price Alerts Set Yet'}
+          description={i18n.language === 'mr' ? 'कांदा, सोयाबीन किंवा कापसाचा अपेक्षित भाव बाजारात येताच थेट मोबाईलवर SMS मिळवण्यासाठी नवीन अलर्ट जोडा.' : 'Set an alert to get direct SMS message on your mobile phone when crop price hits your target.'}
+          actionLabel={i18n.language === 'mr' ? 'नवीन भाव अलर्ट सेट करा' : 'Set New Price Alert'}
           onAction={handleFocusForm}
         />
       )}
+
+      {/* Global SMS Gateway Modal */}
+      <SmsGatewayModal
+        isOpen={gatewayModalOpen}
+        onClose={() => setGatewayModalOpen(false)}
+      />
 
     </div>
   );

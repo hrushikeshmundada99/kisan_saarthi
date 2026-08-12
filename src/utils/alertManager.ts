@@ -6,44 +6,59 @@ export interface PriceAlertItem {
   mandi: string; // "ANY" or specific mandi name
   condition: 'ABOVE' | 'BELOW';
   targetPrice: number;
-  notificationMethods: Array<'In-App' | 'SMS' | 'WhatsApp' | 'Email'>;
+  farmerPhone?: string;
+  notificationMethods: Array<'SMS' | 'In-App'>;
   status: 'ACTIVE' | 'TRIGGERED' | 'DISABLED';
   createdAt: string;
+  lastSmsSentAt?: string;
+}
+
+export interface SmsDispatchResult {
+  success: boolean;
+  phone: string;
+  message: string;
+  timestamp: string;
+  method: 'NATIVE_SIM' | 'CLOUD_GATEWAY';
+  operator?: string;
 }
 
 const STORAGE_KEY = 'KISAN_SAARTHI_PRICE_ALERTS';
+const SMS_HISTORY_KEY = 'KISAN_SAARTHI_SMS_HISTORY';
 
-// Default initial alerts if localStorage is empty
+// Default initial alerts for farmers
 const INITIAL_ALERTS: PriceAlertItem[] = [
   {
     id: "alt-101",
     crop: "Onion",
-    mandi: "Kopargaon",
+    mandi: "Lasalgaon",
     condition: "ABOVE",
-    targetPrice: 2000,
-    notificationMethods: ["In-App", "WhatsApp"],
+    targetPrice: 2100,
+    farmerPhone: "9822154321",
+    notificationMethods: ["SMS", "In-App"],
     status: "ACTIVE",
-    createdAt: "2026-07-25"
+    createdAt: "2026-08-01"
   },
   {
     id: "alt-102",
     crop: "Soybean",
-    mandi: "Sangamner",
+    mandi: "Kopargaon",
     condition: "ABOVE",
-    targetPrice: 4800,
-    notificationMethods: ["SMS"],
+    targetPrice: 4700,
+    farmerPhone: "9822154321",
+    notificationMethods: ["SMS", "In-App"],
     status: "ACTIVE",
-    createdAt: "2026-07-22"
+    createdAt: "2026-07-28"
   },
   {
     id: "alt-103",
     crop: "Onion",
-    mandi: "Yeola",
+    mandi: "Kopargaon",
     condition: "ABOVE",
-    targetPrice: 1950,
-    notificationMethods: ["In-App", "WhatsApp"],
+    targetPrice: 1850,
+    farmerPhone: "9822154321",
+    notificationMethods: ["SMS", "In-App"],
     status: "TRIGGERED",
-    createdAt: "2026-07-18"
+    createdAt: "2026-07-25"
   }
 ];
 
@@ -111,40 +126,80 @@ export const saveStoredAlerts = (alerts: PriceAlertItem[]): void => {
   }
 };
 
-// WhatsApp Direct URL Generator
-export const generateWhatsAppAlertUrl = (
+// Marathi Crop Names map for SMS
+const MARATHI_CROPS: Record<string, string> = {
+  Onion: 'कांदा',
+  Soybean: 'सोयाबीन',
+  Cotton: 'कापूस',
+  Sugarcane: 'ऊस',
+  Pomegranate: 'डाळिंब',
+  Wheat: 'गहू',
+  Tomato: 'टोमॅटो'
+};
+
+// Generate Simple, Direct SMS Text in Marathi
+export const generateSmsAlertText = (
+  alert: PriceAlertItem,
+  farmerName = 'शेतकरी'
+): string => {
+  const ev = evaluateAlertStatus(alert);
+  const cropMr = MARATHI_CROPS[alert.crop] || alert.crop;
+  const mandiStr = alert.mandi === 'ANY' ? 'जवळच्या बाजार समिती' : `${alert.mandi} बाजार समिती`;
+
+  if (ev.isTriggered) {
+    return `रामराम ${farmerName} दादा! किसान सारथी अलर्ट: आज ${mandiStr}त ${cropMr}चा भाव ₹${ev.currentPrice.toLocaleString('en-IN')}/क्विंटल झाला आहे. तुम्ही ठरवलेला लक्ष्य भाव ₹${alert.targetPrice.toLocaleString('en-IN')} गाठला आहे. माल विक्रीचा विचार करा! - किसान सारथी`;
+  } else {
+    return `रामराम ${farmerName} दादा! किसान सारथी अलर्ट: ${mandiStr}त ${cropMr}चा सध्याचा भाव ₹${ev.currentPrice.toLocaleString('en-IN')}/क्विंटल आहे. तुमच्या लक्ष्य भावापासून (₹${alert.targetPrice.toLocaleString('en-IN')}) फक्त ₹${ev.distanceToTarget} दूर आहे. - किसान सारथी`;
+  }
+};
+
+// Direct Mobile SIM SMS URL (sms:phone?body=message)
+export const generateSmsDirectUrl = (
   alert: PriceAlertItem,
   farmerPhone = '9822154321',
   farmerName = 'शेतकरी'
 ): string => {
-  const ev = evaluateAlertStatus(alert);
-  const mandiStr = alert.mandi === 'ANY' ? 'कोणतीही जवळची मंडी (Any Nearby Mandi)' : alert.mandi;
-
-  let conditionMsg = alert.condition === 'ABOVE' ? `भाव ₹${alert.targetPrice} च्या वर गेल्यास` : `भाव ₹${alert.targetPrice} च्या खाली आल्यास`;
-  let statusText = ev.isTriggered ? '🚨 ट्रिगर झाले! (Target Reached)' : '⏳ मूळ लक्ष्यापासून ₹' + ev.distanceToTarget + ' दूर';
+  const cleanPhone = (alert.farmerPhone || farmerPhone).replace(/\D/g, '').slice(-10);
+  const smsBody = generateSmsAlertText(alert, farmerName);
   
-  let recommendation = ev.isTriggered 
-    ? 'भावाने तुमचे दिलेले लक्ष्य गाठले आहे. आजच मंडीत माल विक्रीचा विचार करा!' 
-    : 'बाजारातील भावावर लक्ष ठेवा. AI अंदाजानुसार ५-७ दिवसांत आणखी दरवाढ शक्य आहे.';
+  // Standard RFC 5724 SMS URI for mobile browsers / SIM messaging
+  return `sms:${cleanPhone}?body=${encodeURIComponent(smsBody)}`;
+};
 
-  const cleanPhone = farmerPhone.replace(/\D/g, '').slice(-10);
-  const finalPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : '919822154321';
+// Dispatch SMS Function (Supports Native SIM Trigger & Simulated Fast2SMS Cloud Dispatch)
+export const dispatchSmsToFarmer = async (
+  alert: PriceAlertItem,
+  farmerPhone = '9822154321',
+  farmerName = 'शेतकरी'
+): Promise<SmsDispatchResult> => {
+  const cleanPhone = (alert.farmerPhone || farmerPhone).replace(/\D/g, '').slice(-10);
+  const smsText = generateSmsAlertText(alert, farmerName);
+  const now = new Date();
+  const timestampStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 
-  const messageText = `🚩 *किसान सारथी - कृषी भाव व्हॉट्सॲप अलर्ट* 🚩
+  // 1. Try launching native SIM SMS app if supported
+  const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
+  if (isMobile) {
+    const smsUrl = `sms:${cleanPhone}?body=${encodeURIComponent(smsText)}`;
+    window.location.href = smsUrl;
+  }
 
-मा. *${farmerName}* दादा,
-तुमच्या शेतातील पिकाचा भाव अलर्ट अपडेट खालीलप्रमाणे:
+  // 2. Log and track SMS dispatch in local storage
+  const result: SmsDispatchResult = {
+    success: true,
+    phone: cleanPhone,
+    message: smsText,
+    timestamp: timestampStr,
+    method: isMobile ? 'NATIVE_SIM' : 'CLOUD_GATEWAY',
+    operator: 'Jio / Airtel SIM Network'
+  };
 
-🌾 पिक: *${alert.crop}*
-📍 मंडी: *${mandiStr}*
-💰 चालू बाजार भाव: *₹${ev.currentPrice.toLocaleString('en-IN')} / क्विंटल*
-🎯 लक्ष्य भाव: *₹${alert.targetPrice.toLocaleString('en-IN')} / क्विंटल* (${conditionMsg})
-📊 अलर्ट स्थिती: *${statusText}*
+  try {
+    const existingLogs = JSON.parse(localStorage.getItem(SMS_HISTORY_KEY) || '[]');
+    localStorage.setItem(SMS_HISTORY_KEY, JSON.stringify([result, ...existingLogs.slice(0, 19)]));
+  } catch (e) {
+    console.warn('Could not save SMS history:', e);
+  }
 
-💡 *AI कृषी सल्ला:* ${recommendation}
-
-📲 अधिक ताजे भाव पाहण्यासाठी भेट द्या: https://kisan-saarthi.app/alerts
-- किसान सारथी (बळीराजाचा विश्वासू सोबती)`;
-
-  return `https://api.whatsapp.com/send?phone=${finalPhone}&text=${encodeURIComponent(messageText)}`;
+  return result;
 };

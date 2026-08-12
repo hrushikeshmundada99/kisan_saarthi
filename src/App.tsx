@@ -31,9 +31,9 @@ function AppContent() {
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState<boolean>(false);
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
 
-  const loadRates = useCallback(async () => {
+  const loadRates = useCallback(async (bypassCache = false) => {
     setIsFetchingLive(true);
-    const res = await fetchLiveMandiRates();
+    const res = await fetchLiveMandiRates(undefined, bypassCache);
     setIsLive(res.isLive);
     if (res.cards && res.cards.length > 0) {
       setLiveCards(res.cards);
@@ -71,7 +71,7 @@ function AppContent() {
                     liveCards={liveCards}
                     isLive={isLive}
                     isFetchingLive={isFetchingLive}
-                    onRefreshLive={loadRates}
+                    onRefreshLive={() => loadRates(true)}
                   />
                 }
               />
@@ -110,7 +110,7 @@ function AppContent() {
       <ApiKeyModal
         isOpen={apiKeyModalOpen}
         onClose={() => setApiKeyModalOpen(false)}
-        onKeySaved={loadRates}
+        onKeySaved={() => loadRates(true)}
         isLive={isLive}
       />
 
