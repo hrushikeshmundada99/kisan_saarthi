@@ -1,0 +1,176 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', 'Noto Sans Devanagari', -apple-system, sans-serif;
+    --font-heading: 'Outfit', 'Noto Sans Devanagari', -apple-system, sans-serif;
+
+    --color-primary: #1B5E20;
+    --color-primary-light: #2E7D32;
+    --color-secondary: #4CAF50;
+    --color-bg-light: #F4F9F4;
+    --color-card: #FFFFFF;
+    --color-accent: #FFB300;
+    --color-danger: #E53935;
+    --color-success: #2E7D32;
+    --color-text-body: #0F291E;
+    --color-text-muted: #526058;
+    --color-border: #D8E6D8;
+
+    --radius-standard: 18px;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: radial-gradient(circle at 10% 10%, #FFFFFF 0%, #F4F9F4 100%);
+    color: var(--color-text-body);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    color: var(--color-text-body);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  /* No Scrollbar Utility */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Continuous News Headline Marquee Ticker */
+@keyframes tickerMarquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-ticker-marquee {
+  display: flex;
+  width: max-content;
+  animation: tickerMarquee 28s linear infinite;
+  will-change: transform;
+}
+
+.animate-ticker-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F4F9F4;
+}
+::-webkit-scrollbar-thumb {
+  background: #A5D6A7;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2E7D32;
+}
+
+/* Glassmorphism & UI Accents */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(165, 214, 167, 0.4);
+}
+
+.glow-emerald {
+  box-shadow: 0 10px 30px -10px rgba(46, 125, 50, 0.25);
+}
+
+.glow-gold {
+  box-shadow: 0 10px 30px -10px rgba(255, 179, 0, 0.35);
+}
+
+.pulse-live {
+  animation: livePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.15);
+  }
+}
+
+/* Global Button Classes */
+.btn-primary {
+  background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+  color: #FFFFFF;
+  border-radius: 16px;
+  font-weight: 800;
+  font-size: 0.875rem;
+  min-height: 46px;
+  padding: 0.65rem 1.4rem;
+  box-shadow: 0 4px 14px rgba(27, 94, 32, 0.25);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #144919 0%, #1B5E20 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(27, 94, 32, 0.35);
+}
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-secondary {
+  background: #FFFFFF;
+  color: #1B5E20;
+  border: 2px solid #A5D6A7;
+  border-radius: 16px;
+  font-weight: 800;
+  font-size: 0.875rem;
+  min-height: 46px;
+  padding: 0.65rem 1.4rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.btn-secondary:hover {
+  background: #F4F9F4;
+  border-color: #2E7D32;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(27, 94, 32, 0.1);
+}
+.btn-secondary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Table zebra styling */
+.custom-table tbody tr:nth-child(even) {
+  background-color: #F8FAF8;
+}
+.custom-table tbody tr:hover {
+  background-color: #E8F5E9;
+}

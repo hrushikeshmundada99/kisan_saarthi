@@ -1,0 +1,16 @@
+{
+  "short_name": "किसान सारथी",
+  "name": "Kisan Saarthi - Market Intelligence Kopargaon",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#FDFBF7",
+  "theme_color": "#2D5016",
+  "display": "standalone",
+  "orientation": "portrait"
+}
