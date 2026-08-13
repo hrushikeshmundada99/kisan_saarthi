@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import { PriceCard } from '../components/PriceCard';
+import { REAL_DASHBOARD_CARDS } from '../data/realData';
 import {
   Sprout,
   LineChart,
@@ -160,6 +162,57 @@ export const LandingPage: React.FC = () => {
             </div>
 
           </div>
+        </div>
+      </section>
+
+      {/* Live Market Rates Section directly on Homepage */}
+      <section className="space-y-4 max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-gradient-to-r from-[#F4F9F4] via-[#FFFFFF] to-[#E8F5E9] border-2 border-[#D8E6D8] rounded-3xl shadow-xs">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></div>
+              <h2 className="text-xl sm:text-2xl font-black text-[#0F291E] tracking-tight">
+                {isMr ? '🌾 आजचे ताजे बाजार भाव (Daily Live Market Prices)' : '🌾 Today’s Live APMC Market Rates'}
+              </h2>
+            </div>
+            <p className="text-xs sm:text-sm text-[#526058] font-bold">
+              {isMr ? 'कोपरगाव, लासलगाव, राहाता, श्रीरामपूर, येवला या सर्व बाजार समित्यांचे आजचे थेट भाव' : 'Live real-time rates across Kopargaon, Lasalgaon, Rahata, Shrirampur & Yeola'}
+            </p>
+          </div>
+
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => navigate('/dashboard')}
+            className="self-start sm:self-auto text-xs font-black min-h-[42px]"
+          >
+            <span>{isMr ? 'संपूर्ण डॅशबोर्ड उघडा' : 'Open Full Dashboard'}</span>
+            <ArrowRight className="w-4 h-4 text-[#FFB300]" />
+          </Button>
+        </div>
+
+        {/* Live Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {REAL_DASHBOARD_CARDS.slice(0, 6).map((card) => (
+            <PriceCard
+              key={card.id}
+              card={card}
+              onCompareClick={(c, m) => navigate(`/comparison?crop=${c}&mandi=${m}`)}
+              onForecastClick={(c, m) => navigate(`/forecast?crop=${c}&mandi=${m}`)}
+            />
+          ))}
+        </div>
+
+        {/* View All Button */}
+        <div className="text-center pt-2">
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={() => navigate('/dashboard')}
+            className="text-xs font-black border-2 min-h-[44px]"
+          >
+            <span>{isMr ? `सर्व १० पिकांचे (${REAL_DASHBOARD_CARDS.length} मंड्या) भाव डॅशबोर्डवर पहा ➔` : `View All ${REAL_DASHBOARD_CARDS.length} Live Rates on Dashboard ➔`}</span>
+          </Button>
         </div>
       </section>
 
