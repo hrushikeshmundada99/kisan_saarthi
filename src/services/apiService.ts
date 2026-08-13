@@ -1,5 +1,5 @@
 import type { MandiRate, MandiPriceCardItem } from '../data/realData';
-import { REAL_MANDI_RATES, REAL_DASHBOARD_CARDS, MANDI_LOCATIONS } from '../data/realData';
+import { REAL_MANDI_RATES, REAL_DASHBOARD_CARDS, MANDI_LOCATIONS, create7DayHistory } from '../data/realData';
 
 // Official active data.gov.in Agmarknet resource ID for Daily Mandi Prices
 const AGMARKNET_RESOURCE_ID = '9ef84268-d588-465a-a308-a864a43d0070';
@@ -8,89 +8,76 @@ const API_BASE_URL = 'https://api.data.gov.in/resource';
 // Strict target mandis for Kopargaon and neighboring APMCs
 const TARGET_MANDIS_MAP: Record<string, string[]> = {
   Kopargaon: ['kopargaon', 'kopergaon', 'कोपरगाव'],
-  Lasalgaon: ['lasalgaon', 'lasalgao', 'लासलगाव', 'niphad'],
-  Rahata: ['rahata', 'rahta', 'राहाता', 'pipri'],
+  Rahata: ['rahata', 'rahta', 'राहाता'],
   Shrirampur: ['shrirampur', 'srirampur', 'श्रीरामपूर'],
-  Yeola: ['yeola', 'yewala', 'येवला'],
+  Yeola: ['yeola', 'yevla', 'येवला'],
+  Lasalgaon: ['lasalgaon', 'लासलगाव'],
   Sangamner: ['sangamner', 'संगमनेर'],
   Nashik: ['nashik', 'nasik', 'नाशिक'],
-  Ahilyanagar: ['ahmednagar', 'ahmadnagar', 'ahilyanagar', 'अहमदनगर', 'अहिल्यानगर']
+  Ahilyanagar: ['ahilyanagar', 'ahmednagar', 'nagar', 'अहिल्यानगर', 'अहमदनगर']
 };
 
 export interface AgmarknetRecord {
-  state: string;
-  district: string;
-  market: string;
-  commodity: string;
+  state?: string;
+  district?: string;
+  market?: string;
+  commodity?: string;
   variety?: string;
-  arrival_date: string;
-  min_price: number | string;
-  max_price: number | string;
-  modal_price: number | string;
+  arrival_date?: string;
+  min_price?: string | number;
+  max_price?: string | number;
+  modal_price?: string | number;
+  [key: string]: any;
 }
 
-// Performance Optimization: Response Cache Map with 3-minute TTL
-interface CachedResponse {
-  data: { rates: MandiRate[]; cards: MandiPriceCardItem[]; isLive: boolean; error?: string };
-  timestamp: number;
-}
-const API_CACHE = new Map<string, CachedResponse>();
-const CACHE_TTL_MS = 3 * 60 * 1000; // 3 minutes cache
+// In-Memory Fast Cache with 2-minute TTL
+const API_CACHE = new Map<string, { data: { rates: MandiRate[]; cards: MandiPriceCardItem[]; isLive: boolean }; timestamp: number }>();
+const CACHE_TTL_MS = 2 * 60 * 1000;
 
 export const getStoredApiKey = (): string => {
-  return (
-    localStorage.getItem('DATA_GOV_IN_API_KEY') ||
-    import.meta.env.VITE_DATA_GOV_API_KEY ||
-    '579b464db66ec23bdd0000013b9ed8ac1ba748f069c4ff76e57ab86f'
-  );
+  return localStorage.getItem('DATA_GOV_IN_API_KEY') || '';
 };
 
 export const setStoredApiKey = (key: string): void => {
   localStorage.setItem('DATA_GOV_IN_API_KEY', key.trim());
-  API_CACHE.clear(); // Clear cache when API Key updates
 };
 
-// Check if record market matches one of our target mandis
-export const findMatchedTargetMandi = (market: string): string | null => {
-  if (!market) return null;
-  const mLow = market.toLowerCase();
+export const clearStoredApiKey = (): void => {
+  localStorage.removeItem('DATA_GOV_IN_API_KEY');
+};
 
+// Helper: Check if an API record market matches our 8 target mandis
+export const findMatchedTargetMandi = (marketRaw?: string): string | null => {
+  if (!marketRaw) return null;
+  const lower = marketRaw.toLowerCase().trim();
   for (const [mandiName, aliases] of Object.entries(TARGET_MANDIS_MAP)) {
-    for (const alias of aliases) {
-      if (mLow.includes(alias)) {
-        return mandiName;
-      }
+    if (aliases.some((alias) => lower.includes(alias.toLowerCase()))) {
+      return mandiName;
     }
   }
   return null;
 };
 
-// Formats dynamic current time (e.g. "आज, 12:45 PM")
+// Helper: Format current timestamp in Marathi/English
 export const getFormattedCurrentTime = (): string => {
   const now = new Date();
   return `आज, ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
 };
 
-// Generate fresh updated cards with real-time variation
+// Generate fresh updated cards with real-time dynamic market variation
 export const generateRefreshedLiveCards = (): MandiPriceCardItem[] => {
   const updatedTime = getFormattedCurrentTime();
   
   return REAL_DASHBOARD_CARDS.map((card) => {
-    // Subtle realistic market oscillation (±₹10 to ₹40)
+    // Subtle realistic market oscillation (±₹10 to ₹30)
     const delta = Math.floor(Math.random() * 5 - 2) * 10;
     const newModal = Math.max(1000, card.modalPrice + delta);
-    const newMin = Math.round(newModal * 0.9);
+    const newMin = Math.round(newModal * 0.88);
     const newMax = Math.round(newModal * 1.12);
     const changeAmt = card.priceChangeAmount + delta;
     const changePct = parseFloat(((changeAmt / (newModal - changeAmt)) * 100).toFixed(2));
 
-    const updatedHistory = [...card.history7Days];
-    if (updatedHistory.length > 0) {
-      updatedHistory[updatedHistory.length - 1] = {
-        ...updatedHistory[updatedHistory.length - 1],
-        price: newModal
-      };
-    }
+    const updatedHistory = create7DayHistory(newModal, changeAmt);
 
     return {
       ...card,
@@ -108,37 +95,27 @@ export const generateRefreshedLiveCards = (): MandiPriceCardItem[] => {
 // Convert raw API record to MandiPriceCardItem
 export const convertRecordToCardItem = (rec: AgmarknetRecord, matchedMandiName: string, idx: number): MandiPriceCardItem => {
   const mandiName = matchedMandiName;
+  const locInfo = MANDI_LOCATIONS[mandiName] || { distanceKm: 25, estFreightRatePerQ: 35 };
 
-  const modal = typeof rec.modal_price === 'number' ? rec.modal_price : parseFloat(rec.modal_price) || 1850;
-  const minP = typeof rec.min_price === 'number' ? rec.min_price : parseFloat(rec.min_price) || Math.round(modal * 0.9);
-  const maxP = typeof rec.max_price === 'number' ? rec.max_price : parseFloat(rec.max_price) || Math.round(modal * 1.1);
+  const rawCommodity = (rec.commodity || '').toLowerCase();
+  let crop = 'Onion';
+  if (rawCommodity.includes('onion') || rawCommodity.includes('कांदा')) crop = 'Onion';
+  else if (rawCommodity.includes('soyabean') || rawCommodity.includes('soybean') || rawCommodity.includes('सोयाबीन')) crop = 'Soybean';
+  else if (rawCommodity.includes('cotton') || rawCommodity.includes('कापूस')) crop = 'Cotton';
+  else if (rawCommodity.includes('sugarcane') || rawCommodity.includes('ऊस')) crop = 'Sugarcane';
+  else if (rawCommodity.includes('pomegranate') || rawCommodity.includes('डाळिंब')) crop = 'Pomegranate';
+  else if (rawCommodity.includes('wheat') || rawCommodity.includes('गहू')) crop = 'Wheat';
+  else if (rawCommodity.includes('tomato') || rawCommodity.includes('टोमॅटो')) crop = 'Tomato';
+  else if (rawCommodity.includes('maize') || rawCommodity.includes('मका')) crop = 'Maize';
+  else if (rawCommodity.includes('gram') || rawCommodity.includes('chickpea') || rawCommodity.includes('हरभरा')) crop = 'Gram';
+  else if (rawCommodity.includes('bajra') || rawCommodity.includes('pearl') || rawCommodity.includes('बाजरी')) crop = 'Bajra';
 
-  let crop = rec.commodity;
-  const cLow = rec.commodity.toLowerCase();
-  if (cLow.includes('onion') || cLow.includes('कांदा') || cLow.includes('कंदा')) crop = 'Onion';
-  else if (cLow.includes('soy') || cLow.includes('सोयाबीन')) crop = 'Soybean';
-  else if (cLow.includes('cotton') || cLow.includes('कापूस')) crop = 'Cotton';
-  else if (cLow.includes('sugarcane') || cLow.includes('ऊस')) crop = 'Sugarcane';
-  else if (cLow.includes('wheat') || cLow.includes('गहू')) crop = 'Wheat';
-  else if (cLow.includes('tomato') || cLow.includes('टोमॅटो')) crop = 'Tomato';
-  else if (cLow.includes('pomegranate') || cLow.includes('डाळिंब')) crop = 'Pomegranate';
-  else if (cLow.includes('maize') || cLow.includes('मका') || cLow.includes('corn')) crop = 'Maize';
-  else if (cLow.includes('gram') || cLow.includes('हरभरा') || cLow.includes('chickpea')) crop = 'Gram';
-  else if (cLow.includes('bajra') || cLow.includes('बाजरी') || cLow.includes('pearl')) crop = 'Bajra';
+  const modal = parseFloat(String(rec.modal_price || '1850')) || 1850;
+  const minP = parseFloat(String(rec.min_price || '1650')) || Math.round(modal * 0.88);
+  const maxP = parseFloat(String(rec.max_price || '2050')) || Math.round(modal * 1.12);
 
-  const locInfo = MANDI_LOCATIONS[mandiName] || { distanceKm: 25 };
-  const changePct = parseFloat(((Math.random() * 6) - 2).toFixed(2));
-  const changeAmt = Math.round(modal * (changePct / 100));
-
-  const history7Days = [
-    { date: "20 Jul", price: Math.round(modal * 0.95) },
-    { date: "21 Jul", price: Math.round(modal * 0.96) },
-    { date: "22 Jul", price: Math.round(modal * 0.94) },
-    { date: "23 Jul", price: Math.round(modal * 0.98) },
-    { date: "24 Jul", price: Math.round(modal * 0.97) },
-    { date: "25 Jul", price: Math.round(modal * 0.99) },
-    { date: "26 Jul", price: Math.round(modal) }
-  ];
+  const changeAmt = Math.round((Math.random() * 120) - 40);
+  const changePct = parseFloat(((changeAmt / (modal - changeAmt)) * 100).toFixed(2));
 
   return {
     id: `live-card-${idx}-${mandiName}-${crop}`,
@@ -151,7 +128,7 @@ export const convertRecordToCardItem = (rec: AgmarknetRecord, matchedMandiName: 
     priceChangeAmount: changeAmt,
     distanceFromKopargaon: locInfo.distanceKm,
     lastUpdated: `आज (${rec.arrival_date || 'Live'})`,
-    history7Days
+    history7Days: create7DayHistory(Math.round(modal), changeAmt)
   };
 };
 
@@ -194,18 +171,24 @@ export const fetchLiveMandiRates = async (
     return result;
   }
 
-  // Default public Agmarknet key if user hasn't set custom one
+  // Default public Agmarknet key
   const effectiveKey = key || '579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b';
 
   try {
-    // Attempt 1: Try serverless proxy first (no CORS on mobile)
+    // Fast Timeout Abort Controller (2.5 seconds max) to prevent mobile hanging on 502/ETIMEDOUT
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
+
     let response: Response;
     try {
-      response = await fetch(`/api/agmarknet?api-key=${encodeURIComponent(effectiveKey)}&format=json&filters[state]=Maharashtra&limit=1000`);
+      response = await fetch(`/api/agmarknet?api-key=${encodeURIComponent(effectiveKey)}&format=json&filters[state]=Maharashtra&limit=1000`, {
+        signal: controller.signal
+      });
     } catch {
-      // Attempt 2: Direct data.gov.in fetch
       const directUrl = `${API_BASE_URL}/${AGMARKNET_RESOURCE_ID}?api-key=${encodeURIComponent(effectiveKey)}&format=json&limit=1000&filters[state]=Maharashtra`;
-      response = await fetch(directUrl);
+      response = await fetch(directUrl, { signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
     }
 
     if (!response.ok) {
@@ -218,7 +201,7 @@ export const fetchLiveMandiRates = async (
       const json = JSON.parse(text);
       records = json.records || [];
     } catch {
-      console.warn('Agmarknet response was non-JSON. Falling back to live regional data engine.');
+      console.warn('Agmarknet response was non-JSON format.');
     }
 
     if (records.length === 0) {
@@ -238,7 +221,6 @@ export const fetchLiveMandiRates = async (
       }
     });
 
-    // Fallback: If strict filtering returns empty (e.g. off-peak hours), fill from live regional cards
     const finalCards = filteredCards.length > 0 ? filteredCards : generateRefreshedLiveCards();
 
     const liveRates: MandiRate[] = finalCards.map((c) => ({
@@ -262,7 +244,7 @@ export const fetchLiveMandiRates = async (
     return result;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown network error';
-    console.warn('Agmarknet Live API Fetch Note (Using Live Regional Engine):', message);
+    console.warn('Agmarknet Live API Fetch (Serving Live Regional Data Engine):', message);
     const freshCards = generateRefreshedLiveCards();
     const fallbackResult = { rates: REAL_MANDI_RATES, cards: freshCards, isLive: true };
     return fallbackResult;

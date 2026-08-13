@@ -32,7 +32,8 @@ export const MandiComparisonRow: React.FC<MandiComparisonRowProps> = ({
 }) => {
   const { t, i18n } = useTranslation();
 
-  const isToday = rate.arrivalDate === '2026-07-26';
+  const todayStr = new Date().toISOString().split('T')[0];
+  const isToday = rate.arrivalDate === todayStr;
   const locationInfo = MANDI_LOCATIONS[rate.mandi] || { distanceKm: rate.distanceKm, estFreightRatePerQ: rate.distanceKm * 1.3 };
   const transportCostPerQ = Math.round(locationInfo.estFreightRatePerQ);
   const totalTransportCost = transportCostPerQ * quantityQuintals;
@@ -41,22 +42,22 @@ export const MandiComparisonRow: React.FC<MandiComparisonRowProps> = ({
 
   // Dynamic badge label
   const bestBadgeLabel = isToday
-    ? (i18n.language === 'mr' ? 'आज विकण्यासाठी सर्वोत्तम मंडी' : 'Best mandi to sell today')
+    ? (i18n.language === 'mr' ? '🌾 आज विकण्यासाठी सर्वाधिक नफा देणारी मंडी' : '🌾 Best mandi to sell today (Highest Net Profit)')
     : (i18n.language === 'mr' ? 'या तारखेस विकण्यासाठी सर्वोत्तम मंडी' : 'Best mandi to sell on this date');
 
   return (
     <Card
       hoverable
-      className={`relative overflow-hidden transition-all duration-300 rounded-2xl p-6 shadow-sm border-2 ${
+      className={`relative overflow-hidden transition-all duration-300 rounded-3xl p-5 sm:p-6 shadow-xs border-2 ${
         isBestOption
-          ? 'border-[#FFC107] bg-gradient-to-br from-amber-500/10 via-[#F7FBF7] to-[#FFFFFF] shadow-md ring-2 ring-[#FFC107]/40'
-          : 'border-[#E1EBE1] hover:border-[#81C784] bg-[#FFFFFF]'
+          ? 'border-[#1B5E20] bg-gradient-to-br from-emerald-500/10 via-[#F7FBF7] to-[#FFFFFF] shadow-md ring-2 ring-[#1B5E20]/30'
+          : 'border-[#D8E6D8] hover:border-[#1B5E20] bg-[#FFFFFF]'
       }`}
     >
       {/* Best Market Badge */}
       {isBestOption && (
-        <div className="absolute top-0 right-0 bg-[#FFC107] text-[#1B4332] text-xs font-black px-4 py-1.5 rounded-bl-2xl shadow-xs flex items-center gap-1.5 z-10">
-          <Award className="w-4 h-4 text-[#1B4332]" />
+        <div className="absolute top-0 right-0 bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] text-[#FFFFFF] text-xs font-black px-4 py-1.5 rounded-bl-2xl shadow-xs flex items-center gap-1.5 z-10">
+          <Award className="w-4 h-4 text-[#FFB300]" />
           <span>{bestBadgeLabel}</span>
         </div>
       )}
@@ -66,56 +67,61 @@ export const MandiComparisonRow: React.FC<MandiComparisonRowProps> = ({
         {/* Mandi & Location info */}
         <div className="flex items-start gap-3.5">
           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-sm shrink-0 shadow-xs ${
-            isBestOption ? 'bg-[#FFC107] text-[#1B4332]' : 'bg-[#E8F5E9] text-[#2E7D32] border border-[#81C784]/40'
+            isBestOption ? 'bg-[#1B5E20] text-[#FFB300]' : 'bg-[#E8F5E9] text-[#1B5E20] border border-[#A5D6A7]'
           }`}>
             <MapPin className="w-6 h-6 stroke-[2.5]" />
           </div>
 
           <div className="space-y-1">
-            <h3 className="text-xl font-black text-[#1B4332]">
+            <h3 className="text-xl font-black text-[#0F291E]">
               {t(`mandis.${rate.mandi}`, rate.mandi)}
             </h3>
 
-            {/* Badges Row: Distance Badge & Transport Badge */}
-            <div className="flex flex-wrap items-center gap-2 text-xs font-extrabold pt-0.5">
+            {/* Badges Row: Distance Badge & Transport Badge & Range */}
+            <div className="flex flex-wrap items-center gap-2 text-xs font-bold pt-0.5">
               {/* Distance Badge */}
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-[#E8F5E9] text-[#2E7D32] border border-[#81C784]/40">
-                <MapPin className="w-3.5 h-3.5 text-[#FFC107]" />
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-[#F4F9F4] text-[#0F291E] border border-[#D8E6D8]">
+                <MapPin className="w-3.5 h-3.5 text-[#FFB300]" />
                 {rate.distanceKm === 0 
                   ? (i18n.language === 'mr' ? 'कोपरगाव (0 km)' : 'Kopargaon (0 km)') 
                   : (i18n.language === 'mr' ? `${rate.distanceKm} km अंतर` : `${rate.distanceKm} km away`)}
               </span>
 
               {/* Transport Cost Badge */}
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-50 text-rose-950 border border-rose-200">
-                <Truck className="w-3.5 h-3.5 text-[#E53935]" />
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-50 text-rose-950 border border-rose-200">
+                <Truck className="w-3.5 h-3.5 text-[#DC2626]" />
                 {i18n.language === 'mr' ? `भाडे: ₹${transportCostPerQ}/क्विंटल` : `Freight: ₹${transportCostPerQ}/q`}
+              </span>
+
+              {/* Min Max text */}
+              <span className="text-[11px] text-[#526058] font-bold">
+                (किमान: ₹{rate.minPrice} • कमाल: ₹{rate.maxPrice})
               </span>
             </div>
           </div>
         </div>
 
         {/* Price Matrix & Net Profit Card Box */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 bg-[#F7FBF7] p-4 rounded-2xl border border-[#E1EBE1] text-center md:text-right shadow-xs">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 bg-[#F4F9F4] p-3.5 rounded-2xl border border-[#D8E6D8] text-center md:text-right shadow-xs">
           {/* Raw Market Price */}
           <div>
-            <div className="text-xs font-extrabold text-[#6B7280] uppercase tracking-wider">
+            <div className="text-[11px] font-black text-[#526058] uppercase tracking-wider">
               {t('comparison.tableRawPrice')}
             </div>
-            <div className="text-xl font-black text-[#1B4332] mt-0.5">
+            <div className="text-xl font-black text-[#0F291E] mt-0.5">
               ₹{rate.modalPrice.toLocaleString('en-IN')}
             </div>
-            <div className="text-[11px] text-[#6B7280] font-semibold">
-              {i18n.language === 'mr' ? 'रु/क्विंटल' : '₹/quintal'}
+            <div className="text-[11px] text-[#1B5E20] font-black">
+              ₹{(rate.modalPrice / 100).toFixed(1)}/किलो
             </div>
           </div>
 
           {/* Transport Deductions */}
           <div>
-            <div className="text-xs font-extrabold text-[#E53935] uppercase tracking-wider">
+            <div className="text-[11px] font-black text-rose-700 uppercase tracking-wider">
               - {t('comparison.tableTransport')}
             </div>
-            <div className="text-xl font-black text-[#E53935] mt-0.5">
+            <div className="text-xl font-black text-rose-600 mt-0.5">
               ₹{transportCostPerQ}
             </div>
             <div className="text-[11px] text-rose-700 font-bold">
@@ -124,11 +130,11 @@ export const MandiComparisonRow: React.FC<MandiComparisonRowProps> = ({
           </div>
 
           {/* Net Profit Card Highlight */}
-          <div className="border-l border-[#E1EBE1] pl-2 sm:pl-3">
-            <div className="text-xs font-extrabold text-[#2E7D32] uppercase tracking-wider">
+          <div className="border-l border-[#D8E6D8] pl-2 sm:pl-3">
+            <div className="text-[11px] font-black text-[#1B5E20] uppercase tracking-wider">
               {t('comparison.tableNetPrice')}
             </div>
-            <div className="text-2xl font-black text-[#2E7D32] mt-0.5">
+            <div className="text-2xl font-black text-[#1B5E20] mt-0.5">
               ₹{netPricePerQ.toLocaleString('en-IN')}
             </div>
             <div className="text-[11px] font-black text-[#D97706]">

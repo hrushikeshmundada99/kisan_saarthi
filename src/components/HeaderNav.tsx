@@ -3,13 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Bell,
-  User,
   ShieldCheck,
   Key,
   MapPin,
   Sparkles,
   LogIn,
-  Sprout
+  Sprout,
+  Menu
 } from 'lucide-react';
 import { LanguageToggle } from './LanguageToggle';
 import { getStoredAlerts } from '../utils/alertManager';
@@ -32,41 +32,59 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ isLive, onOpenApiKeyModal,
   // Active alerts count for notification badge
   const activeAlertsCount = getStoredAlerts().filter((a) => a.status === 'ACTIVE').length;
 
+  const handleToggleSidebar = () => {
+    window.dispatchEvent(new CustomEvent('TOGGLE_KISAN_SIDEBAR'));
+  };
+
   return (
-    <header className="sticky top-0 z-30 w-full bg-[#FFFFFF]/90 backdrop-blur-xl border-b border-[#D8E6D8] shadow-xs transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
+    <header className="sticky top-0 z-30 w-full bg-[#FFFFFF]/95 backdrop-blur-xl border-b border-[#D8E6D8] shadow-xs transition-all duration-300">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16 lg:h-20 gap-2 sm:gap-4">
           
-          {/* Left: Brand Logo & Region / Platform Badges */}
-          <div className="flex items-center gap-2.5 sm:gap-3.5">
+          {/* Left: Mobile Menu Toggle + Brand Logo + Region Badges */}
+          <div className="flex items-center gap-2 sm:gap-3.5">
             
+            {/* Mobile Hamburger Toggle (Leftmost on phones/tablets) */}
+            <button
+              onClick={handleToggleSidebar}
+              className="lg:hidden p-2 rounded-xl bg-[#F4F9F4] border border-[#D8E6D8] text-[#0F291E] hover:bg-[#E8F5E9] transition-colors cursor-pointer min-h-[40px] min-w-[40px] flex items-center justify-center shadow-xs"
+              aria-label="Open Navigation Menu"
+            >
+              <Menu className="w-5 h-5 text-[#1B5E20]" />
+            </button>
+
             {/* Brand Logo Header Anchor (Clickable Home) */}
             <div 
               onClick={() => navigate('/')} 
               className="flex items-center gap-2 cursor-pointer group shrink-0"
               title={t('appName')}
             >
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-[#1B5E20] via-[#2E7D32] to-[#144919] flex items-center justify-center text-[#FFB300] shadow-md shadow-emerald-950/15 group-hover:scale-105 transition-transform duration-200">
-                <Sprout className="w-5 h-5 stroke-[2.5]" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-[#1B5E20] via-[#2E7D32] to-[#144919] flex items-center justify-center text-[#FFB300] shadow-md shadow-emerald-950/15 group-hover:scale-105 transition-transform duration-200">
+                <Sprout className="w-4.5 h-4.5 sm:w-5 sm:h-5 stroke-[2.5]" />
               </div>
-              <span className="text-base sm:text-lg font-black tracking-tight text-[#0F291E] hidden sm:block">
-                {t('appName')}
-              </span>
+              <div className="flex flex-col">
+                <span className="text-sm sm:text-lg font-black tracking-tight text-[#0F291E] leading-tight">
+                  {t('appName')}
+                </span>
+                <span className="text-[9px] font-extrabold text-[#1B5E20] lg:hidden">
+                  कोपरगाव APMC
+                </span>
+              </div>
             </div>
 
-            {/* Divider */}
+            {/* Divider (Desktop / Laptop) */}
             <div className="h-6 w-px bg-[#D8E6D8] hidden md:block" />
 
-            {/* Region Pill Badge */}
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#F4F9F4] border border-[#D8E6D8] text-xs font-black text-[#0F291E]">
+            {/* Region Pill Badge (Laptop / Desktop) */}
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#F4F9F4] border border-[#D8E6D8] text-xs font-black text-[#0F291E]">
               <MapPin className="w-3.5 h-3.5 text-[#FFB300] shrink-0" />
               <span>
                 {isMr ? 'कोपरगाव बाजार समिती क्षेत्र' : 'Kopargaon APMC Region'}
               </span>
             </div>
 
-            {/* AI Platform Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-black bg-emerald-50 text-[#1B5E20] border border-emerald-200 shadow-2xs">
+            {/* AI Platform Badge (Laptop / Desktop) */}
+            <div className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-black bg-emerald-50 text-[#1B5E20] border border-emerald-200 shadow-2xs">
               <Sparkles className="w-3.5 h-3.5 text-[#FFB300] animate-pulse shrink-0" />
               <span>
                 {isMr ? 'AI कृषी बाजार मंच' : 'AI Market Platform'}
@@ -74,10 +92,10 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ isLive, onOpenApiKeyModal,
             </div>
           </div>
 
-          {/* Right Controls: Live API + Notification + Language + Profile/Auth */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Right Controls: Tour + Live API + Notification + Language + Profile/Auth */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
             
-            {/* Take Tour Button */}
+            {/* Take Tour Button (Laptop / Desktop) */}
             {onStartTour && (
               <button
                 onClick={() => {
@@ -86,7 +104,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ isLive, onOpenApiKeyModal,
                   } catch {}
                   if (onStartTour) onStartTour();
                 }}
-                className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-black bg-amber-50 text-amber-950 border border-amber-300 hover:bg-amber-100 transition-colors cursor-pointer shadow-xs min-h-[44px]"
+                className="hidden xl:flex items-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-black bg-amber-50 text-amber-950 border border-amber-300 hover:bg-amber-100 transition-colors cursor-pointer shadow-xs min-h-[40px]"
                 title={isMr ? 'डॅशबोर्ड मार्गदर्शन चालू करा' : 'Start Dashboard Tour'}
               >
                 <Sparkles className="w-4 h-4 text-[#FFB300]" />
@@ -97,21 +115,21 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ isLive, onOpenApiKeyModal,
             {/* Live API Key Button */}
             <button
               onClick={onOpenApiKeyModal}
-              className={`px-3.5 py-2 rounded-2xl text-xs font-extrabold flex items-center gap-1.5 border transition-all duration-300 min-h-[44px] cursor-pointer shadow-xs ${
+              className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-2xl text-xs font-extrabold flex items-center gap-1.5 border transition-all duration-300 min-h-[38px] sm:min-h-[42px] cursor-pointer shadow-xs ${
                 isLive
-                  ? 'bg-emerald-50 text-emerald-950 border-emerald-300 hover:bg-emerald-100 hover:border-emerald-400'
-                  : 'bg-amber-50 text-amber-950 border-amber-300 hover:bg-amber-100 hover:border-amber-400'
+                  ? 'bg-emerald-50 text-emerald-950 border-emerald-300 hover:bg-emerald-100'
+                  : 'bg-amber-50 text-amber-950 border-amber-300 hover:bg-amber-100'
               }`}
               title="Agmarknet API Status"
             >
               {isLive ? (
                 <>
-                  <ShieldCheck className="w-4 h-4 text-[#43A047] shrink-0" />
-                  <span className="hidden sm:inline">Agmarknet Live</span>
+                  <ShieldCheck className="w-4 h-4 text-[#1B5E20] shrink-0" />
+                  <span className="hidden sm:inline">Live चालू दर</span>
                 </>
               ) : (
                 <>
-                  <Key className="w-4 h-4 text-[#FFC107] shrink-0" />
+                  <Key className="w-4 h-4 text-[#FFB300] shrink-0" />
                   <span className="hidden sm:inline">API Key</span>
                 </>
               )}
@@ -121,51 +139,49 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ isLive, onOpenApiKeyModal,
             <button
               data-tour="notification-bell"
               onClick={() => navigate('/alerts')}
-              className={`relative p-2.5 rounded-2xl border transition-all duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer shadow-xs ${
+              className={`relative p-2 sm:p-2.5 rounded-2xl border transition-all duration-300 min-h-[38px] min-w-[38px] sm:min-h-[42px] sm:min-w-[42px] flex items-center justify-center cursor-pointer shadow-xs ${
                 location.pathname === '/alerts'
-                  ? 'bg-[#2E7D32] text-[#FFFFFF] border-[#2E7D32]'
-                  : 'bg-[#F7FBF7] text-[#1B4332] border-[#E1EBE1] hover:bg-[#E8F5E9] hover:border-[#81C784] hover:text-[#2E7D32]'
+                  ? 'bg-[#1B5E20] text-[#FFFFFF] border-[#1B5E20]'
+                  : 'bg-[#F4F9F4] text-[#0F291E] border-[#D8E6D8] hover:bg-[#E8F5E9] hover:text-[#1B5E20]'
               }`}
               title={t('nav.alerts')}
             >
-              <Bell className="w-5 h-5 stroke-[2.2]" />
+              <Bell className="w-4.5 h-4.5 sm:w-5 sm:h-5 stroke-[2.2]" />
               {activeAlertsCount > 0 && (
-                <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-[#FFC107] ring-2 ring-[#FFFFFF] animate-pulse" />
+                <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-[#FFB300] ring-2 ring-[#FFFFFF] animate-pulse" />
               )}
             </button>
 
-            {/* Language Selector */}
-            <div data-tour="language-toggle" className="hidden sm:block">
+            {/* Language Selector (Always visible on all screens!) */}
+            <div data-tour="language-toggle" className="shrink-0">
               <LanguageToggle />
             </div>
 
-            {/* Profile Avatar or Login Trigger Button */}
-            {isLoggedIn && user ? (
+            {/* User Profile / Login Avatar */}
+            {isLoggedIn ? (
               <button
-                data-tour="user-profile"
                 onClick={() => navigate('/profile')}
-                className={`px-3.5 py-2 rounded-2xl border transition-all duration-300 min-h-[44px] cursor-pointer flex items-center gap-2 shadow-xs ${
-                  location.pathname === '/profile'
-                    ? 'bg-gradient-to-r from-[#2E7D32] to-[#1B4332] text-[#FFFFFF] border-[#2E7D32]'
-                    : 'bg-[#FFFFFF] text-[#1B4332] border-[#E1EBE1] hover:bg-[#F7FBF7] hover:border-[#81C784]'
-                }`}
-                title={t('nav.profile')}
+                className="flex items-center gap-2 p-1 sm:px-3 sm:py-1.5 rounded-2xl bg-[#F4F9F4] border border-[#D8E6D8] hover:bg-[#E8F5E9] transition-all cursor-pointer shadow-xs"
               >
-                <div className="w-6 h-6 rounded-full bg-[#2E7D32]/10 text-[#2E7D32] flex items-center justify-center font-black text-xs shrink-0">
-                  <User className="w-4 h-4" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] flex items-center justify-center text-[#FFFFFF] font-black text-xs">
+                  {user?.name?.charAt(0) || 'K'}
                 </div>
-                <span className="text-xs font-extrabold hidden md:inline truncate max-w-[120px]">
-                  {user.name.split(' ')[0]}
-                </span>
+                <div className="hidden lg:block text-left">
+                  <div className="text-xs font-black text-[#0F291E] leading-tight truncate max-w-[90px]">
+                    {user?.name || 'शेतकरी'}
+                  </div>
+                  <div className="text-[10px] text-[#526058] font-bold">
+                    {user?.phone || 'कोपरगाव'}
+                  </div>
+                </div>
               </button>
             ) : (
               <button
-                data-tour="user-profile"
                 onClick={onOpenAuthModal}
-                className="px-3.5 py-2 rounded-2xl border-2 border-[#2E7D32] bg-[#2E7D32] text-[#FFFFFF] text-xs font-black hover:bg-[#1B4332] transition-all min-h-[44px] cursor-pointer flex items-center gap-1.5 shadow-xs"
+                className="px-3 py-1.5 sm:py-2 rounded-2xl text-xs font-black bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] text-[#FFFFFF] hover:opacity-95 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs min-h-[38px] sm:min-h-[42px]"
               >
-                <LogIn className="w-4 h-4 text-[#FFC107]" />
-                <span>लॉगिन</span>
+                <LogIn className="w-4 h-4 text-[#FFB300]" />
+                <span className="hidden sm:inline">{isMr ? 'लॉगिन' : 'Login'}</span>
               </button>
             )}
 

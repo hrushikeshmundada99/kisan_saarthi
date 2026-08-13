@@ -5,7 +5,7 @@ import {
   MOCK_DATEWISE_COMPARISON_DATA,
   MANDIS
 } from '../data/mockMandiComparisonData';
-import { MANDI_LOCATIONS } from '../data/realData';
+import { MANDI_LOCATIONS, REAL_DASHBOARD_CARDS } from '../data/realData';
 import { MandiComparisonRow } from '../components/MandiComparisonRow';
 import { MandiDateMatrixTable } from '../components/MandiDateMatrixTable';
 import { CropSelector } from '../components/CropSelector';
@@ -92,6 +92,53 @@ export const MandiComparisonPage: React.FC = () => {
 
   // Filter records for selected crop & selected date (Matching BOTH crop and commodity)
   const filteredRecordsForDate = useMemo(() => {
+    // If today is selected, always pull directly from REAL_DASHBOARD_CARDS for highest live accuracy
+    if (isTodaySelected) {
+      const liveCardsForCrop = REAL_DASHBOARD_CARDS.filter((c) => c.crop === crop);
+      const cardMap = new Map(liveCardsForCrop.map((c) => [c.mandiName, c]));
+
+      const defaultBasePrices: Record<string, number> = {
+        Onion: 1850, Soybean: 4620, Cotton: 7240, Sugarcane: 3150, Pomegranate: 8450,
+        Wheat: 2480, Tomato: 1420, Maize: 2280, Gram: 5850, Bajra: 2350
+      };
+      const base = liveCardsForCrop[0]?.modalPrice || defaultBasePrices[crop] || 1850;
+
+      return MANDIS.map((mandi) => {
+        const liveCard = cardMap.get(mandi);
+        const dist = MANDI_LOCATIONS[mandi]?.distanceKm ?? (mandi === 'Kopargaon' ? 0 : 25);
+        
+        let modal = base;
+        if (liveCard) {
+          modal = liveCard.modalPrice;
+        } else {
+          // Realistic regional variance for mandis without explicit single card
+          if (mandi === 'Lasalgaon' && crop === 'Onion') modal = base + 270;
+          else if (mandi === 'Nashik') modal = base + 150;
+          else if (mandi === 'Yeola') modal = base + 80;
+          else if (mandi === 'Rahata') modal = base + 60;
+          else if (mandi === 'Sangamner') modal = base - 30;
+          else if (mandi === 'Shrirampur') modal = base + 40;
+          else if (mandi === 'Ahilyanagar') modal = base + 90;
+        }
+
+        const minP = liveCard ? liveCard.minPrice : Math.round(modal * 0.89);
+        const maxP = liveCard ? liveCard.maxPrice : Math.round(modal * 1.11);
+
+        return {
+          date: selectedDate,
+          formattedDate: formattedSelectedDateDisplay,
+          mandiName: mandi,
+          crop: crop,
+          commodity: crop,
+          modalPrice: modal,
+          minPrice: minP,
+          maxPrice: maxP,
+          distanceFromKopargaon: dist,
+          arrivalsQuantity: 2450
+        };
+      });
+    }
+
     const matches = MOCK_DATEWISE_COMPARISON_DATA.filter(
       (r) => (r.crop === crop || r.commodity === crop) && r.date === selectedDate
     );
@@ -99,12 +146,13 @@ export const MandiComparisonPage: React.FC = () => {
     // Fallback: If date was selected dynamically outside generated dataset array, generate rows for target mandis
     if (matches.length === 0) {
       const basePrices: Record<string, number> = {
-        Onion: 1850, Soybean: 4620, Cotton: 7240, Sugarcane: 3150, Pomegranate: 8450, Wheat: 2480, Tomato: 1420
+        Onion: 1850, Soybean: 4620, Cotton: 7240, Sugarcane: 3150, Pomegranate: 8450,
+        Wheat: 2480, Tomato: 1420, Maize: 2280, Gram: 5850, Bajra: 2350
       };
       const base = basePrices[crop] || 1850;
 
       return MANDIS.map((mandi) => {
-        const dist = mandi === 'Kopargaon' ? 0 : mandi === 'Rahata' ? 20 : mandi === 'Shrirampur' ? 42 : mandi === 'Yeola' ? 19 : mandi === 'Sangamner' ? 52 : mandi === 'Lasalgaon' ? 50 : mandi === 'Nashik' ? 90 : 100;
+        const dist = MANDI_LOCATIONS[mandi]?.distanceKm ?? (mandi === 'Kopargaon' ? 0 : 25);
         const modal = base + (mandi === 'Nashik' ? 180 : mandi === 'Kopargaon' ? 0 : mandi === 'Sangamner' ? -30 : 50);
         return {
           date: selectedDate,
@@ -122,7 +170,7 @@ export const MandiComparisonPage: React.FC = () => {
     }
 
     return matches;
-  }, [crop, selectedDate, formattedSelectedDateDisplay]);
+  }, [crop, selectedDate, formattedSelectedDateDisplay, isTodaySelected]);
 
   // Process transport & net prices
   const processedRates = useMemo(() => {

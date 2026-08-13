@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -10,7 +10,6 @@ import {
   Calculator,
   Bell,
   User,
-  Menu,
   X,
   ShieldCheck,
   Key,
@@ -31,6 +30,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
 
+  // Listen to global toggle event from HeaderNav hamburger
+  useEffect(() => {
+    const handleToggle = () => setMobileOpen((prev) => !prev);
+    window.addEventListener('TOGGLE_KISAN_SIDEBAR', handleToggle);
+    return () => window.removeEventListener('TOGGLE_KISAN_SIDEBAR', handleToggle);
+  }, []);
+
   const navItems = [
     { id: 'dashboard', path: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
     { id: 'recommendation', path: '/recommendation', label: t('nav.recommendation'), icon: Sprout },
@@ -42,7 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
     { id: 'profile', path: '/profile', label: t('nav.profile'), icon: User }
   ];
 
-  // Mobile Bottom Quick Navigation Items
+  // Mobile Bottom Quick Navigation Items (Thumb-friendly 5 buttons)
   const mobileBottomNav = [
     { id: 'dashboard', path: '/dashboard', label: 'डॅशबोर्ड', icon: LayoutDashboard },
     { id: 'recommendation', path: '/recommendation', label: 'पिक सल्ला', icon: Compass },
@@ -58,48 +64,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
 
   return (
     <>
-      {/* Mobile Sticky Top Header with Hamburger Toggle */}
-      <header className="lg:hidden sticky top-0 z-40 bg-[#FFFFFF]/95 backdrop-blur-xl border-b border-[#D8E6D8] px-3.5 py-2.5 flex items-center justify-between shadow-xs">
-        <div 
-          onClick={() => handleNavigate('/')} 
-          className="flex items-center gap-2 cursor-pointer group"
-        >
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] flex items-center justify-center text-[#FFB300] shadow-md shadow-emerald-950/20 group-hover:scale-105 transition-transform">
-            <Sprout className="w-4.5 h-4.5 stroke-[2.5]" />
-          </div>
-          <div>
-            <span className="text-base font-black tracking-tight text-[#0F291E]">
-              {t('appName')}
-            </span>
-            <span className="ml-1 px-1.5 py-0.2 rounded text-[9px] font-black bg-[#FFB300]/20 text-[#0F291E]">
-              APMC
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1.5">
-          <LanguageToggle />
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 rounded-xl bg-[#F4F9F4] border border-[#D8E6D8] text-[#0F291E] hover:bg-[#E8F5E9] transition-colors cursor-pointer min-h-[40px] min-w-[40px] flex items-center justify-center shadow-xs"
-            aria-label="Toggle Navigation Menu"
-          >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-      </header>
-
       {/* Mobile Drawer Backdrop */}
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
-          className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200"
+          className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
         />
       )}
 
       {/* Modern Vertical Sidebar (Desktop Sticky + Mobile Drawer) */}
       <aside
-        className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-64 xl:w-72 bg-[#FFFFFF]/95 backdrop-blur-xl border-r border-[#D8E6D8] flex flex-col justify-between p-4 sm:p-5 transition-transform duration-300 ease-in-out shadow-lg lg:shadow-none ${
+        className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-64 xl:w-72 bg-[#FFFFFF]/98 backdrop-blur-2xl border-r border-[#D8E6D8] flex flex-col justify-between p-4 sm:p-5 transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
@@ -130,7 +105,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
             {/* Mobile Close Button */}
             <button
               onClick={() => setMobileOpen(false)}
-              className="lg:hidden p-1.5 rounded-xl text-[#526058] hover:bg-[#F4F9F4]"
+              className="lg:hidden p-2 rounded-xl text-[#526058] hover:bg-[#F4F9F4] cursor-pointer"
+              aria-label="Close Navigation"
             >
               <X className="w-5 h-5" />
             </button>
@@ -151,7 +127,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
                 <button
                   key={item.id}
                   onClick={() => handleNavigate(item.path)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 cursor-pointer group min-h-[42px] ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 cursor-pointer group min-h-[44px] ${
                     isActive
                       ? 'bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] text-[#FFFFFF] shadow-md shadow-emerald-950/20 scale-[1.02]'
                       : 'text-[#0F291E] hover:bg-[#E8F5E9] hover:text-[#1B5E20] hover:translate-x-1'
@@ -191,7 +167,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
             <span className="text-[10px] underline">बदला</span>
           </button>
 
-          {/* Desktop Language Toggle Container */}
+          {/* Language Toggle Container */}
           <div className="flex items-center justify-between px-3 py-1.5 bg-[#F4F9F4] rounded-2xl border border-[#D8E6D8]">
             <span className="text-xs font-bold text-[#526058]">भाषा (Language):</span>
             <LanguageToggle />
@@ -201,8 +177,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
 
       </aside>
 
-      {/* Native-like Mobile Bottom Quick Navigation Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FFFFFF]/95 backdrop-blur-xl border-t border-[#D8E6D8] px-2 py-1.5 flex justify-around items-center shadow-lg shadow-black/10">
+      {/* Native-like Mobile Bottom Quick Navigation Bar (Fixed for high reachability) */}
+      <nav aria-label="Mobile Navigation" className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FFFFFF]/98 backdrop-blur-xl border-t border-[#D8E6D8] px-1 py-1 flex justify-around items-center shadow-lg shadow-black/10">
         {mobileBottomNav.map((bItem) => {
           const Icon = bItem.icon;
           const isActive = location.pathname === bItem.path;
@@ -211,22 +187,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
             <button
               key={bItem.id}
               onClick={() => handleNavigate(bItem.path)}
-              className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer min-w-[56px] ${
+              className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer min-w-[58px] min-h-[48px] ${
                 isActive
-                  ? 'text-[#1B5E20] font-black scale-105'
+                  ? 'text-[#1B5E20] font-black'
                   : 'text-[#526058] font-bold hover:text-[#0F291E]'
               }`}
             >
-              <div className={`p-1 rounded-lg ${isActive ? 'bg-[#E8F5E9] text-[#1B5E20]' : ''}`}>
-                <Icon className={`w-4.5 h-4.5 ${isActive ? 'stroke-[2.5] text-[#1B5E20]' : ''}`} />
+              <div className={`p-1 rounded-xl transition-all ${isActive ? 'bg-[#E8F5E9] text-[#1B5E20] scale-110' : ''}`}>
+                <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5] text-[#1B5E20]' : ''}`} />
               </div>
-              <span className="text-[10px] mt-0.5 tracking-tight font-extrabold">
+              <span className={`text-[10px] mt-0.5 tracking-tight font-extrabold ${isActive ? 'text-[#1B5E20]' : 'text-[#526058]'}`}>
                 {bItem.label}
               </span>
             </button>
           );
         })}
-      </div>
+      </nav>
     </>
   );
 };
