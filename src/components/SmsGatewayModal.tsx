@@ -6,7 +6,6 @@ import { getFast2SmsKey, setFast2SmsKey, sendRealSmsToIndianMobile } from '../se
 import {
   Smartphone,
   Key,
-  ShieldCheck,
   Send,
   X,
   ExternalLink,

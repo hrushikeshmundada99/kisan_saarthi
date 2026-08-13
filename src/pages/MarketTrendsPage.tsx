@@ -127,7 +127,7 @@ export const MarketTrendsPage: React.FC = () => {
   }, [slicedDailyData, i18n.language]);
 
   return (
-    <div className="space-y-6 pb-12 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-3 duration-300">
+    <div className="space-y-4 sm:space-y-5 pb-6 max-w-7xl mx-auto animate-in fade-in duration-200 px-1 sm:px-2">
       
       {/* 1. Header & Dropdowns Selector Card */}
       <Card hoverable={false} className="p-6 sm:p-8 space-y-4 border border-[#E1EBE1] rounded-2xl shadow-sm bg-[#FFFFFF]">

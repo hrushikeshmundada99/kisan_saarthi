@@ -35,7 +35,7 @@ export const FarmerProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-12 max-w-7xl mx-auto animate-in fade-in duration-300">
+    <div className="space-y-4 sm:space-y-5 pb-6 max-w-7xl mx-auto animate-in fade-in duration-200 px-1 sm:px-2">
       
       {/* Profile Header Card */}
       <Card hoverable={false} className="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative overflow-hidden border-2 border-[#81C784]/60 bg-gradient-to-br from-[#FFFFFF] via-[#F7FBF7] to-[#E8F5E9]">

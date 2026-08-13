@@ -2,17 +2,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { MOCK_DASHBOARD_CARDS, type MandiPriceCardItem } from '../data/mockData';
-import { getStoredAlerts, evaluateAlertStatus } from '../utils/alertManager';
 import { useToast } from '../components/Toast';
 import { PriceCard } from '../components/PriceCard';
 import { PriceRow } from '../components/PriceRow';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import {
-  Bell,
   LineChart,
   Scale,
-  Calculator,
   ArrowRight,
   Filter,
   ArrowUpDown,
@@ -22,7 +19,6 @@ import {
   SearchX,
   List,
   Grid,
-  ShieldCheck,
   TrendingUp,
   Award,
   Compass
@@ -53,7 +49,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   isFetchingLive = false,
   onRefreshLive
 }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -81,34 +77,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
   // Sort state: price_desc, price_asc, distance_asc
   const [sortBy, setSortBy] = useState<'price_desc' | 'price_asc' | 'distance_asc'>('price_desc');
-
-  // Read live stored alerts from localStorage
-  const storedAlerts = useMemo(() => {
-    return getStoredAlerts();
-  }, []);
-
-  // Filter active alerts & evaluate status
-  const evaluatedAlerts = useMemo(() => {
-    return storedAlerts
-      .map((alt) => {
-        const ev = evaluateAlertStatus(alt);
-        return {
-          ...alt,
-          currentPrice: ev.currentPrice,
-          distanceToTarget: ev.distanceToTarget,
-          isTriggered: ev.isTriggered,
-          evaluatedStatus: ev.status
-        };
-      })
-      .filter((alt) => alt.evaluatedStatus !== 'DISABLED');
-  }, [storedAlerts]);
-
-  // Find nearest active alert
-  const nearestAlert = useMemo(() => {
-    if (evaluatedAlerts.length === 0) return null;
-    const sorted = [...evaluatedAlerts].sort((a, b) => a.distanceToTarget - b.distanceToTarget);
-    return sorted[0];
-  }, [evaluatedAlerts]);
 
   // Toggle crop chip selection
   const toggleCrop = (crop: string) => {
@@ -178,8 +146,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </span>
 
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-950 border border-emerald-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
-              थेट Agmarknet लाइव्ह दर
+              <span className={`w-2 h-2 rounded-full ${isLive ? 'bg-emerald-600 animate-pulse' : 'bg-amber-500'}`}></span>
+              {isLive ? 'थेट Agmarknet लाइव्ह दर' : 'ऑफलाईन डेटा'}
             </span>
           </div>
           

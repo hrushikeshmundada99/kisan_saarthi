@@ -37,7 +37,7 @@ const CROP_DEFAULT_YIELDS: Record<string, number> = {
   Tomato: 120
 };
 
-const ALL_MANDIS = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Sangamner', 'Nashik', 'Ahmednagar'];
+const ALL_MANDIS = ['Kopargaon', 'Lasalgaon', 'Rahata', 'Shrirampur', 'Yeola', 'Sangamner', 'Nashik', 'Ahmednagar'];
 
 interface MandiProfitResult {
   mandiName: string;
@@ -183,7 +183,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-12 max-w-7xl mx-auto animate-in fade-in duration-300">
+    <div className="space-y-4 sm:space-y-5 pb-6 max-w-7xl mx-auto animate-in fade-in duration-200 px-1 sm:px-2">
       
       {/* Header Card */}
       <Card hoverable={false} className="space-y-3">
