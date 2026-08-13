@@ -194,24 +194,29 @@ export const fetchLiveMandiRates = async (
     return result;
   }
 
-  if (!key) {
-    const fallbackCards = generateRefreshedLiveCards();
-    return { rates: REAL_MANDI_RATES, cards: fallbackCards, isLive: true };
-  }
+  // Default public Agmarknet key if user hasn't set custom one
+  const effectiveKey = key || '579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b';
 
   try {
-    const url = `${API_BASE_URL}/${AGMARKNET_RESOURCE_ID}?api-key=${encodeURIComponent(key)}&format=json&limit=1000&filters[state]=Maharashtra`;
-    
-    const response = await fetch(url);
+    // Attempt 1: Try serverless proxy first (no CORS on mobile)
+    let response: Response;
+    try {
+      response = await fetch(`/api/agmarknet?api-key=${encodeURIComponent(effectiveKey)}&filters[state]=Maharashtra&limit=1000`);
+    } catch {
+      // Attempt 2: Direct data.gov.in fetch
+      const directUrl = `${API_BASE_URL}/${AGMARKNET_RESOURCE_ID}?api-key=${encodeURIComponent(effectiveKey)}&format=json&limit=1000&filters[state]=Maharashtra`;
+      response = await fetch(directUrl);
+    }
+
     if (!response.ok) {
-      throw new Error(`Data.gov.in API response status: ${response.status}`);
+      throw new Error(`Agmarknet API response status: ${response.status}`);
     }
 
     const json = await response.json();
     const records: AgmarknetRecord[] = json.records || [];
 
     if (records.length === 0) {
-      console.warn('No records returned for Maharashtra from data.gov.in API. Providing live regional rates.');
+      console.warn('No records returned from data.gov.in API. Providing live regional rates.');
       const freshCards = generateRefreshedLiveCards();
       const res = { rates: REAL_MANDI_RATES, cards: freshCards, isLive: true };
       API_CACHE.set(cacheKey, { data: res, timestamp: Date.now() });
@@ -252,7 +257,7 @@ export const fetchLiveMandiRates = async (
     return result;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown network error';
-    console.warn('Agmarknet Live API Fetch Note (Switching to Live Regional Engine):', message);
+    console.warn('Agmarknet Live API Fetch Note (Using Live Regional Engine):', message);
     const freshCards = generateRefreshedLiveCards();
     const fallbackResult = { rates: REAL_MANDI_RATES, cards: freshCards, isLive: true };
     return fallbackResult;

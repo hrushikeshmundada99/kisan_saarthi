@@ -19,6 +19,12 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api\/fast2sms/, '/dev/bulkV2'),
         secure: false,
       },
+      '/api/agmarknet': {
+        target: 'https://api.data.gov.in',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/agmarknet/, '/resource/9ef84268-d588-465a-a308-a864a43d0070'),
+        secure: false,
+      },
     },
   },
 });
