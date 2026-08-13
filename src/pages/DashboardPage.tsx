@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { MOCK_DASHBOARD_CARDS, type MandiPriceCardItem } from '../data/mockData';
+import { getStoredAlerts, evaluateAlertStatus } from '../utils/alertManager';
 import { useToast } from '../components/Toast';
 import { PriceCard } from '../components/PriceCard';
 import { PriceRow } from '../components/PriceRow';
@@ -47,13 +48,33 @@ interface DashboardPageProps {
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
   liveCards = MOCK_DASHBOARD_CARDS,
-  isLive: _isLive = true,
+  isLive = true,
   isFetchingLive = false,
   onRefreshLive
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { showToast } = useToast();
+
+  // Read stored alerts & evaluate
+  const storedAlerts = useMemo(() => {
+    return getStoredAlerts();
+  }, []);
+
+  const evaluatedAlerts = useMemo(() => {
+    return storedAlerts
+      .map((alt) => {
+        const ev = evaluateAlertStatus(alt);
+        return {
+          ...alt,
+          currentPrice: ev.currentPrice,
+          distanceToTarget: ev.distanceToTarget,
+          isTriggered: ev.isTriggered,
+          evaluatedStatus: ev.status
+        };
+      })
+      .filter((alt) => alt.evaluatedStatus !== 'DISABLED');
+  }, [storedAlerts]);
 
   // Onboarding Tour auto launch state for first time users
   const [runTour, setRunTour] = useState<boolean>(() => {
