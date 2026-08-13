@@ -104,7 +104,7 @@ export const MandiComparisonPage: React.FC = () => {
       const base = basePrices[crop] || 1850;
 
       return MANDIS.map((mandi) => {
-        const dist = mandi === 'Kopargaon' ? 0 : mandi === 'Rahata' ? 14 : mandi === 'Shrirampur' ? 22 : mandi === 'Yeola' ? 28 : mandi === 'Sangamner' ? 38 : mandi === 'Nashik' ? 85 : 95;
+        const dist = mandi === 'Kopargaon' ? 0 : mandi === 'Rahata' ? 20 : mandi === 'Shrirampur' ? 42 : mandi === 'Yeola' ? 19 : mandi === 'Sangamner' ? 52 : mandi === 'Lasalgaon' ? 50 : mandi === 'Nashik' ? 90 : 100;
         const modal = base + (mandi === 'Nashik' ? 180 : mandi === 'Kopargaon' ? 0 : mandi === 'Sangamner' ? -30 : 50);
         return {
           date: selectedDate,

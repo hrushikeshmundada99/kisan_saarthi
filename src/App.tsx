@@ -56,6 +56,7 @@ function AppContent() {
           isLive={isLive}
           onOpenApiKeyModal={() => setApiKeyModalOpen(true)}
           onOpenAuthModal={() => setAuthModalOpen(true)}
+          onStartTour={() => window.dispatchEvent(new CustomEvent('START_KISAN_TOUR'))}
         />
 
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-8">
@@ -95,7 +96,7 @@ function AppContent() {
             </div>
 
             <div className="flex items-center gap-4 text-[#6B7280] font-semibold flex-wrap justify-center">
-              <span>कोपरगाव • राहाता • श्रीरामपूर • येवला • लासलगाव • संगमनेर • नाशिक • अहमदनगर</span>
+              <span>कोपरगाव • राहाता • श्रीरामपूर • येवला • लासलगाव • संगमनेर • नाशिक • अहिल्यानगर</span>
             </div>
 
             <div className="flex items-center gap-1 text-[#6B7280] font-semibold">

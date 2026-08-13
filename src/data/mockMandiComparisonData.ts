@@ -12,7 +12,7 @@ export interface DateWiseMandiPrice {
 }
 
 export const CROPS = ['Onion', 'Soybean', 'Cotton', 'Sugarcane', 'Pomegranate', 'Wheat', 'Tomato'];
-export const MANDIS = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Lasalgaon', 'Sangamner', 'Nashik', 'Ahmednagar'];
+export const MANDIS = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Lasalgaon', 'Sangamner', 'Nashik', 'Ahilyanagar'];
 
 const MANDI_BASE_OFFSETS: Record<string, number> = {
   Kopargaon: 0,
@@ -22,7 +22,7 @@ const MANDI_BASE_OFFSETS: Record<string, number> = {
   Lasalgaon: 270,
   Sangamner: -40,
   Nashik: 200,
-  Ahmednagar: 40
+  Ahilyanagar: 40
 };
 
 const CROP_BASE_PRICES: Record<string, number> = {
@@ -71,7 +71,7 @@ export const generate30DaysMandiComparisonData = (): DateWiseMandiPrice[] => {
         const minPrice = modal - spread;
         const maxPrice = modal + spread + 30;
 
-        const distance = mandi === 'Kopargaon' ? 0 : mandi === 'Rahata' ? 14 : mandi === 'Shrirampur' ? 22 : mandi === 'Yeola' ? 28 : mandi === 'Sangamner' ? 38 : mandi === 'Nashik' ? 85 : 95;
+        const distance = mandi === 'Kopargaon' ? 0 : mandi === 'Rahata' ? 20 : mandi === 'Shrirampur' ? 42 : mandi === 'Yeola' ? 19 : mandi === 'Sangamner' ? 52 : mandi === 'Lasalgaon' ? 50 : mandi === 'Nashik' ? 90 : 100;
         const arrivals = Math.round(1800 + Math.cos(i * 0.3 + mandi.length) * 500);
 
         records.push({

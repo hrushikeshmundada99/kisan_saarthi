@@ -11,7 +11,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ isLive, onKeyUpdated }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
@@ -45,7 +45,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isLive, onKeyUpdated }) => {
                     {t('appName')}
                   </span>
                   <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black bg-[#FFC107]/20 text-[#1B4332] border border-[#FFC107]/40">
-                    कोपरगाव APMC
+                    {i18n.language === 'mr' ? 'कोपरगाव बाजार समिती' : 'Kopargaon APMC'}
                   </span>
                 </div>
                 <p className="text-xs text-[#6B7280] font-semibold hidden sm:block">

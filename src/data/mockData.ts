@@ -61,13 +61,14 @@ export interface PriceAlert {
 
 export const MANDI_LOCATIONS: Record<string, { distanceKm: number; estFreightRatePerQ: number }> = {
   Kopargaon: { distanceKm: 0, estFreightRatePerQ: 0 },
-  Rahata: { distanceKm: 14, estFreightRatePerQ: 25 },
-  Shrirampur: { distanceKm: 22, estFreightRatePerQ: 35 },
-  Yeola: { distanceKm: 28, estFreightRatePerQ: 42 },
-  Lasalgaon: { distanceKm: 42, estFreightRatePerQ: 60 },
-  Sangamner: { distanceKm: 38, estFreightRatePerQ: 55 },
-  Nashik: { distanceKm: 85, estFreightRatePerQ: 110 },
-  Ahmednagar: { distanceKm: 95, estFreightRatePerQ: 125 }
+  Rahata: { distanceKm: 20, estFreightRatePerQ: 30 },
+  Shrirampur: { distanceKm: 42, estFreightRatePerQ: 60 },
+  Yeola: { distanceKm: 19, estFreightRatePerQ: 28 },
+  Lasalgaon: { distanceKm: 50, estFreightRatePerQ: 75 },
+  Sangamner: { distanceKm: 52, estFreightRatePerQ: 78 },
+  Nashik: { distanceKm: 90, estFreightRatePerQ: 135 },
+  Ahilyanagar: { distanceKm: 100, estFreightRatePerQ: 150 },
+  Ahmednagar: { distanceKm: 100, estFreightRatePerQ: 150 }
 };
 
 export const MOCK_DASHBOARD_CARDS: MandiPriceCardItem[] = [
@@ -102,7 +103,7 @@ export const MOCK_DASHBOARD_CARDS: MandiPriceCardItem[] = [
     maxPrice: 2080,
     priceChangePercent: 4.63,
     priceChangeAmount: 85,
-    distanceFromKopargaon: 14,
+    distanceFromKopargaon: 20,
     lastUpdated: "आज, 11:45 AM",
     history7Days: [
       { date: "20 Jul", price: 1790 },
@@ -123,7 +124,7 @@ export const MOCK_DASHBOARD_CARDS: MandiPriceCardItem[] = [
     maxPrice: 2150,
     priceChangePercent: 5.88,
     priceChangeAmount: 110,
-    distanceFromKopargaon: 28,
+    distanceFromKopargaon: 19,
     lastUpdated: "आज, 10:30 AM",
     history7Days: [
       { date: "20 Jul", price: 1820 },
@@ -144,7 +145,7 @@ export const MOCK_DASHBOARD_CARDS: MandiPriceCardItem[] = [
     maxPrice: 2340,
     priceChangePercent: 8.16,
     priceChangeAmount: 160,
-    distanceFromKopargaon: 42,
+    distanceFromKopargaon: 50,
     lastUpdated: "आज, 10:45 AM",
     history7Days: [
       { date: "20 Jul", price: 1880 },
@@ -165,7 +166,7 @@ export const MOCK_DASHBOARD_CARDS: MandiPriceCardItem[] = [
     maxPrice: 2280,
     priceChangePercent: 7.33,
     priceChangeAmount: 140,
-    distanceFromKopargaon: 85,
+    distanceFromKopargaon: 90,
     lastUpdated: "आज, 12:15 PM",
     history7Days: [
       { date: "20 Jul", price: 1880 },
@@ -186,7 +187,7 @@ export const MOCK_DASHBOARD_CARDS: MandiPriceCardItem[] = [
     maxPrice: 1980,
     priceChangePercent: -1.36,
     priceChangeAmount: -25,
-    distanceFromKopargaon: 38,
+    distanceFromKopargaon: 52,
     lastUpdated: "आज, 11:10 AM",
     history7Days: [
       { date: "20 Jul", price: 1850 },
@@ -230,7 +231,7 @@ export const MOCK_DASHBOARD_CARDS: MandiPriceCardItem[] = [
     maxPrice: 4910,
     priceChangePercent: 2.39,
     priceChangeAmount: 110,
-    distanceFromKopargaon: 38,
+    distanceFromKopargaon: 52,
     lastUpdated: "आज, 11:00 AM",
     history7Days: [
       { date: "20 Jul", price: 4560 },
@@ -253,7 +254,7 @@ export const MOCK_DASHBOARD_CARDS: MandiPriceCardItem[] = [
     maxPrice: 7700,
     priceChangePercent: 0.82,
     priceChangeAmount: 60,
-    distanceFromKopargaon: 28,
+    distanceFromKopargaon: 19,
     lastUpdated: "आज, 11:20 AM",
     history7Days: [
       { date: "20 Jul", price: 7280 },

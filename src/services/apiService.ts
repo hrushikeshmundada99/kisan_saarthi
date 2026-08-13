@@ -14,7 +14,7 @@ const TARGET_MANDIS_MAP: Record<string, string[]> = {
   Yeola: ['yeola', 'yewala', 'येवला'],
   Sangamner: ['sangamner', 'संगमनेर'],
   Nashik: ['nashik', 'nasik', 'नाशिक'],
-  Ahmednagar: ['ahmednagar', 'ahmadnagar', 'अहमदनगर']
+  Ahilyanagar: ['ahmednagar', 'ahmadnagar', 'ahilyanagar', 'अहमदनगर', 'अहिल्यानगर']
 };
 
 export interface AgmarknetRecord {

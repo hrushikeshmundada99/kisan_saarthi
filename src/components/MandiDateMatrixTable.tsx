@@ -15,10 +15,10 @@ export const MandiDateMatrixTable: React.FC<MandiDateMatrixTableProps> = ({
   records,
   datesList
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Group records by mandi
-  const mandisList = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Lasalgaon', 'Sangamner', 'Nashik', 'Ahmednagar'];
+  const mandisList = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Lasalgaon', 'Sangamner', 'Nashik', 'Ahilyanagar'];
 
   return (
     <Card hoverable={false} className="space-y-4 overflow-hidden border border-[#E1EBE1] rounded-2xl shadow-sm">
@@ -26,11 +26,11 @@ export const MandiDateMatrixTable: React.FC<MandiDateMatrixTableProps> = ({
         <h3 className="text-lg font-extrabold text-[#1B4332] flex items-center gap-2">
           <Calendar className="w-5 h-5 text-[#FFC107]" />
           <span>
-            {t(`crops.${crop}`, crop)} - 7-दिवसीय तुलनात्मक दर तक्ता (7-Day Price Matrix)
+            {t(`crops.${crop}`, crop)} - {i18n.language === 'mr' ? '७-दिवसीय तुलनात्मक दर तक्ता' : '7-Day Price Matrix'}
           </span>
         </h3>
         <span className="text-xs font-black text-[#2E7D32] bg-[#E8F5E9] px-3.5 py-1.5 rounded-full border border-[#81C784]/40">
-          7-दिवसीय भाव चढ-उतार तक्ता
+          {i18n.language === 'mr' ? '७-दिवसीय भाव चढ-उतार तक्ता' : '7-Day Trend Matrix'}
         </span>
       </div>
 
@@ -41,7 +41,7 @@ export const MandiDateMatrixTable: React.FC<MandiDateMatrixTableProps> = ({
           <thead className="sticky top-0 bg-[#F7FBF7] z-20 border-b border-[#E1EBE1]">
             <tr>
               <th className="p-3.5 font-black text-[#1B4332] sticky left-0 bg-[#F7FBF7] border-r border-[#E1EBE1] z-30 shadow-xs">
-                बाजार समिती (Mandi)
+                {i18n.language === 'mr' ? 'कृषी उत्पन्न बाजार समिती' : 'Mandi'}
               </th>
               {datesList.map((dStr) => {
                 const dateObj = new Date(dStr);
@@ -76,7 +76,7 @@ export const MandiDateMatrixTable: React.FC<MandiDateMatrixTableProps> = ({
                     if (!currentRec) {
                       return (
                         <td key={dStr} className="p-3.5 text-center text-[#9CA3AF] bg-[#F7FBF7] font-bold">
-                          बंद (Closed)
+                          {i18n.language === 'mr' ? 'बंद' : 'Closed'}
                         </td>
                       );
                     }

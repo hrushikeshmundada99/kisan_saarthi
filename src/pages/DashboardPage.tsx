@@ -7,6 +7,8 @@ import { PriceCard } from '../components/PriceCard';
 import { PriceRow } from '../components/PriceRow';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import { OnboardingTour } from '../components/OnboardingTour';
+import { TodaySuggestionsCounter } from '../components/TodaySuggestionsCounter';
 import {
   LineChart,
   Scale,
@@ -45,7 +47,7 @@ interface DashboardPageProps {
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
   liveCards = MOCK_DASHBOARD_CARDS,
-  isLive = true,
+  isLive: _isLive = true,
   isFetchingLive = false,
   onRefreshLive
 }) => {
@@ -53,27 +55,30 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  // View format toggle: 'grid' (attractive visual cards) or 'row'
-  const [viewMode, setViewMode] = useState<'grid' | 'row'>('grid');
-
-  // Crop filter chips state initialized from localStorage
-  const [selectedCrops, setSelectedCrops] = useState<string[]>(() => {
+  // Onboarding Tour auto launch state for first time users
+  const [runTour, setRunTour] = useState<boolean>(() => {
     try {
-      const saved = localStorage.getItem('SELECTED_CROPS_FILTER');
-      return saved ? JSON.parse(saved) : ['Onion'];
+      return localStorage.getItem('KISAN_SAARTHI_ONBOARDING_COMPLETED') !== 'true';
     } catch {
-      return ['Onion'];
+      return false;
     }
   });
 
-  // Persist crop filter selection to localStorage
   useEffect(() => {
-    try {
-      localStorage.setItem('SELECTED_CROPS_FILTER', JSON.stringify(selectedCrops));
-    } catch (e) {
-      console.warn('Failed to save crop filter selection:', e);
-    }
-  }, [selectedCrops]);
+    const handleTriggerTour = () => {
+      setRunTour(true);
+    };
+    window.addEventListener('START_KISAN_TOUR', handleTriggerTour);
+    return () => {
+      window.removeEventListener('START_KISAN_TOUR', handleTriggerTour);
+    };
+  }, []);
+
+  // View format toggle: 'grid' (attractive visual cards) or 'row'
+  const [viewMode, setViewMode] = useState<'grid' | 'row'>('grid');
+
+  // Selected crops filter array
+  const [selectedCrops, setSelectedCrops] = useState<string[]>(['Onion', 'Soybean', 'Cotton', 'Pomegranate']);
 
   // Sort state: price_desc, price_asc, distance_asc
   const [sortBy, setSortBy] = useState<'price_desc' | 'price_asc' | 'distance_asc'>('price_desc');
@@ -136,8 +141,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   return (
     <div className="space-y-4 sm:space-y-5 pb-6 max-w-7xl mx-auto animate-in fade-in duration-200 px-1 sm:px-2">
       
+      {/* Onboarding Guided Tour Modal Component */}
+      <OnboardingTour isOpen={runTour} onClose={() => setRunTour(false)} />
+
       {/* 1. Welcoming Hero Banner */}
-      <Card hoverable={false} className="p-4 sm:p-6 lg:p-7 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-br from-[#FFFFFF] via-[#F4F9F4] to-[#E8F5E9] border-2 border-[#A5D6A7]/80 rounded-3xl shadow-sm">
+      <Card data-tour="dashboard-hero" hoverable={false} className="p-4 sm:p-6 lg:p-7 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-br from-[#FFFFFF] via-[#F4F9F4] to-[#E8F5E9] border-2 border-[#A5D6A7]/80 rounded-3xl shadow-sm">
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-[#1B5E20] text-[#FFFFFF] shadow-xs">
@@ -196,17 +204,39 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       </Card>
 
+      {/* Active Alert Notification Banner */}
+      {evaluatedAlerts.length > 0 && (
+        <div 
+          data-tour="active-alert-banner"
+          onClick={() => navigate('/alerts')}
+          className="p-3 bg-amber-50 border-2 border-amber-300 rounded-2xl flex items-center justify-between text-xs font-black text-amber-950 shadow-xs cursor-pointer hover:bg-amber-100 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#FFB300] animate-ping" />
+            <span>
+              {i18n.language === 'mr'
+                ? `सक्रिय भाव अलर्ट: ${t(`crops.${evaluatedAlerts[0].crop}`, evaluatedAlerts[0].crop)} भावाची नोंद लक्ष्य ₹${evaluatedAlerts[0].targetPrice} जवळ पोहोचत आहे`
+                : `Active Alert: ${evaluatedAlerts[0].crop} price target ₹${evaluatedAlerts[0].targetPrice} active`}
+            </span>
+          </div>
+          <ArrowRight className="w-4 h-4 text-[#D97706]" />
+        </div>
+      )}
+
+      {/* Today Suggestions Counter (Placed directly below active alert) */}
+      <TodaySuggestionsCounter />
+
       {/* 2. Highlight Strip (Best Mandi in Area) */}
       {bestRateCard && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+        <div data-tour="key-metrics" className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
           <div className="p-3.5 bg-gradient-to-r from-amber-50 via-[#FFFFFF] to-amber-50 rounded-2xl border-2 border-amber-300 flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-[#FFB300] text-[#0F291E] flex items-center justify-center font-black shrink-0">
                 <Award className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[#526058] font-bold block">सर्वाधिक भाव देणारी मंडी:</span>
-                <span className="font-black text-[#0F291E] text-sm">{bestRateCard.mandiName} APMC</span>
+                <span className="text-[#526058] font-bold block">{i18n.language === 'mr' ? 'सर्वाधिक भाव देणारी बाजार समिती:' : 'Highest Paying Mandi:'}</span>
+                <span className="font-black text-[#0F291E] text-sm">{t(`mandis.${bestRateCard.mandiName}`, bestRateCard.mandiName)}</span>
               </div>
             </div>
             <div className="text-right">
@@ -249,7 +279,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       )}
 
       {/* 3. Crop Selection Filter Chips */}
-      <Card hoverable={false} className="p-4 bg-[#FFFFFF] border-2 border-[#D8E6D8] rounded-3xl shadow-xs space-y-3">
+      <Card data-tour="crop-filters" hoverable={false} className="p-4 bg-[#FFFFFF] border-2 border-[#D8E6D8] rounded-3xl shadow-xs space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-black text-[#0F291E] uppercase tracking-wider">
             <Filter className="w-4 h-4 text-[#FFB300]" />
@@ -287,7 +317,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       </Card>
 
       {/* 4. Toolbar: Sort & View Toggle */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
+      <div data-tour="market-sort-controls" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
         <div className="flex items-center gap-2 text-xs font-black text-[#0F291E]">
           <Sprout className="w-4 h-4 text-[#1B5E20]" />
           <span>उपलब्ध बाजार भाव ({filteredAndSortedCards.length}):</span>

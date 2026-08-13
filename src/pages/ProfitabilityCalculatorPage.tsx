@@ -167,14 +167,15 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
     return sorted[0].mandiName;
   }, [calculatedResults]);
 
-  // Reset Form
+  const isMr = i18n.language === 'mr';
+
   const handleReset = () => {
     setCrop('Onion');
+    setLandValue(1);
     setLandUnit('acres');
-    setLandValue(2);
-    setYieldPerAcre(75);
+    setYieldPerAcre(100);
     setSeedCost(12000);
-    setFertilizerCost(14000);
+    setFertilizerCost(15000);
     setLaborCost(18000);
     setIrrigationCost(5000);
     setMiscCost(3000);
@@ -189,7 +190,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
       <Card hoverable={false} className="space-y-3">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2D5016]/10 text-[#2D5016] text-xs font-bold">
           <Calculator className="w-3.5 h-3.5 text-[#D97706]" />
-          <span>शेती नफा व गुंतवणूक परतावा मोजणी (Cultivation ROI Engine)</span>
+          <span>{isMr ? 'शेती नफा व गुंतवणूक परतावा मोजणी (Cultivation ROI Engine)' : 'Cultivation ROI Engine'}</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold text-[#2D5016]">
           {t('calculator.title')}
@@ -207,7 +208,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
           <div className="flex items-center justify-between border-b border-[#E5DFD5] pb-3">
             <h3 className="text-lg font-bold text-[#2D5016] flex items-center gap-2">
               <Sprout className="w-5 h-5 text-[#2D5016]" />
-              <span>लागवड खर्च आणि उत्पादन तपशील भरा</span>
+              <span>{isMr ? 'लागवड खर्च आणि उत्पादन तपशील भरा' : 'Enter Cultivation Cost & Yield Details'}</span>
             </h3>
             
             <button
@@ -215,7 +216,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
               className="text-xs font-bold text-[#D97706] hover:underline flex items-center gap-1 min-h-[44px] px-2 cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>फॉर्म रीसेट (Reset)</span>
+              <span>{isMr ? 'फॉर्म रीसेट (Reset)' : 'Reset Form'}</span>
             </button>
           </div>
 
@@ -246,14 +247,14 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
                     onClick={() => setLandUnit('acres')}
                     className={`px-2 py-0.5 rounded ${landUnit === 'acres' ? 'bg-[#2D5016] text-[#FFFFFF]' : 'text-[#4B5563]'}`}
                   >
-                    एकरी (Acres)
+                    {isMr ? 'एकरी (Acres)' : 'Acres'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setLandUnit('guntha')}
                     className={`px-2 py-0.5 rounded ${landUnit === 'guntha' ? 'bg-[#2D5016] text-[#FFFFFF]' : 'text-[#4B5563]'}`}
                   >
-                    गुंठे (Guntha)
+                    {isMr ? 'गुंठे (Guntha)' : 'Guntha'}
                   </button>
                 </div>
               </div>
@@ -272,7 +273,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
             {/* 1. Expected Yield Pre-fill */}
             <div>
               <label className="block text-xs font-bold text-[#4B5563] uppercase tracking-wider mb-1.5">
-                3. दर एकरी अपेक्षित उत्पादन (क्विंटल):
+                {isMr ? '3. दर एकरी अपेक्षित उत्पादन (क्विंटल):' : '3. Expected Yield per Acre (Quintals):'}
               </label>
               <input
                 type="number"
@@ -288,13 +289,13 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
           {/* 1. Detailed Cultivation Expenses Inputs */}
           <div className="space-y-3 pt-2 border-t border-[#E5DFD5]">
             <h4 className="text-xs font-extrabold text-[#2D5016] uppercase tracking-wider">
-              4. लागवड खर्च तपशील (Cultivation Cost Breakup in ₹):
+              {isMr ? '4. लागवड खर्च तपशील (Cultivation Cost Breakup in ₹):' : '4. Cultivation Cost Breakup (₹):'}
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs text-[#4B5563] font-semibold mb-1">
-                  बियाणे खर्च (Seed Cost):
+                  {isMr ? 'बियाणे खर्च (Seed Cost):' : 'Seed Cost:'}
                 </label>
                 <input
                   type="number"
@@ -308,7 +309,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs text-[#4B5563] font-semibold mb-1">
-                  खते व कीटकनाशके (Fertilizer/Pesticides):
+                  {isMr ? 'खते व कीटकनाशके (Fertilizer/Pesticides):' : 'Fertilizers & Pesticides:'}
                 </label>
                 <input
                   type="number"
@@ -322,7 +323,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs text-[#4B5563] font-semibold mb-1">
-                  मजुरी व काढणी खर्च (Labor Cost):
+                  {isMr ? 'मजुरी व काढणी खर्च (Labor Cost):' : 'Labor & Harvesting:'}
                 </label>
                 <input
                   type="number"
@@ -336,7 +337,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs text-[#4B5563] font-semibold mb-1">
-                  सिंचन व वीज खर्च (Irrigation):
+                  {isMr ? 'सिंचन व वीज खर्च (Irrigation):' : 'Irrigation & Power:'}
                 </label>
                 <input
                   type="number"
@@ -350,7 +351,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
 
               <div className="sm:col-span-2">
                 <label className="block text-xs text-[#4B5563] font-semibold mb-1">
-                  इतर / किरकोळ खर्च (Misc/Other Costs):
+                  {isMr ? 'इतर / किरकोळ खर्च (Misc/Other Costs):' : 'Miscellaneous Costs:'}
                 </label>
                 <input
                   type="number"
@@ -367,7 +368,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
           {/* 2. Mandi Selection Checkboxes for Multi-Mandi Comparison */}
           <div className="space-y-2 pt-2 border-t border-[#E5DFD5]">
             <label className="block text-xs font-bold text-[#4B5563] uppercase tracking-wider">
-              5. तुलनेसाठी बाजार समित्या निवडा (Select 2-3 Mandis to Compare):
+              {isMr ? '5. तुलनेसाठी बाजार समित्या निवडा (Select 2-3 Mandis to Compare):' : '5. Select Mandis to Compare:'}
             </label>
 
             <div className="flex flex-wrap gap-2">
@@ -403,7 +404,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
               className="w-full"
             >
               <Calculator className="w-5 h-5 text-[#D97706]" />
-              <span>नफा मोजा (Calculate Profitability)</span>
+              <span>{isMr ? 'नफा मोजा (Calculate Profitability)' : 'Calculate Profitability'}</span>
             </Button>
           </div>
         </Card>
@@ -420,7 +421,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
                 </div>
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#D97706] text-[#FFFFFF] text-xs font-black rounded-full shadow-xs">
                   <Award className="w-4 h-4" />
-                  <span>सर्वाधिक फायदेशीर पर्याय (Most Profitable Option)</span>
+                  <span>{isMr ? 'सर्वाधिक फायदेशीर पर्याय' : 'Most Profitable Mandi'}</span>
                 </div>
                 <h3 className="text-2xl font-black text-[#FFFFFF]">
                   {t(`mandis.${maxProfitMandiName}`, maxProfitMandiName)} बाजार समिती
@@ -433,7 +434,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
               {/* 4. Recharts Bar Chart Comparing Net Profit */}
               <Card hoverable={false} className="space-y-3">
                 <h4 className="text-xs font-bold text-[#4B5563] uppercase tracking-wider">
-                  मंडीनुसार निव्वळ नफा तुलना (Net Profit Comparison Chart)
+                  {isMr ? 'मंडीनुसार निव्वळ नफा तुलना (Net Profit Comparison Chart)' : 'Net Profit Comparison Chart'}
                 </h4>
                 <div className="h-52 w-full pt-1">
                   <ResponsiveContainer width="100%" height="100%">
@@ -458,7 +459,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
                               <div className="bg-[#FFFFFF] border border-[#E5DFD5] p-3 rounded-xl shadow-md text-xs space-y-1 font-bold">
                                 <div className="text-[#2D5016]">{t(`mandis.${res.mandiName}`, res.mandiName)}</div>
                                 <div className={res.isLoss ? 'text-rose-700' : 'text-[#2D5016]'}>
-                                  निव्वळ नफा: ₹{res.netProfit.toLocaleString('en-IN')}
+                                  {isMr ? 'निव्वळ नफा:' : 'Net Profit:'} ₹{res.netProfit.toLocaleString('en-IN')}
                                 </div>
                               </div>
                             );
@@ -500,26 +501,26 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
                           </h4>
                           {isBest && (
                             <span className="px-2 py-0.5 bg-[#2D5016] text-[#FFFFFF] text-[10px] font-black rounded-full">
-                              Best Option
+                              {isMr ? 'सर्वोत्तम पर्याय' : 'Best Option'}
                             </span>
                           )}
                         </div>
                         <span className="text-xs font-semibold text-[#4B5563]">
-                          भाव: ₹{res.modalPrice}/q
+                          {isMr ? 'भाव:' : 'Price:'} ₹{res.modalPrice}/q
                         </span>
                       </div>
 
                       {/* Revenue & Expenses Summary Grid */}
                       <div className="grid grid-cols-2 gap-2 text-center text-xs">
                         <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#E5DFD5]">
-                          <span className="text-[#4B5563] font-semibold">एकूण महसूल</span>
+                          <span className="text-[#4B5563] font-semibold">{isMr ? 'एकूण महसूल' : 'Gross Revenue'}</span>
                           <div className="text-sm font-extrabold text-[#1F2937] mt-0.5">
                             ₹{res.grossRevenue.toLocaleString('en-IN')}
                           </div>
                         </div>
 
                         <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#E5DFD5]">
-                          <span className="text-[#4B5563] font-semibold">एकूण खर्च</span>
+                          <span className="text-[#4B5563] font-semibold">{isMr ? 'एकूण खर्च' : 'Total Cost'}</span>
                           <div className="text-sm font-extrabold text-rose-700 mt-0.5">
                             ₹{res.totalExpenses.toLocaleString('en-IN')}
                           </div>
@@ -533,13 +534,13 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
                           : 'bg-[#2D5016] text-[#FFFFFF]'
                       }`}>
                         <div className="text-xs uppercase tracking-wider font-semibold opacity-90">
-                          {res.isLoss ? 'निव्वळ तोटा (Net Loss)' : 'निव्वळ नफा (Net Profit)'}
+                          {res.isLoss ? (isMr ? 'निव्वळ तोटा (Net Loss)' : 'Net Loss') : (isMr ? 'निव्वळ नफा (Net Profit)' : 'Net Profit')}
                         </div>
                         <div className={`text-2xl font-black ${res.isLoss ? 'text-rose-700' : 'text-[#D97706]'}`}>
                           ₹{res.netProfit.toLocaleString('en-IN')}
                         </div>
                         <div className="text-xs font-semibold opacity-90">
-                          (दर क्विंटल नफा: ₹{res.profitPerQ.toLocaleString('en-IN')})
+                          ({isMr ? 'दर क्विंटल नफा:' : 'Net Profit / q:'} ₹{res.profitPerQ.toLocaleString('en-IN')})
                         </div>
                       </div>
 
@@ -548,7 +549,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
                         <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center gap-2 font-semibold">
                           <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
                           <span>
-                            {i18n.language === 'mr'
+                            {isMr
                               ? 'या बाजार समितीत विक्री केल्यास सध्याच्या खर्चानुसार नुकसान होण्याची शक्यता आहे.'
                               : 'Selling here may result in a loss based on current costs.'}
                           </span>
@@ -566,22 +567,22 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
                         }
                         className="w-full text-xs font-bold text-[#2D5016] hover:underline flex items-center justify-center gap-1 pt-1 cursor-pointer"
                       >
-                        <span>खर्चाची संपूर्ण विभागणी {isExpanded ? 'लपवा' : 'पहा'}</span>
+                        <span>{isMr ? `खर्चाची संपूर्ण विभागणी ${isExpanded ? 'लपवा' : 'पहा'}` : `${isExpanded ? 'Hide' : 'Show'} Cost Breakdown`}</span>
                         {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                       </button>
 
                       {isExpanded && (
                         <div className="space-y-1.5 text-xs text-[#4B5563] p-3 bg-[#FAF7F2] rounded-xl border border-[#E5DFD5] font-medium animate-in fade-in duration-150">
                           <div className="flex justify-between">
-                            <span>लागवड खर्च (बियाणे/खते/मजुरी):</span>
+                            <span>{isMr ? 'लागवड खर्च (बियाणे/खते/मजुरी):' : 'Cultivation Cost (Seeds/Fertilizers/Labor):'}</span>
                             <span className="font-bold text-[#1F2937]">₹{res.cultivationCost.toLocaleString('en-IN')}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>वाहतूक भाडे (रु.{res.transportCostPerQ}/q):</span>
+                            <span>{isMr ? `वाहतूक भाडे (रु.${res.transportCostPerQ}/q):` : `Transport Freight (₹${res.transportCostPerQ}/q):`}</span>
                             <span className="font-bold text-rose-700">₹{res.totalTransportCost.toLocaleString('en-IN')}</span>
                           </div>
                           <div className="flex justify-between border-t border-[#E5DFD5] pt-1 font-bold text-[#1F2937]">
-                            <span>एकूण खर्च:</span>
+                            <span>{isMr ? 'एकूण खर्च:' : 'Total Cost:'}</span>
                             <span>₹{res.totalExpenses.toLocaleString('en-IN')}</span>
                           </div>
                         </div>
@@ -599,10 +600,12 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
               </div>
               <div className="space-y-1 max-w-sm mx-auto">
                 <h3 className="text-lg font-bold text-[#2D5016]">
-                  नफा मोजण्यासाठी डावीकडील माहिती भरा
+                  {isMr ? 'नफा मोजण्यासाठी डावीकडील माहिती भरा' : 'Fill details on left to calculate profit'}
                 </h3>
                 <p className="text-sm text-[#4B5563] leading-relaxed">
-                  लागवड खर्च, जमिनीचे क्षेत्र आणि अपेक्षित उत्पन्न भरून "नफा मोजा" बटणावर क्लिक करा.
+                  {isMr
+                    ? 'लागवड खर्च, जमिनीचे क्षेत्र आणि अपेक्षित उत्पन्न भरून "नफा मोजा" बटणावर क्लिक करा.'
+                    : 'Enter cultivation cost, land area, and expected yield, then click Calculate Profitability.'}
                 </p>
               </div>
             </Card>

@@ -8,7 +8,7 @@ interface MandiSelectorProps {
   mandis?: string[];
 }
 
-const DEFAULT_MANDIS = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Sangamner', 'Nashik', 'Ahmednagar'];
+const DEFAULT_MANDIS = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Sangamner', 'Nashik', 'Ahilyanagar'];
 
 export const MandiSelector: React.FC<MandiSelectorProps> = ({
   selectedMandi,

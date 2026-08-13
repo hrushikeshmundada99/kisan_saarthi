@@ -7,7 +7,7 @@ export interface ForecastPointItem {
 }
 
 export const CROPS_LIST = ['Onion', 'Soybean', 'Cotton', 'Sugarcane', 'Pomegranate', 'Wheat', 'Tomato'];
-export const MANDIS_LIST = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Lasalgaon', 'Sangamner', 'Nashik', 'Ahmednagar'];
+export const MANDIS_LIST = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Lasalgaon', 'Sangamner', 'Nashik', 'Ahilyanagar'];
 
 // Base price map per crop and mandi
 const CROP_BASE_PRICES: Record<string, number> = {
@@ -28,7 +28,7 @@ const MANDI_PRICE_OFFSETS: Record<string, number> = {
   Lasalgaon: 270,
   Sangamner: -40,
   Nashik: 200,
-  Ahmednagar: 40
+  Ahilyanagar: 40
 };
 
 // Generate 30 days past + 30 days future forecast data

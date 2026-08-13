@@ -20,7 +20,7 @@ export interface MonthlyAverageItem {
 }
 
 const CROPS = ['Onion', 'Soybean', 'Cotton', 'Sugarcane', 'Pomegranate', 'Wheat', 'Tomato'];
-const MANDIS = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Sangamner', 'Nashik', 'Ahmednagar'];
+const MANDIS = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Sangamner', 'Nashik', 'Ahilyanagar'];
 
 const CROP_SEASONAL_CURVES: Record<string, number[]> = {
   // Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec (multipliers relative to base)
@@ -50,7 +50,7 @@ const MANDI_OFFSETS: Record<string, number> = {
   Yeola: 130,
   Sangamner: -40,
   Nashik: 200,
-  Ahmednagar: 40
+  Ahilyanagar: 40
 };
 
 // Generate 365 days of realistic historical daily dataset

@@ -23,7 +23,7 @@ const CROP_EMOJIS: Record<string, string> = {
 };
 
 export const PriceCard: React.FC<PriceCardProps> = ({ card, onCompareClick, onForecastClick }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const isPositive = card.priceChangePercent > 0;
   const isNegative = card.priceChangePercent < 0;
@@ -180,7 +180,9 @@ export const PriceCard: React.FC<PriceCardProps> = ({ card, onCompareClick, onFo
             <Clock className="w-3 h-3" />
             {card.lastUpdated}
           </span>
-          <span className="font-black text-[#1B5E20]">APMC Market Zone</span>
+          <span className="font-black text-[#1B5E20]">
+            {i18n.language === 'mr' ? 'कृषी बाजार समिती क्षेत्र' : 'APMC Market Zone'}
+          </span>
         </div>
 
         {/* Action Buttons */}

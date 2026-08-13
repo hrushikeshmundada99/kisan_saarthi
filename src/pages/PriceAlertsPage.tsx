@@ -27,7 +27,7 @@ import {
   Key
 } from 'lucide-react';
 
-const MANDIS_WITH_ANY = ['ANY', 'Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Lasalgaon', 'Sangamner', 'Nashik', 'Ahmednagar'];
+const MANDIS_WITH_ANY = ['ANY', 'Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Lasalgaon', 'Sangamner', 'Nashik', 'Ahilyanagar'];
 
 export const PriceAlertsPage: React.FC = () => {
   const { t, i18n } = useTranslation();

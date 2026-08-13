@@ -21,7 +21,7 @@ interface AuthContextType {
 const DEFAULT_USER: UserProfile = {
   name: 'रमेश पाटील (Ramesh Patil)',
   phone: '9822154321',
-  location: 'कोपरगाव, अहमदनगर (Kopargaon)',
+  location: 'कोपरगाव, अहिल्यानगर (Kopargaon)',
   landSize: '5 एकर (5 Acres)',
   primaryCrop: 'Onion',
   preferredMandis: ['Kopargaon', 'Rahata', 'Yeola', 'Sangamner']

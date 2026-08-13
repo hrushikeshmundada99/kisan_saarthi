@@ -18,7 +18,7 @@ import {
   Sparkles,
   Compass
 } from 'lucide-react';
-import { LanguageToggle } from './LanguageToggle';
+
 
 interface SidebarProps {
   isLive: boolean;
@@ -26,10 +26,27 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('SIDEBAR_COLLAPSED') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const isMr = i18n.language === 'mr';
+
+  const toggleCollapse = () => {
+    const next = !isCollapsed;
+    setIsCollapsed(next);
+    try {
+      localStorage.setItem('SIDEBAR_COLLAPSED', String(next));
+    } catch {}
+  };
 
   const navItems = [
     { id: 'dashboard', path: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
@@ -99,8 +116,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
 
       {/* Modern Vertical Sidebar (Desktop Sticky + Mobile Drawer) */}
       <aside
-        className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-64 xl:w-72 bg-[#FFFFFF]/95 backdrop-blur-xl border-r border-[#D8E6D8] flex flex-col justify-between p-4 sm:p-5 transition-transform duration-300 ease-in-out shadow-lg lg:shadow-none ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        data-tour="sidebar-nav"
+        className={`fixed lg:sticky top-0 left-0 z-50 h-screen bg-[#FFFFFF]/95 backdrop-blur-xl border-r border-[#D8E6D8] flex flex-col justify-between p-3 sm:p-4 transition-all duration-300 ease-in-out shadow-lg lg:shadow-none ${
+          isCollapsed ? 'lg:w-20' : 'w-64 xl:w-72'
+        } ${
+          mobileOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         <div className="space-y-4">
@@ -125,16 +145,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
                   कोपरगाव APMC Intelligence
                 </span>
               </div>
-            </div>
 
-            {/* Mobile Close Button */}
-            <button
-              onClick={() => setMobileOpen(false)}
-              className="lg:hidden p-1.5 rounded-xl text-[#526058] hover:bg-[#F4F9F4]"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+              {/* Desktop Retract Button */}
+              <button
+                onClick={toggleCollapse}
+                className="hidden lg:flex p-1.5 rounded-xl text-[#526058] hover:bg-[#E8F5E9] hover:text-[#1B5E20] transition-colors cursor-pointer"
+                title={isMr ? 'मेनू लहान करा' : 'Retract Sidebar'}
+              >
+                <PanelLeftClose className="w-5 h-5" />
+              </button>
+
+              {/* Mobile Close Button */}
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="lg:hidden p-1.5 rounded-xl text-[#526058] hover:bg-[#F4F9F4]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          )}
 
           {/* Section Label */}
           <div className="text-[10px] font-black text-[#526058] uppercase tracking-wider px-2">
@@ -150,6 +179,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
               return (
                 <button
                   key={item.id}
+                  data-tour={`nav-${item.id}`}
                   onClick={() => handleNavigate(item.path)}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 cursor-pointer group min-h-[42px] ${
                     isActive
@@ -186,16 +216,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
           >
             <div className="flex items-center gap-2">
               {isLive ? <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" /> : <Key className="w-4 h-4 text-[#FFB300] shrink-0" />}
-              <span>{isLive ? 'Agmarknet Live' : 'API Key सेट करा'}</span>
+              {!isCollapsed && <span>{isLive ? 'Agmarknet Live' : 'API Key सेट करा'}</span>}
             </div>
-            <span className="text-[10px] underline">बदला</span>
+            {!isCollapsed && <span className="text-[10px] underline">बदला</span>}
           </button>
-
-          {/* Desktop Language Toggle Container */}
-          <div className="flex items-center justify-between px-3 py-1.5 bg-[#F4F9F4] rounded-2xl border border-[#D8E6D8]">
-            <span className="text-xs font-bold text-[#526058]">भाषा (Language):</span>
-            <LanguageToggle />
-          </div>
 
         </div>
 
@@ -230,3 +254,4 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
     </>
   );
 };
+

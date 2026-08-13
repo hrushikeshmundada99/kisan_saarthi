@@ -22,101 +22,144 @@ export const LandingPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
+  const isMr = i18n.language === 'mr';
+
   const LIVE_TICKER_ITEMS = [
-    { crop: 'कांदा (Onion)', mandi: 'लासलगाव', price: '₹२,१२०', trend: '+₹१६०' },
-    { crop: 'कांदा (Onion)', mandi: 'कोपरगाव', price: '₹१,८५०', trend: '+₹६०' },
-    { crop: 'सोयाबीन (Soybean)', mandi: 'कोपरगाव', price: '₹४,६२०', trend: '+₹११०' },
-    { crop: 'कापूस (Cotton)', mandi: 'श्रीरामपूर', price: '₹७,२४०', trend: '+₹१५०' },
-    { crop: 'डाळिंब (Pomegranate)', mandi: 'राहाता', price: '₹८,५००', trend: '+₹२५०' }
+    { crop: isMr ? 'कांदा (Onion)' : 'Onion', mandi: isMr ? 'लासलगाव' : 'Lasalgaon', price: '₹२,१२०', trend: '+₹१६०' },
+    { crop: isMr ? 'कांदा (Onion)' : 'Onion', mandi: isMr ? 'कोपरगाव' : 'Kopargaon', price: '₹१,८५०', trend: '+₹६०' },
+    { crop: isMr ? 'सोयाबीन (Soybean)' : 'Soybean', mandi: isMr ? 'कोपरगाव' : 'Kopargaon', price: '₹४,६२०', trend: '+₹११०' },
+    { crop: isMr ? 'कापूस (Cotton)' : 'Cotton', mandi: isMr ? 'श्रीरामपूर' : 'Shrirampur', price: '₹७,२४०', trend: '+₹१५०' },
+    { crop: isMr ? 'डाळिंब (Pomegranate)' : 'Pomegranate', mandi: isMr ? 'राहाता' : 'Rahata', price: '₹८,५००', trend: '+₹२५०' },
+  ];
+
+  // Duplicate for seamless infinite scroll
+  const allTickerItems = [...LIVE_TICKER_ITEMS, ...LIVE_TICKER_ITEMS];
+
+  const mandisData = [
+    { name: isMr ? 'कोपरगाव बाजार समिती' : 'Kopargaon APMC', dist: isMr ? 'मुख्य केंद्र (0 km)' : 'Main Hub (0 km)', highlight: true },
+    { name: isMr ? 'लासलगाव बाजार समिती' : 'Lasalgaon APMC', dist: isMr ? 'कांदा हब (50 km)' : 'Onion Hub (50 km)', highlight: true },
+    { name: isMr ? 'राहाता बाजार समिती' : 'Rahata APMC', dist: isMr ? '20 km अंतर' : '20 km away', highlight: false },
+    { name: isMr ? 'श्रीरामपूर बाजार समिती' : 'Shrirampur APMC', dist: isMr ? '42 km अंतर' : '42 km away', highlight: false },
+    { name: isMr ? 'येवला बाजार समिती' : 'Yeola APMC', dist: isMr ? '19 km अंतर' : '19 km away', highlight: false },
+    { name: isMr ? 'संगमनेर बाजार समिती' : 'Sangamner APMC', dist: isMr ? '52 km अंतर' : '52 km away', highlight: false },
+    { name: isMr ? 'नाशिक बाजार समिती' : 'Nashik APMC', dist: isMr ? '90 km अंतर' : '90 km away', highlight: false },
+    { name: isMr ? 'अहिल्यानगर बाजार समिती' : 'Ahilyanagar APMC', dist: isMr ? '100 km अंतर' : '100 km away', highlight: false }
   ];
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-10 animate-in fade-in duration-300">
       
-      {/* Live Market Rates Horizontal Ticker Bar */}
+      {/* Continuous Scrolling Live Market Rates Ticker - Like News Headline */}
       <div className="overflow-hidden rounded-2xl bg-[#FFFFFF] border border-[#D8E6D8] p-2.5 shadow-xs flex items-center gap-3">
         <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-950 rounded-xl text-xs font-black shrink-0">
           <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
-          <span>{i18n.language === 'mr' ? 'थेट बाजार' : 'LIVE'}</span>
+          <span>{isMr ? 'थेट बाजार' : 'LIVE'}</span>
         </div>
 
-        <div className="flex items-center gap-4 sm:gap-6 overflow-x-auto text-xs font-black text-[#0F291E] no-scrollbar py-0.5">
-          {LIVE_TICKER_ITEMS.map((item, idx) => (
-            <div key={idx} className="flex items-center gap-1.5 shrink-0 px-2 py-0.5 rounded-lg bg-[#F4F9F4] border border-[#D8E6D8]">
-              <span className="text-[#526058]">{item.crop} ({item.mandi}):</span>
-              <span className="text-[#1B5E20] font-black">{item.price}</span>
-              <span className="text-emerald-700 text-[10px] flex items-center font-bold">
-                <TrendingUp className="w-3 h-3" /> {item.trend}
-              </span>
-            </div>
-          ))}
+        {/* Marquee wrapper clips content and scrolls infinitely */}
+        <div className="flex-1 overflow-hidden relative">
+          <div className="animate-ticker-marquee">
+            {allTickerItems.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-1.5 shrink-0 px-3 py-0.5 mx-2 rounded-lg bg-[#F4F9F4] border border-[#D8E6D8]">
+                <span className="text-[#526058] text-xs font-black whitespace-nowrap">{item.crop} ({item.mandi}):</span>
+                <span className="text-[#1B5E20] font-black text-xs whitespace-nowrap">{item.price}</span>
+                <span className="text-emerald-700 text-[10px] flex items-center font-bold whitespace-nowrap">
+                  <TrendingUp className="w-3 h-3 mr-0.5" />{item.trend}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Hero Section Card with Radial Glow and Visual Badges */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#FFFFFF] via-[#F4F9F4] to-[#E8F5E9] border-2 border-[#A5D6A7]/70 rounded-3xl p-6 sm:p-10 lg:p-12 shadow-md shadow-emerald-950/5 text-center space-y-6">
+      {/* Hero Section Card with Farm Background Image */}
+      <section className="relative overflow-hidden border-2 border-[#A5D6A7]/70 rounded-3xl shadow-md shadow-emerald-950/5 text-center">
         
-        {/* Background Decorative Rings */}
-        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-amber-500/10 blur-3xl pointer-events-none"></div>
+        {/* Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/images/hero_bg.png')" }}
+        />
+        {/* Overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/88 via-[#F4F9F4]/82 to-[#E8F5E9]/90" />
 
-        <div className="max-w-4xl mx-auto space-y-5 relative z-10">
-          
-          {/* Location Pill Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFFFFF] border border-[#A5D6A7] text-[#1B5E20] text-xs sm:text-sm font-black shadow-xs">
-            <MapPin className="w-4 h-4 text-[#FFB300] shrink-0" />
-            <span>कोपरगाव • लासलगाव • राहाता • श्रीरामपूर • येवला • संगमनेर • नाशिक • अहमदनगर</span>
+        {/* Glow Accents */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 p-6 sm:p-10 lg:p-12 space-y-6">
+          <div className="max-w-4xl mx-auto space-y-5">
+
+            {/* Location Pill Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFFFFF]/80 border border-[#A5D6A7] text-[#1B5E20] text-xs sm:text-sm font-black shadow-xs">
+              <MapPin className="w-4 h-4 text-[#FFB300] shrink-0" />
+              <span>
+                {isMr
+                  ? 'कोपरगाव • लासलगाव • राहाता • श्रीरामपूर • येवला • संगमनेर • नाशिक • अहिल्यानगर'
+                  : 'Kopargaon • Lasalgaon • Rahata • Shrirampur • Yeola • Sangamner • Nashik • Ahilyanagar'}
+              </span>
+            </div>
+
+            {/* Main Hero Title */}
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0F291E] tracking-tight leading-tight">
+              {t('landing.heroTitle')}
+            </h1>
+
+            {/* Hero Subtitle */}
+            <p className="text-sm sm:text-base text-[#526058] max-w-2xl mx-auto leading-relaxed font-semibold">
+              {t('landing.heroSub')}
+            </p>
+
+            {/* Action CTAs */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={() => {
+                  try {
+                    localStorage.removeItem('KISAN_SAARTHI_ONBOARDING_COMPLETED');
+                  } catch {}
+                  navigate('/dashboard');
+                }}
+                className="w-full sm:w-auto text-sm font-black shadow-lg shadow-emerald-900/20"
+              >
+                <span>{t('landing.getStartedBtn')}</span>
+                <ArrowRight className="w-4.5 h-4.5 text-[#FFB300]" />
+              </Button>
+
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={() => {
+                  try {
+                    localStorage.removeItem('KISAN_SAARTHI_ONBOARDING_COMPLETED');
+                  } catch {}
+                  navigate('/dashboard');
+                }}
+                className="w-full sm:w-auto text-sm font-black border-2"
+              >
+                <Compass className="w-4.5 h-4.5 text-[#1B5E20]" />
+                <span>{t('landing.continueToDashboardBtn')}</span>
+              </Button>
+            </div>
+
+            {/* Trust badges strip */}
+            <div className="pt-4 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-[#526058] font-bold border-t border-[#D8E6D8] max-w-2xl mx-auto">
+              <span className="flex items-center gap-1.5 text-[#1B5E20]">
+                <ShieldCheck className="w-4 h-4 text-[#2E7D32]" />
+                {isMr ? 'Agmarknet मान्यताप्राप्त डेटा' : 'Agmarknet Verified Data'}
+              </span>
+              <span className="flex items-center gap-1.5 text-[#0F291E]">
+                <Sparkles className="w-4 h-4 text-[#FFB300]" />
+                {isMr ? '७, १४ व ३० दिवसांचे AI अंदाज' : 'AI Forecasts: 7, 14 & 30 Days'}
+              </span>
+              <span className="flex items-center gap-1.5 text-emerald-800">
+                <Smartphone className="w-4 h-4 text-emerald-600" />
+                {isMr ? 'थेट मोबाईल SIM SMS अलर्ट' : 'Direct Mobile SIM SMS Alerts'}
+              </span>
+            </div>
+
           </div>
-
-          {/* Main Hero Title */}
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0F291E] tracking-tight leading-tight">
-            {t('landing.heroTitle')}
-          </h1>
-
-          {/* Hero Subtitle */}
-          <p className="text-sm sm:text-base text-[#526058] max-w-2xl mx-auto leading-relaxed font-semibold">
-            {t('landing.heroSub')}
-          </p>
-
-          {/* Action CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={() => navigate('/dashboard')}
-              className="w-full sm:w-auto text-sm font-black shadow-lg shadow-emerald-900/20"
-            >
-              <span>{t('landing.checkPriceBtn')}</span>
-              <ArrowRight className="w-4.5 h-4.5 text-[#FFB300]" />
-            </Button>
-
-            <Button
-              variant="secondary"
-              size="lg"
-              onClick={() => navigate('/recommendation')}
-              className="w-full sm:w-auto text-sm font-black border-2"
-            >
-              <Compass className="w-4.5 h-4.5 text-[#1B5E20]" />
-              <span>{i18n.language === 'mr' ? 'पिक निवड सल्लागार' : 'Crop Recommendation'}</span>
-            </Button>
-          </div>
-
-          {/* Trust badges strip */}
-          <div className="pt-4 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-[#526058] font-bold border-t border-[#D8E6D8] max-w-2xl mx-auto">
-            <span className="flex items-center gap-1.5 text-[#1B5E20]">
-              <ShieldCheck className="w-4 h-4 text-[#2E7D32]" />
-              Agmarknet मान्यताप्राप्त डेटा
-            </span>
-            <span className="flex items-center gap-1.5 text-[#0F291E]">
-              <Sparkles className="w-4 h-4 text-[#FFB300]" />
-              ७, १४ व ३० दिवसांचे AI अंदाज
-            </span>
-            <span className="flex items-center gap-1.5 text-emerald-800">
-              <Smartphone className="w-4 h-4 text-emerald-600" />
-              थेट मोबाईल SIM SMS अलर्ट
-            </span>
-          </div>
-
         </div>
       </section>
 
@@ -124,10 +167,10 @@ export const LandingPage: React.FC = () => {
       <section className="space-y-4 max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto space-y-1">
           <span className="text-xs font-black text-[#FFB300] tracking-wider uppercase">
-            शेतकऱ्यांसाठी स्मार्ट बुद्धिमत्ता
+            {t('landing.smartIntelligence')}
           </span>
           <h2 className="text-2xl sm:text-3xl font-black text-[#0F291E]">
-            किसान सारथी तुम्हाला कशी मदत करतो?
+            {t('landing.howItHelps')}
           </h2>
         </div>
 
@@ -143,13 +186,13 @@ export const LandingPage: React.FC = () => {
               <Compass className="w-6 h-6 text-[#D97706]" />
             </div>
             <h3 className="text-lg font-black text-[#0F291E]">
-              पिक निवड सल्लागार
+              {t('landing.propCropTitle')}
             </h3>
             <p className="text-xs text-[#526058] font-semibold leading-relaxed">
-              ज्या पिकाला बाजारात सर्वाधिक भाव मिळणार आहे तेच निवडा आणि दर एकरी निव्वळ नफा वाढवा.
+              {t('landing.propCropDesc')}
             </p>
             <div className="pt-1 flex items-center text-xs font-black text-[#1B5E20] group-hover:translate-x-1 transition-transform">
-              <span>शिफारस तपासा</span>
+              <span>{t('landing.checkRecBtn')}</span>
               <ArrowRight className="w-3.5 h-3.5 ml-1 text-[#FFB300]" />
             </div>
           </Card>
@@ -170,7 +213,7 @@ export const LandingPage: React.FC = () => {
               {t('landing.prop1Desc')}
             </p>
             <div className="pt-1 flex items-center text-xs font-black text-[#1B5E20] group-hover:translate-x-1 transition-transform">
-              <span>अंदाज तपासा</span>
+              <span>{t('landing.checkForecastBtn')}</span>
               <ArrowRight className="w-3.5 h-3.5 ml-1 text-[#FFB300]" />
             </div>
           </Card>
@@ -191,7 +234,7 @@ export const LandingPage: React.FC = () => {
               {t('landing.prop2Desc')}
             </p>
             <div className="pt-1 flex items-center text-xs font-black text-[#1B5E20] group-hover:translate-x-1 transition-transform">
-              <span>तुलना करा</span>
+              <span>{t('landing.compareBtn')}</span>
               <ArrowRight className="w-3.5 h-3.5 ml-1 text-[#FFB300]" />
             </div>
           </Card>
@@ -212,7 +255,7 @@ export const LandingPage: React.FC = () => {
               {t('landing.prop3Desc')}
             </p>
             <div className="pt-1 flex items-center text-xs font-black text-[#1B5E20] group-hover:translate-x-1 transition-transform">
-              <span>नफा मोजा</span>
+              <span>{t('landing.calcBtn')}</span>
               <ArrowRight className="w-3.5 h-3.5 ml-1 text-[#FFB300]" />
             </div>
           </Card>
@@ -220,29 +263,20 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* APMC Mandis Chips Strip */}
+      {/* APMC / Bazar Samiti Chips Strip */}
       <Card hoverable={false} className="p-5 space-y-3 bg-[#FFFFFF] border-2 border-[#D8E6D8] rounded-2xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#D8E6D8] pb-3">
           <h3 className="text-base font-black text-[#0F291E] flex items-center gap-2">
             <Sprout className="w-5 h-5 text-[#2E7D32]" />
-            <span>समाविष्ट प्रमुख कृषी उत्पन्न बाजार समित्या</span>
+            <span>{t('landing.includedMandis')}</span>
           </h3>
           <span className="text-xs font-black text-[#1B5E20] bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-            ८ प्रमुख बाजारपेठा थेट जोडल्या
+            {t('landing.mandisCount')}
           </span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-black">
-          {[
-            { name: 'कोपरगाव APMC', dist: 'मुख्य केंद्र (0 km)', highlight: true },
-            { name: 'लासलगाव APMC', dist: 'कांदा हब (42 km)', highlight: true },
-            { name: 'राहाता APMC', dist: '14 km अंतर', highlight: false },
-            { name: 'श्रीरामपूर APMC', dist: '22 km अंतर', highlight: false },
-            { name: 'येवला APMC', dist: '28 km अंतर', highlight: false },
-            { name: 'संगमनेर APMC', dist: '38 km अंतर', highlight: false },
-            { name: 'नाशिक APMC', dist: '85 km अंतर', highlight: false },
-            { name: 'अहमदनगर APMC', dist: '95 km अंतर', highlight: false }
-          ].map((mandi, idx) => (
+          {mandisData.map((mandi, idx) => (
             <div
               key={idx}
               onClick={() => navigate('/comparison')}

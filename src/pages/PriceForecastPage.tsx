@@ -148,11 +148,15 @@ export const PriceForecastPage: React.FC = () => {
           {/* Quick Info Badges */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="px-4 py-3 bg-[#FFFFFF] rounded-2xl border border-[#E1EBE1] text-center shadow-xs">
-              <span className="text-[11px] font-extrabold text-[#6B7280] uppercase block">निवडलेले पिक</span>
+              <span className="text-[11px] font-extrabold text-[#6B7280] uppercase block">
+                {i18n.language === 'mr' ? 'निवडलेले पिक' : 'Selected Crop'}
+              </span>
               <span className="text-base font-black text-[#2E7D32]">{t(`crops.${crop}`, crop)}</span>
             </div>
             <div className="px-4 py-3 bg-[#FFFFFF] rounded-2xl border border-[#E1EBE1] text-center shadow-xs">
-              <span className="text-[11px] font-extrabold text-[#6B7280] uppercase block">बाजार समिती</span>
+              <span className="text-[11px] font-extrabold text-[#6B7280] uppercase block">
+                {i18n.language === 'mr' ? 'कृषी उत्पन्न बाजार समिती' : 'Mandi'}
+              </span>
               <span className="text-base font-black text-[#1B4332]">{t(`mandis.${mandi}`, mandi)}</span>
             </div>
           </div>
@@ -211,10 +215,10 @@ export const PriceForecastPage: React.FC = () => {
             </div>
             <div>
               <h3 className="text-base font-black text-[#1B4332]">
-                हवामान इनपुट सिग्नल (Weather Signal to AI Model)
+                {i18n.language === 'mr' ? 'हवामान इनपुट सिग्नल (Weather Signal to AI Model)' : 'Weather Signal to AI Model'}
               </h3>
               <p className="text-xs text-[#6B7280] font-bold">
-                कोपरगाव हवामान अंदाज AI दर मॉडेलमध्ये थेट इनपुट सिग्नल म्हणून समाविष्ट
+                {i18n.language === 'mr' ? 'कोपरगाव हवामान अंदाज AI दर मॉडेलमध्ये थेट इनपुट सिग्नल म्हणून समाविष्ट' : 'Regional weather data feed integrated into AI price prediction model'}
               </p>
             </div>
           </div>
@@ -228,11 +232,11 @@ export const PriceForecastPage: React.FC = () => {
         <div className="p-4 bg-[#F7FBF7] rounded-2xl border border-[#E1EBE1] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-bold">
           <div className="flex items-center gap-3">
             <span className="text-base font-black text-[#2E7D32]">
-              🌧️ {todayWeatherSignal.rainfallMm}mm पाऊस ({todayWeatherSignal.tempC}°C)
+              🌧️ {todayWeatherSignal.rainfallMm}mm {i18n.language === 'mr' ? 'पाऊस' : 'Rain'} ({todayWeatherSignal.tempC}°C)
             </span>
             <span className="text-[#6B7280]">|</span>
             <span className="text-[#D97706] font-black">
-              भावावर प्रभाव: +{todayWeatherSignal.supplyShockImpactPct}% (आवक तुटवडा)
+              {i18n.language === 'mr' ? 'भावावर प्रभाव:' : 'Price Impact:'} +{todayWeatherSignal.supplyShockImpactPct}% ({i18n.language === 'mr' ? 'आवक तुटवडा' : 'Supply Shock'})
             </span>
           </div>
 
@@ -269,11 +273,11 @@ export const PriceForecastPage: React.FC = () => {
               </div>
               <div className="text-3xl sm:text-4xl font-black text-[#2E7D32]">
                 ₹{currentPrice.toLocaleString('en-IN')}{' '}
-                <span className="text-xs font-bold text-[#6B7280]">/ क्विंटल</span>
+                <span className="text-xs font-bold text-[#6B7280]">{i18n.language === 'mr' ? '/ क्विंटल' : '/ quintal'}</span>
               </div>
               <p className="text-xs text-[#43A047] font-extrabold flex items-center gap-1">
                 <ArrowUpRight className="w-4 h-4" />
-                आज {t(`mandis.${mandi}`, mandi)} APMC
+                {i18n.language === 'mr' ? `आज ${t(`mandis.${mandi}`, mandi)}` : `Today at ${t(`mandis.${mandi}`, mandi)}`}
               </p>
             </Card>
 
@@ -281,7 +285,7 @@ export const PriceForecastPage: React.FC = () => {
             <Card hoverable={false} className="p-6 space-y-2 bg-[#F7FBF7] border-2 border-[#FFC107]/50 rounded-2xl shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-extrabold text-[#D97706] uppercase tracking-wider">
-                  {t('forecast.expectedPeak')} ({horizonDays} दिवस)
+                  {t('forecast.expectedPeak')} ({horizonDays} {i18n.language === 'mr' ? 'दिवस' : 'Days'})
                 </span>
                 <div className="w-9 h-9 rounded-xl bg-amber-100 text-[#D97706] flex items-center justify-center font-bold">
                   {isRising ? <TrendingUp className="w-5 h-5 text-[#43A047]" /> : <TrendingDown className="w-5 h-5 text-[#E53935]" />}
@@ -289,11 +293,11 @@ export const PriceForecastPage: React.FC = () => {
               </div>
               <div className="text-3xl sm:text-4xl font-black text-[#D97706]">
                 ₹{peakPrice.toLocaleString('en-IN')}{' '}
-                <span className="text-xs font-bold text-[#6B7280]">/ क्विंटल</span>
+                <span className="text-xs font-bold text-[#6B7280]">{i18n.language === 'mr' ? '/ क्विंटल' : '/ quintal'}</span>
               </div>
               <p className="text-xs text-[#D97706] font-extrabold flex items-center gap-1">
                 {isRising ? <ArrowUpRight className="w-4 h-4 text-[#43A047]" /> : <ArrowDownRight className="w-4 h-4 text-[#E53935]" />}
-                अंदाजित बदल: {pctChangeNum >= 0 ? `+${pctChangeNum}%` : `${pctChangeNum}%`}
+                {i18n.language === 'mr' ? 'अंदाजित बदल:' : 'Est. Change:'} {pctChangeNum >= 0 ? `+${pctChangeNum}%` : `${pctChangeNum}%`}
               </p>
             </Card>
 
@@ -301,7 +305,7 @@ export const PriceForecastPage: React.FC = () => {
             <Card hoverable={false} className="p-6 space-y-2 border-2 border-[#81C784] rounded-2xl shadow-sm bg-[#FFFFFF]">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-extrabold text-[#1B4332] uppercase tracking-wider">
-                  अंदाजित निव्वळ नफा फरक
+                  {i18n.language === 'mr' ? 'अंदाजित निव्वळ नफा फरक' : 'Projected Net Payout Difference'}
                 </span>
                 <div className="w-9 h-9 rounded-xl bg-emerald-100 text-[#2E7D32] flex items-center justify-center font-bold">
                   <Sparkles className="w-5 h-5 text-[#FFC107]" />
@@ -309,10 +313,12 @@ export const PriceForecastPage: React.FC = () => {
               </div>
               <div className="text-3xl sm:text-4xl font-black text-[#1B4332]">
                 {pctChangeNum >= 0 ? `+₹${Math.round(peakPrice - currentPrice)}` : `-₹${Math.round(currentPrice - peakPrice)}`}
-                <span className="text-xs font-bold text-[#6B7280]"> / क्विंटल</span>
+                <span className="text-xs font-bold text-[#6B7280]"> {i18n.language === 'mr' ? '/ क्विंटल' : '/ quintal'}</span>
               </div>
               <p className="text-xs text-[#6B7280] font-extrabold">
-                {pctChangeNum >= 0 ? 'प्रती क्विंटल संभाव्य अतिरिक्त फायदा' : 'संभाव्य जोखीम मर्यादा'}
+                {pctChangeNum >= 0 
+                  ? (i18n.language === 'mr' ? 'प्रती क्विंटल संभाव्य अतिरिक्त फायदा' : 'Potential additional gain per quintal') 
+                  : (i18n.language === 'mr' ? 'संभाव्य जोखीम मर्यादा' : 'Potential risk threshold')}
               </p>
             </Card>
 
@@ -336,38 +342,40 @@ export const PriceForecastPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-black text-[#1B4332]">
-                    काढणी पश्चात प्रक्रिया व थेट बाजार जोडणी (Market Linkage & Processing)
+                    {i18n.language === 'mr' ? 'काढणी पश्चात प्रक्रिया व थेट बाजार जोडणी' : 'Post-Harvest Processing & Market Linkage'}
                   </h3>
                   <span className="text-xs font-extrabold text-[#6B7280]">
-                    "केवळ कच्चा माल मंडीत विकण्याऐवजी प्रक्रिया केंद्राशी जोडल्यास जास्त नफा मिळवा"
+                    {i18n.language === 'mr'
+                      ? '"केवळ कच्चा माल मंडीत विकण्याऐवजी प्रक्रिया केंद्राशी जोडल्यास जास्त नफा मिळवा"'
+                      : '"Gain higher margins by linking directly with processing hubs instead of selling raw mandi produce"'}
                   </span>
                 </div>
               </div>
 
               <span className="px-3.5 py-1.5 bg-[#FFC107] text-[#1B4332] font-black text-xs rounded-2xl shadow-xs shrink-0">
-                +{processingLinkage.netExtraProfitPerQ} ₹/q अतिरिक्त नफा
+                +{processingLinkage.netExtraProfitPerQ} ₹/q {i18n.language === 'mr' ? 'अतिरिक्त नफा' : 'Extra Margin'}
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-bold">
               <div className="p-4 bg-[#FFFFFF] border border-[#E1EBE1] rounded-2xl space-y-1">
-                <span className="text-[#6B7280] font-extrabold">साधा मंडी भाव:</span>
+                <span className="text-[#6B7280] font-extrabold">{i18n.language === 'mr' ? 'साधा मंडी भाव:' : 'Standard Mandi Rate:'}</span>
                 <div className="text-xl font-black text-[#1B4332]">
-                  ₹{processingLinkage.rawMandiPrice} / क्विंटल
+                  ₹{processingLinkage.rawMandiPrice} / {i18n.language === 'mr' ? 'क्विंटल' : 'quintal'}
                 </div>
               </div>
 
               <div className="p-4 bg-[#FFFFFF] border border-[#E1EBE1] rounded-2xl space-y-1">
-                <span className="text-[#2E7D32] font-extrabold">प्रक्रिया / चॅनेल नाव:</span>
+                <span className="text-[#2E7D32] font-extrabold">{i18n.language === 'mr' ? 'प्रक्रिया / चॅनेल नाव:' : 'Processing Channel:'}</span>
                 <div className="text-sm font-black text-[#2E7D32]">
                   {i18n.language === 'mr' ? processingLinkage.channelNameMr : processingLinkage.channelNameEn}
                 </div>
               </div>
 
               <div className="p-4 bg-emerald-100 border border-emerald-300 rounded-2xl space-y-1">
-                <span className="text-emerald-950 font-extrabold">मिळणारा निव्वळ जादा भाव:</span>
+                <span className="text-emerald-950 font-extrabold">{i18n.language === 'mr' ? 'मिळणारा निव्वळ जादा भाव:' : 'Net Extra Margin:'}</span>
                 <div className="text-xl font-black text-[#2E7D32]">
-                  +₹{processingLinkage.netExtraProfitPerQ} / क्विंटल
+                  +₹{processingLinkage.netExtraProfitPerQ} / {i18n.language === 'mr' ? 'क्विंटल' : 'quintal'}
                 </div>
               </div>
             </div>
@@ -390,7 +398,7 @@ export const PriceForecastPage: React.FC = () => {
                   {t('forecast.insightTitle')}
                 </h3>
                 <span className="text-xs font-bold text-[#6B7280]">
-                  AI कृषी सल्लागार शिफारस (Agronomist Recommendation)
+                  {i18n.language === 'mr' ? 'AI कृषी सल्लागार शिफारस' : 'AI Agronomist Recommendation'}
                 </span>
               </div>
             </div>
@@ -406,12 +414,12 @@ export const PriceForecastPage: React.FC = () => {
             <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[#6B7280] pt-2 border-t border-[#E1EBE1]">
               <span className="flex items-center gap-1.5 font-extrabold text-[#2E7D32]">
                 <ShieldCheck className="w-4 h-4 text-[#43A047]" />
-                विश्वासार्हता निर्देशांक: <strong>88% (High Accuracy)</strong>
+                {i18n.language === 'mr' ? 'विश्वासार्हता निर्देशांक:' : 'Confidence Score:'} <strong>88% (High Accuracy)</strong>
               </span>
 
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-950 border border-amber-300 font-extrabold">
                 <AlertCircle className="w-4 h-4 text-[#FFC107] shrink-0" />
-                <span>जोखीम टीप: हवामान व स्थानिक आवकीनुसार भावात बदल संभवतात</span>
+                <span>{i18n.language === 'mr' ? 'जोखीम टीप: हवामान व स्थानिक आवकीनुसार भावात बदल संभवतात' : 'Risk Note: Prices subject to weather shocks and arrival fluctuations'}</span>
               </div>
             </div>
           </Card>
@@ -423,7 +431,7 @@ export const PriceForecastPage: React.FC = () => {
             <SearchX className="w-8 h-8" />
           </div>
           <h3 className="text-lg font-bold text-[#2E7D32]">
-            या पिक आणि मंडीसाठी अंदाज डेटा उपलब्ध नाही
+            {i18n.language === 'mr' ? 'या पिक आणि मंडीसाठी अंदाज डेटा उपलब्ध नाही' : 'No forecast data available for this selection'}
           </h3>
           <p className="text-sm text-[#6B7280]">
             No forecast data available for this crop and mandi combination. Try selecting Kopargaon or Rahata.
@@ -437,7 +445,7 @@ export const PriceForecastPage: React.FC = () => {
               }}
             >
               <RefreshCw className="w-4 h-4 text-[#FFC107]" />
-              <span>रीसेट करा (Reset to Kopargaon Onion)</span>
+              <span>{i18n.language === 'mr' ? 'रीसेट करा (Reset to Kopargaon Onion)' : 'Reset to Kopargaon Onion'}</span>
             </Button>
           </div>
         </Card>

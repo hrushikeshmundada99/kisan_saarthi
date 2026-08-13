@@ -8,7 +8,8 @@ import {
   Key,
   MapPin,
   Sparkles,
-  LogIn
+  LogIn,
+  Sprout
 } from 'lucide-react';
 import { LanguageToggle } from './LanguageToggle';
 import { getStoredAlerts } from '../utils/alertManager';
@@ -18,38 +19,81 @@ interface HeaderNavProps {
   isLive: boolean;
   onOpenApiKeyModal: () => void;
   onOpenAuthModal?: () => void;
+  onStartTour?: () => void;
 }
 
-export const HeaderNav: React.FC<HeaderNavProps> = ({ isLive, onOpenApiKeyModal, onOpenAuthModal }) => {
-  const { t } = useTranslation();
+export const HeaderNav: React.FC<HeaderNavProps> = ({ isLive, onOpenApiKeyModal, onOpenAuthModal, onStartTour }) => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isLoggedIn } = useAuth();
+  const isMr = i18n.language === 'mr';
 
   // Active alerts count for notification badge
   const activeAlertsCount = getStoredAlerts().filter((a) => a.status === 'ACTIVE').length;
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-[#FFFFFF]/85 backdrop-blur-xl border-b border-[#E1EBE1] shadow-sm shadow-emerald-950/5 transition-all duration-300">
+    <header className="sticky top-0 z-30 w-full bg-[#FFFFFF]/90 backdrop-blur-xl border-b border-[#D8E6D8] shadow-xs transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
           
-          {/* Left: Region & Quick Search Bar */}
-          <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-[#F7FBF7] border border-[#E1EBE1] text-xs font-extrabold text-[#1B4332]">
-              <MapPin className="w-4 h-4 text-[#FFC107] shrink-0" />
-              <span>कोपरगाव APMC (Kopargaon Region)</span>
+          {/* Left: Brand Logo & Region / Platform Badges */}
+          <div className="flex items-center gap-2.5 sm:gap-3.5">
+            
+            {/* Brand Logo Header Anchor (Clickable Home) */}
+            <div 
+              onClick={() => navigate('/')} 
+              className="flex items-center gap-2 cursor-pointer group shrink-0"
+              title={t('appName')}
+            >
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-[#1B5E20] via-[#2E7D32] to-[#144919] flex items-center justify-center text-[#FFB300] shadow-md shadow-emerald-950/15 group-hover:scale-105 transition-transform duration-200">
+                <Sprout className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <span className="text-base sm:text-lg font-black tracking-tight text-[#0F291E] hidden sm:block">
+                {t('appName')}
+              </span>
             </div>
 
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-black bg-gradient-to-r from-emerald-50 to-teal-50 text-[#2E7D32] border border-[#81C784]/40">
-              <Sparkles className="w-3.5 h-3.5 text-[#FFC107] animate-pulse" />
-              <span>AI Market Platform</span>
+            {/* Divider */}
+            <div className="h-6 w-px bg-[#D8E6D8] hidden md:block" />
+
+            {/* Region Pill Badge */}
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#F4F9F4] border border-[#D8E6D8] text-xs font-black text-[#0F291E]">
+              <MapPin className="w-3.5 h-3.5 text-[#FFB300] shrink-0" />
+              <span>
+                {isMr ? 'कोपरगाव बाजार समिती क्षेत्र' : 'Kopargaon APMC Region'}
+              </span>
+            </div>
+
+            {/* AI Platform Badge */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-black bg-emerald-50 text-[#1B5E20] border border-emerald-200 shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 text-[#FFB300] animate-pulse shrink-0" />
+              <span>
+                {isMr ? 'AI कृषी बाजार मंच' : 'AI Market Platform'}
+              </span>
             </div>
           </div>
 
           {/* Right Controls: Live API + Notification + Language + Profile/Auth */}
           <div className="flex items-center gap-2 sm:gap-3">
             
+            {/* Take Tour Button */}
+            {onStartTour && (
+              <button
+                onClick={() => {
+                  try {
+                    localStorage.removeItem('KISAN_SAARTHI_ONBOARDING_COMPLETED');
+                  } catch {}
+                  if (onStartTour) onStartTour();
+                }}
+                className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-black bg-amber-50 text-amber-950 border border-amber-300 hover:bg-amber-100 transition-colors cursor-pointer shadow-xs min-h-[44px]"
+                title={isMr ? 'डॅशबोर्ड मार्गदर्शन चालू करा' : 'Start Dashboard Tour'}
+              >
+                <Sparkles className="w-4 h-4 text-[#FFB300]" />
+                <span>{isMr ? 'मार्गदर्शन' : 'Take Tour'}</span>
+              </button>
+            )}
+
             {/* Live API Key Button */}
             <button
               onClick={onOpenApiKeyModal}
@@ -75,6 +119,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ isLive, onOpenApiKeyModal,
 
             {/* Notification Bell Button */}
             <button
+              data-tour="notification-bell"
               onClick={() => navigate('/alerts')}
               className={`relative p-2.5 rounded-2xl border transition-all duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer shadow-xs ${
                 location.pathname === '/alerts'
@@ -90,13 +135,14 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ isLive, onOpenApiKeyModal,
             </button>
 
             {/* Language Selector */}
-            <div className="hidden sm:block">
+            <div data-tour="language-toggle" className="hidden sm:block">
               <LanguageToggle />
             </div>
 
             {/* Profile Avatar or Login Trigger Button */}
             {isLoggedIn && user ? (
               <button
+                data-tour="user-profile"
                 onClick={() => navigate('/profile')}
                 className={`px-3.5 py-2 rounded-2xl border transition-all duration-300 min-h-[44px] cursor-pointer flex items-center gap-2 shadow-xs ${
                   location.pathname === '/profile'
@@ -114,6 +160,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ isLive, onOpenApiKeyModal,
               </button>
             ) : (
               <button
+                data-tour="user-profile"
                 onClick={onOpenAuthModal}
                 className="px-3.5 py-2 rounded-2xl border-2 border-[#2E7D32] bg-[#2E7D32] text-[#FFFFFF] text-xs font-black hover:bg-[#1B4332] transition-all min-h-[44px] cursor-pointer flex items-center gap-1.5 shadow-xs"
               >

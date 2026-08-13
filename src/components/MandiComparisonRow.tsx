@@ -81,13 +81,15 @@ export const MandiComparisonRow: React.FC<MandiComparisonRowProps> = ({
               {/* Distance Badge */}
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-[#E8F5E9] text-[#2E7D32] border border-[#81C784]/40">
                 <MapPin className="w-3.5 h-3.5 text-[#FFC107]" />
-                {rate.distanceKm === 0 ? 'कोपरगाव (0 km)' : `${rate.distanceKm} km अंतर`}
+                {rate.distanceKm === 0 
+                  ? (i18n.language === 'mr' ? 'कोपरगाव (0 km)' : 'Kopargaon (0 km)') 
+                  : (i18n.language === 'mr' ? `${rate.distanceKm} km अंतर` : `${rate.distanceKm} km away`)}
               </span>
 
               {/* Transport Cost Badge */}
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-50 text-rose-950 border border-rose-200">
                 <Truck className="w-3.5 h-3.5 text-[#E53935]" />
-                भाडे: ₹{transportCostPerQ}/क्विंटल
+                {i18n.language === 'mr' ? `भाडे: ₹${transportCostPerQ}/क्विंटल` : `Freight: ₹${transportCostPerQ}/q`}
               </span>
             </div>
           </div>
@@ -103,7 +105,9 @@ export const MandiComparisonRow: React.FC<MandiComparisonRowProps> = ({
             <div className="text-xl font-black text-[#1B4332] mt-0.5">
               ₹{rate.modalPrice.toLocaleString('en-IN')}
             </div>
-            <div className="text-[11px] text-[#6B7280] font-semibold">रु/क्विंटल</div>
+            <div className="text-[11px] text-[#6B7280] font-semibold">
+              {i18n.language === 'mr' ? 'रु/क्विंटल' : '₹/quintal'}
+            </div>
           </div>
 
           {/* Transport Deductions */}
@@ -114,7 +118,9 @@ export const MandiComparisonRow: React.FC<MandiComparisonRowProps> = ({
             <div className="text-xl font-black text-[#E53935] mt-0.5">
               ₹{transportCostPerQ}
             </div>
-            <div className="text-[11px] text-rose-700 font-bold">कुल ₹{totalTransportCost} ({quantityQuintals}q)</div>
+            <div className="text-[11px] text-rose-700 font-bold">
+              {i18n.language === 'mr' ? `एकूण ₹${totalTransportCost} (${quantityQuintals}q)` : `Total ₹${totalTransportCost} (${quantityQuintals}q)`}
+            </div>
           </div>
 
           {/* Net Profit Card Highlight */}
@@ -126,7 +132,7 @@ export const MandiComparisonRow: React.FC<MandiComparisonRowProps> = ({
               ₹{netPricePerQ.toLocaleString('en-IN')}
             </div>
             <div className="text-[11px] font-black text-[#D97706]">
-              एकूण ₹{totalNetPayout.toLocaleString('en-IN')}
+              {i18n.language === 'mr' ? `एकूण ₹${totalNetPayout.toLocaleString('en-IN')}` : `Total ₹${totalNetPayout.toLocaleString('en-IN')}`}
             </div>
           </div>
         </div>
