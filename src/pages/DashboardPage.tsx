@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { MOCK_DASHBOARD_CARDS, type MandiPriceCardItem } from '../data/mockData';
+import { REAL_DASHBOARD_CARDS, type MandiPriceCardItem } from '../data/realData';
 import { getStoredAlerts, evaluateAlertStatus } from '../utils/alertManager';
 import { useToast } from '../components/Toast';
 import { PriceCard } from '../components/PriceCard';
@@ -27,7 +27,7 @@ import {
   Compass
 } from 'lucide-react';
 
-const ALL_CROPS = ['Onion', 'Soybean', 'Cotton', 'Sugarcane', 'Pomegranate', 'Wheat', 'Tomato'];
+const ALL_CROPS = ['Onion', 'Soybean', 'Cotton', 'Sugarcane', 'Pomegranate', 'Wheat', 'Tomato', 'Maize', 'Gram', 'Bajra'];
 
 const CROP_EMOJIS: Record<string, string> = {
   Onion: '🧅',
@@ -36,7 +36,10 @@ const CROP_EMOJIS: Record<string, string> = {
   Sugarcane: '🎋',
   Pomegranate: '🍎',
   Wheat: '🌾',
-  Tomato: '🍅'
+  Tomato: '🍅',
+  Maize: '🌽',
+  Gram: '🧆',
+  Bajra: '🌾'
 };
 
 interface DashboardPageProps {
@@ -47,7 +50,7 @@ interface DashboardPageProps {
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
-  liveCards = MOCK_DASHBOARD_CARDS,
+  liveCards = REAL_DASHBOARD_CARDS,
   isLive = true,
   isFetchingLive = false,
   onRefreshLive
@@ -98,38 +101,47 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   // View format toggle: 'grid' (attractive visual cards) or 'row'
   const [viewMode, setViewMode] = useState<'grid' | 'row'>('grid');
 
-  // Selected crops filter array
-  const [selectedCrops, setSelectedCrops] = useState<string[]>(['Onion', 'Soybean', 'Cotton', 'Pomegranate']);
+  // Selected crops filter array ('ALL' means show all crops)
+  const [selectedCrops, setSelectedCrops] = useState<string[]>(['ALL']);
 
   // Sort state: price_desc, price_asc, distance_asc
   const [sortBy, setSortBy] = useState<'price_desc' | 'price_asc' | 'distance_asc'>('price_desc');
 
   // Toggle crop chip selection
   const toggleCrop = (crop: string) => {
+    if (crop === 'ALL') {
+      setSelectedCrops(['ALL']);
+      return;
+    }
+
     setSelectedCrops((prev) => {
+      if (prev.includes('ALL')) {
+        return [crop];
+      }
       if (prev.includes(crop)) {
-        if (prev.length <= 1) return prev; // Keep at least 1
-        return prev.filter((c) => c !== crop);
+        const next = prev.filter((c) => c !== crop);
+        return next.length === 0 ? ['ALL'] : next;
       } else {
         return [...prev, crop];
       }
     });
   };
 
-  // Source cards: Use live API cards when available, fallback to mock
-  const sourceCards = useMemo(() => {
+  // Source cards: Use live API cards when available, fallback to real dataset
+  const sourceCards: MandiPriceCardItem[] = useMemo(() => {
     if (liveCards && liveCards.length > 0) {
       return liveCards;
     }
-    return MOCK_DASHBOARD_CARDS;
+    return REAL_DASHBOARD_CARDS;
   }, [liveCards]);
 
   // Filter & Sort Price Cards
   const filteredAndSortedCards = useMemo(() => {
-    let result = sourceCards;
+    let result: MandiPriceCardItem[] = sourceCards;
 
-    if (selectedCrops.length > 0) {
-      result = result.filter((card) => selectedCrops.includes(card.crop));
+    // If 'ALL' is not selected, filter specifically by chosen crops
+    if (!selectedCrops.includes('ALL') && selectedCrops.length > 0) {
+      result = result.filter((card: MandiPriceCardItem) => selectedCrops.includes(card.crop));
     }
 
     return [...result].sort((a, b) => {
@@ -313,8 +325,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
         {/* Chips */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* All Crops Button */}
+          <button
+            type="button"
+            onClick={() => toggleCrop('ALL')}
+            className={`px-3.5 py-2 rounded-2xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer min-h-[42px] ${
+              selectedCrops.includes('ALL')
+                ? 'bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] text-[#FFFFFF] shadow-md shadow-emerald-950/20 scale-[1.03]'
+                : 'bg-[#F4F9F4] text-[#0F291E] border border-[#D8E6D8] hover:border-[#1B5E20]'
+            }`}
+          >
+            <span className="text-base">🌾</span>
+            <span>{i18n.language === 'mr' ? 'सर्व पिके' : 'All Crops'}</span>
+          </button>
+
           {ALL_CROPS.map((cropKey) => {
-            const isSelected = selectedCrops.includes(cropKey);
+            const isSelected = !selectedCrops.includes('ALL') && selectedCrops.includes(cropKey);
             const emoji = CROP_EMOJIS[cropKey] || '🌱';
             const cropName = t(`crops.${cropKey}`, cropKey);
 

@@ -301,25 +301,37 @@ export const MarketTrendsPage: React.FC = () => {
                   <Bar
                     yAxisId="right"
                     dataKey="arrivalsQuantity"
-                    fill="#FFC107"
-                    opacity={0.4}
+                    fill="#FFB300"
+                    opacity={0.35}
                     radius={[6, 6, 0, 0]}
                     name="arrivalsQuantity"
                     isAnimationActive
-                    animationDuration={1000}
+                    animationDuration={800}
                   />
 
                   <Line
                     yAxisId="left"
                     type="monotone"
                     dataKey="modalPrice"
-                    stroke="#2E7D32"
+                    stroke={
+                      slicedDailyData.length >= 2 &&
+                      slicedDailyData[slicedDailyData.length - 1].modalPrice < slicedDailyData[0].modalPrice
+                        ? '#DC2626'
+                        : '#16A34A'
+                    }
                     strokeWidth={3.5}
-                    dot={{ r: range === '7d' || range === '30d' ? 4 : 0, fill: '#2E7D32' }}
-                    activeDot={{ r: 7, fill: '#1B4332' }}
+                    dot={{
+                      r: range === '7d' || range === '30d' ? 4 : 0,
+                      fill:
+                        slicedDailyData.length >= 2 &&
+                        slicedDailyData[slicedDailyData.length - 1].modalPrice < slicedDailyData[0].modalPrice
+                          ? '#DC2626'
+                          : '#16A34A'
+                    }}
+                    activeDot={{ r: 7 }}
                     name="modalPrice"
                     isAnimationActive
-                    animationDuration={1200}
+                    animationDuration={1000}
                   />
                 </ComposedChart>
               </ResponsiveContainer>

@@ -1,4 +1,4 @@
-import { MOCK_DASHBOARD_CARDS } from '../data/mockData';
+import { REAL_DASHBOARD_CARDS } from '../data/realData';
 
 export interface PriceAlertItem {
   id: string;
@@ -65,11 +65,11 @@ const INITIAL_ALERTS: PriceAlertItem[] = [
 // Helper to find current modal price for crop + mandi
 export const getCurrentPriceForAlert = (crop: string, mandi: string): number => {
   if (mandi === 'ANY') {
-    const matching = MOCK_DASHBOARD_CARDS.filter((c) => c.crop === crop);
+    const matching = REAL_DASHBOARD_CARDS.filter((c) => c.crop === crop);
     if (matching.length === 0) return 1850;
     return Math.max(...matching.map((m) => m.modalPrice));
   } else {
-    const match = MOCK_DASHBOARD_CARDS.find((c) => c.crop === crop && c.mandiName === mandi);
+    const match = REAL_DASHBOARD_CARDS.find((c) => c.crop === crop && c.mandiName === mandi);
     return match ? match.modalPrice : 1850;
   }
 };

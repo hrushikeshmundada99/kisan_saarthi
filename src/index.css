@@ -21,6 +21,11 @@
     --radius-standard: 18px;
   }
 
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     font-family: var(--font-sans);
     background: radial-gradient(circle at 10% 10%, #FFFFFF 0%, #F4F9F4 100%);
@@ -28,6 +33,8 @@
     font-size: 15px;
     line-height: 1.5;
     -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+    touch-action: manipulation;
   }
 
   h1, h2, h3, h4, h5, h6 {

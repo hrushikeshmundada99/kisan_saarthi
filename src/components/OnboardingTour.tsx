@@ -63,27 +63,30 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
     }
   }, [step]);
 
-  // Update target rect whenever step, isOpen, or scroll/resize changes
+  // Update target rect whenever step or isOpen changes (smooth and lightweight)
   useEffect(() => {
     if (!isOpen) return;
 
     updateTargetRect();
 
-    const handleScrollOrResize = () => {
-      if (step && step.target) {
-        const el = document.querySelector(step.target);
-        if (el) {
-          setTargetRect(el.getBoundingClientRect());
+    let resizeTimer: number;
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        if (step && step.target) {
+          const el = document.querySelector(step.target);
+          if (el) {
+            setTargetRect(el.getBoundingClientRect());
+          }
         }
-      }
+      }, 100);
     };
 
-    window.addEventListener('resize', handleScrollOrResize);
-    window.addEventListener('scroll', handleScrollOrResize, true);
+    window.addEventListener('resize', handleResize, { passive: true });
 
     return () => {
-      window.removeEventListener('resize', handleScrollOrResize);
-      window.removeEventListener('scroll', handleScrollOrResize, true);
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimer);
     };
   }, [isOpen, currentStepIndex, updateTargetRect, step]);
 

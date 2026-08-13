@@ -9,8 +9,8 @@ import { ApiKeyModal } from './components/ApiKeyModal';
 import { AuthModal } from './components/AuthModal';
 import { LoadingSkeleton } from './components/LoadingSkeleton';
 import { fetchLiveMandiRates } from './services/apiService';
-import type { MandiPriceCardItem } from './data/mockData';
-import { MOCK_DASHBOARD_CARDS } from './data/mockData';
+import type { MandiPriceCardItem } from './data/realData';
+import { REAL_DASHBOARD_CARDS } from './data/realData';
 import { Sprout, Heart } from 'lucide-react';
 
 // Code Splitting & Performance Optimization: Lazy Load Heavy Page Routes
@@ -26,7 +26,7 @@ const FarmerProfilePage = lazy(() => import('./pages/FarmerProfilePage').then((m
 
 function AppContent() {
   const [isLive, setIsLive] = useState<boolean>(false);
-  const [liveCards, setLiveCards] = useState<MandiPriceCardItem[]>(MOCK_DASHBOARD_CARDS);
+  const [liveCards, setLiveCards] = useState<MandiPriceCardItem[]>(REAL_DASHBOARD_CARDS);
   const [isFetchingLive, setIsFetchingLive] = useState<boolean>(false);
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState<boolean>(false);
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);

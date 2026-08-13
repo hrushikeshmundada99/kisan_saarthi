@@ -1,10 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { type MandiPriceCardItem } from '../data/mockData';
+import { type MandiPriceCardItem } from '../data/realData';
 import { Card } from './Card';
 import { Button } from './Button';
 import { MapPin, TrendingUp, TrendingDown, Minus, Clock, Store, LineChart as ChartIcon, Scale } from 'lucide-react';
-import { ResponsiveContainer, LineChart, Line, Tooltip, YAxis, XAxis } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, Tooltip, YAxis, XAxis } from 'recharts';
 
 interface PriceCardProps {
   card: MandiPriceCardItem;
@@ -19,14 +19,22 @@ const CROP_EMOJIS: Record<string, string> = {
   Sugarcane: '🎋',
   Pomegranate: '🍎',
   Wheat: '🌾',
-  Tomato: '🍅'
+  Tomato: '🍅',
+  Maize: '🌽',
+  Gram: '🧆',
+  Bajra: '🌾'
 };
 
 export const PriceCard: React.FC<PriceCardProps> = ({ card, onCompareClick, onForecastClick }) => {
   const { t, i18n } = useTranslation();
 
-  const isPositive = card.priceChangePercent > 0;
-  const isNegative = card.priceChangePercent < 0;
+  // Price direction: Green if increasing or zero, Red if decreasing
+  const isPositive = card.priceChangeAmount > 0;
+  const isNegative = card.priceChangeAmount < 0;
+
+  // Determine wave color & gradient ID based on price slope
+  const waveColor = isNegative ? '#DC2626' : '#16A34A';
+  const gradientId = `wave-grad-${card.id}`;
 
   const priceRange = card.maxPrice - card.minPrice;
   const modalOffsetPct = priceRange > 0 ? ((card.modalPrice - card.minPrice) / priceRange) * 100 : 50;
@@ -36,10 +44,14 @@ export const PriceCard: React.FC<PriceCardProps> = ({ card, onCompareClick, onFo
   return (
     <Card
       hoverable
-      className="relative overflow-hidden group h-full flex flex-col justify-between border-2 border-[#D8E6D8] hover:border-[#1B5E20] rounded-3xl p-5 shadow-xs hover:shadow-xl hover:shadow-emerald-950/10 hover:-translate-y-1.5 transition-all duration-300 ease-in-out bg-[#FFFFFF]"
+      className="relative overflow-hidden group h-full flex flex-col justify-between border-2 border-[#D8E6D8] hover:border-[#1B5E20] rounded-3xl p-4 sm:p-5 shadow-xs hover:shadow-xl hover:shadow-emerald-950/10 hover:-translate-y-1.5 transition-all duration-300 ease-in-out bg-[#FFFFFF]"
     >
-      {/* Nice Gradient Top Border */}
-      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#1B5E20] via-[#2E7D32] to-[#FFB300] rounded-t-3xl"></div>
+      {/* Dynamic Colored Top Border */}
+      <div className={`absolute top-0 left-0 right-0 h-1.5 rounded-t-3xl ${
+        isNegative
+          ? 'bg-gradient-to-r from-[#DC2626] via-[#EF4444] to-[#F87171]'
+          : 'bg-gradient-to-r from-[#1B5E20] via-[#2E7D32] to-[#FFB300]'
+      }`} />
 
       {/* Main Content Area */}
       <div className="space-y-3.5 pt-1">
@@ -81,13 +93,13 @@ export const PriceCard: React.FC<PriceCardProps> = ({ card, onCompareClick, onFo
           <div className="shrink-0">
             {isPositive && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-xs">
-                <TrendingUp className="w-3.5 h-3.5 text-[#2E7D32]" />
+                <TrendingUp className="w-3.5 h-3.5 text-[#16A34A]" />
                 +{card.priceChangeAmount}
               </span>
             )}
             {isNegative && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-rose-100 text-rose-950 border border-rose-300 shadow-xs">
-                <TrendingDown className="w-3.5 h-3.5 text-[#E53935]" />
+                <TrendingDown className="w-3.5 h-3.5 text-[#DC2626]" />
                 {card.priceChangeAmount}
               </span>
             )}
@@ -132,16 +144,34 @@ export const PriceCard: React.FC<PriceCardProps> = ({ card, onCompareClick, onFo
           </div>
         </div>
 
-        {/* 7-Day Forecast Sparkline Widget */}
-        <div className="p-2.5 bg-[#F4F9F4] rounded-2xl border border-[#D8E6D8] space-y-0.5">
-          <div className="flex items-center justify-between text-[11px] font-black text-[#526058]">
-            <span>{t('dashboard.forecastSparkline')}</span>
-            <span className="text-[#1B5E20] text-[10px]">७ दिवस</span>
+        {/* Responsive 7-Day Wave Sparkline: Green Wave for Increase, Red Wave for Decrease */}
+        <div className={`p-2.5 rounded-2xl border space-y-1 transition-colors ${
+          isNegative
+            ? 'bg-rose-50/50 border-rose-200'
+            : 'bg-[#F4F9F4] border-[#D8E6D8]'
+        }`}>
+          <div className="flex items-center justify-between text-[11px] font-black">
+            <span className={isNegative ? 'text-rose-950' : 'text-[#0F291E]'}>
+              {t('dashboard.forecastSparkline')}
+            </span>
+            <span className={`text-[10px] px-2 py-0.2 rounded-md font-extrabold flex items-center gap-1 ${
+              isNegative
+                ? 'bg-rose-100 text-rose-950 border border-rose-300'
+                : 'bg-emerald-100 text-emerald-950 border border-emerald-300'
+            }`}>
+              {isNegative ? '📉 मंदी (दर कमी)' : '📈 तेजी (दर वाढ)'}
+            </span>
           </div>
           
-          <div className="h-12 w-full pt-1">
+          <div className="h-14 w-full pt-1">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={card.history7Days} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
+              <AreaChart data={card.history7Days} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
+                <defs>
+                  <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={waveColor} stopOpacity={0.35} />
+                    <stop offset="95%" stopColor={waveColor} stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
                 <YAxis domain={['auto', 'auto']} hide />
                 <XAxis dataKey="date" hide />
                 <Tooltip
@@ -149,7 +179,7 @@ export const PriceCard: React.FC<PriceCardProps> = ({ card, onCompareClick, onFo
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <div className="bg-[#FFFFFF] border border-[#D8E6D8] p-1.5 rounded-xl shadow-md text-xs font-bold">
+                        <div className="bg-[#FFFFFF] border-2 border-[#1B5E20] p-1.5 rounded-xl shadow-md text-xs font-bold">
                           <span className="text-[#526058]">{data.date}:</span>{' '}
                           <span className="text-[#1B5E20] font-black">₹{data.price}</span>
                         </div>
@@ -158,15 +188,16 @@ export const PriceCard: React.FC<PriceCardProps> = ({ card, onCompareClick, onFo
                     return null;
                   }}
                 />
-                <Line
+                <Area
                   type="monotone"
                   dataKey="price"
-                  stroke={isNegative ? '#E53935' : '#1B5E20'}
-                  strokeWidth={2.5}
-                  dot={{ r: 2, fill: isNegative ? '#E53935' : '#1B5E20' }}
-                  activeDot={{ r: 4 }}
+                  stroke={waveColor}
+                  strokeWidth={2.8}
+                  fill={`url(#${gradientId})`}
+                  dot={{ r: 2.5, fill: waveColor }}
+                  activeDot={{ r: 5, fill: waveColor }}
                 />
-              </LineChart>
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>

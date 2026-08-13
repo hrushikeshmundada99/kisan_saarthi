@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
-import { MOCK_MANDI_RATES, MANDI_LOCATIONS } from '../data/mockData';
+import { REAL_MANDI_RATES, MANDI_LOCATIONS } from '../data/realData';
 import { CropSelector } from '../components/CropSelector';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -127,8 +127,8 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
     const totalCultivationCost = seedCost + fertilizerCost + laborCost + irrigationCost + miscCost;
 
     const results: MandiProfitResult[] = selectedMandis.map((mName) => {
-      // Find mandi modal price from mock data
-      const matchedRate = MOCK_MANDI_RATES.find(
+      // Find mandi modal price from real data
+      const matchedRate = REAL_MANDI_RATES.find(
         (r) => r.commodity === crop && r.mandi === mName
       ) || { modalPrice: crop === 'Onion' ? 1850 : 4620 };
 

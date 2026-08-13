@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { type ForecastPointItem } from '../data/mockForecastData';
 import { Card } from './Card';
@@ -13,7 +13,7 @@ import {
   CartesianGrid,
   Legend
 } from 'recharts';
-import { Calendar, Sparkles } from 'lucide-react';
+import { Calendar, Sparkles, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface ForecastChartProps {
   crop: string;
@@ -35,69 +35,106 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({
   // Slice data: past 30 days + horizon future points
   const filteredData = data.slice(0, 31 + horizonDays);
 
+  // Compute overall forecast price direction (Up = Green, Down = Red)
+  const { isRising, pctChange } = useMemo(() => {
+    const todayPt = filteredData[30] || { actualPrice: 1850, predictedPrice: 1850 };
+    const startPrice = todayPt.actualPrice || todayPt.predictedPrice || 1850;
+    const lastPt = filteredData[filteredData.length - 1];
+    const endPrice = lastPt?.predictedPrice || startPrice;
+    const diff = endPrice - startPrice;
+    const pct = parseFloat(((diff / startPrice) * 100).toFixed(1));
+    return { isRising: pct >= 0, pctChange: pct };
+  }, [filteredData]);
+
+  const waveColor = isRising ? '#16A34A' : '#DC2626';
+
   return (
-    <Card hoverable={false} className="space-y-4 border border-[#E1EBE1] rounded-2xl p-6 shadow-sm bg-[#FFFFFF]">
+    <Card hoverable={false} className="space-y-4 border border-[#E1EBE1] rounded-3xl p-4 sm:p-6 shadow-sm bg-[#FFFFFF]">
       {/* Header & 3-Button Horizon Segmented Toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E1EBE1]">
-        <div>
-          <h3 className="text-lg font-extrabold text-[#1B4332] flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-[#2E7D32]" />
-            <span>
-              {t(`crops.${crop}`, crop)} ({t(`mandis.${mandi}`, mandi)}) - {horizonDays} {t('forecast.days7').replace('7 ', '')} {t('forecast.predicted')}
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-base sm:text-lg font-black text-[#0F291E] flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-[#1B5E20]" />
+              <span>
+                {t(`crops.${crop}`, crop)} ({t(`mandis.${mandi}`, mandi)}) - {horizonDays} दिवसांचा भाव अंदाज
+              </span>
+            </h3>
+
+            {/* Dynamic Trend Badge: Green for Up, Red for Down */}
+            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black border shadow-xs ${
+              isRising
+                ? 'bg-emerald-100 text-emerald-950 border-emerald-300'
+                : 'bg-rose-100 text-rose-950 border-rose-300'
+            }`}>
+              {isRising ? (
+                <>
+                  <TrendingUp className="w-3.5 h-3.5 text-[#16A34A]" />
+                  <span>तेजीचा अंदाज (+{Math.abs(pctChange)}%)</span>
+                </>
+              ) : (
+                <>
+                  <TrendingDown className="w-3.5 h-3.5 text-[#DC2626]" />
+                  <span>घटीचा अंदाज (-{Math.abs(pctChange)}%)</span>
+                </>
+              )}
             </span>
-          </h3>
-          <p className="text-sm text-[#6B7280] font-medium mt-0.5">
-            ऐतिहासिक दर (Solid Green Line) + AI अंदाजित भाव (Dashed Gold Line)
+          </div>
+
+          <p className="text-xs sm:text-sm text-[#526058] font-semibold">
+            {isRising
+              ? '🟢 हिरवी लाईन: पुढील दिवसांत बाजारात भाव वाढण्याचा अंदाज आहे.'
+              : '🔴 लाल लाईन: पुढील दिवसांत बाजारात भाव कमी होण्याचा अंदाज आहे.'}
           </p>
         </div>
 
         {/* 3-Button Segmented Horizon Control Group */}
-        <div className="inline-flex items-center p-1.5 bg-[#F7FBF7] border border-[#E1EBE1] rounded-2xl self-start sm:self-auto shadow-xs">
+        <div className="inline-flex items-center p-1 bg-[#F4F9F4] border border-[#D8E6D8] rounded-2xl self-start sm:self-auto shadow-xs">
           {([7, 14, 30] as const).map((days) => {
             const isActive = horizonDays === days;
             return (
               <button
                 key={days}
                 onClick={() => onHorizonChange(days)}
-                className={`px-4 py-2 rounded-xl text-xs font-black transition-all duration-300 min-h-[38px] cursor-pointer ${
+                className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition-all duration-300 min-h-[38px] cursor-pointer ${
                   isActive
-                    ? 'bg-[#2E7D32] text-[#FFFFFF] shadow-md scale-105'
-                    : 'text-[#6B7280] hover:text-[#2E7D32] hover:bg-[#FFFFFF]'
+                    ? 'bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] text-[#FFFFFF] shadow-md scale-105'
+                    : 'text-[#526058] hover:text-[#1B5E20] hover:bg-[#FFFFFF]'
                 }`}
               >
-                {days} {t('forecast.days7').replace('7 ', '')}
+                {days} दिवस
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Main Recharts ComposedChart Container */}
-      <div className="h-[340px] sm:h-[400px] w-full pt-2">
+      {/* Main Recharts ComposedChart Container with Dynamic Wave Line */}
+      <div className="h-[300px] sm:h-[380px] w-full pt-2">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={filteredData} margin={{ top: 15, right: 15, left: -10, bottom: 0 }}>
+          <ComposedChart data={filteredData} margin={{ top: 15, right: 10, left: -15, bottom: 0 }}>
             <defs>
-              <linearGradient id="forecastConfidenceGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#FFC107" stopOpacity={0.35} />
-                <stop offset="95%" stopColor="#FFC107" stopOpacity={0.02} />
+              <linearGradient id="forecastWaveConfidenceGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={waveColor} stopOpacity={0.25} />
+                <stop offset="95%" stopColor={waveColor} stopOpacity={0.0} />
               </linearGradient>
-              <linearGradient id="actualPriceGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#2E7D32" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="#2E7D32" stopOpacity={0.0} />
+              <linearGradient id="actualPriceAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#1B5E20" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="#1B5E20" stopOpacity={0.0} />
               </linearGradient>
             </defs>
 
             <CartesianGrid strokeDasharray="4 4" stroke="#E1EBE1" vertical={false} />
             <XAxis
               dataKey="date"
-              stroke="#6B7280"
+              stroke="#526058"
               fontSize={11}
               fontWeight={700}
               tickLine={false}
               interval={horizonDays === 30 ? 4 : 2}
             />
             <YAxis
-              stroke="#6B7280"
+              stroke="#526058"
               fontSize={11}
               fontWeight={700}
               domain={['auto', 'auto']}
@@ -111,33 +148,39 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({
                   const pt = payload[0].payload as ForecastPointItem;
 
                   return (
-                    <div className="bg-[#FFFFFF] border-2 border-[#81C784] p-3.5 rounded-2xl shadow-xl text-xs space-y-2 min-w-[190px]">
-                      <div className="font-extrabold text-[#1B4332] border-b border-[#E1EBE1] pb-1.5 flex items-center justify-between">
+                    <div className="bg-[#FFFFFF] border-2 border-[#1B5E20] p-3 rounded-2xl shadow-xl text-xs space-y-2 min-w-[200px]">
+                      <div className="font-black text-[#0F291E] border-b border-[#E1EBE1] pb-1 flex items-center justify-between">
                         <span>तारीख: {label}</span>
                         {pt.predictedPrice !== null && pt.actualPrice === null && (
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-[#FFC107]/20 text-[#1B4332] border border-[#FFC107]/40">
-                            अंदाजित (AI Forecast)
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-black border ${
+                            isRising
+                              ? 'bg-emerald-100 text-emerald-950 border-emerald-300'
+                              : 'bg-rose-100 text-rose-950 border-rose-300'
+                          }`}>
+                            {isRising ? '📈 तेजी अंदाज' : '📉 मंदी अंदाज'}
                           </span>
                         )}
                       </div>
 
                       {pt.actualPrice !== null && (
-                        <div className="text-[#2E7D32] font-black flex justify-between">
-                          <span>ऐतिहासिक भाव:</span>
+                        <div className="text-[#1B5E20] font-black flex justify-between">
+                          <span>मागील प्रत्यक्ष भाव:</span>
                           <span>₹{pt.actualPrice.toLocaleString('en-IN')}</span>
                         </div>
                       )}
 
                       {pt.predictedPrice !== null && (
-                        <div className="text-[#D97706] font-black flex justify-between">
+                        <div className={`font-black flex justify-between ${
+                          isRising ? 'text-[#16A34A]' : 'text-[#DC2626]'
+                        }`}>
                           <span>अंदाजित भाव:</span>
                           <span>₹{pt.predictedPrice.toLocaleString('en-IN')}</span>
                         </div>
                       )}
 
                       {pt.upperBound !== null && pt.lowerBound !== null && (
-                        <div className="text-[#6B7280] font-bold text-[11px] pt-1 border-t border-[#E1EBE1]">
-                          संभाव्य कक्षा: ₹{pt.lowerBound.toLocaleString('en-IN')} - ₹{pt.upperBound.toLocaleString('en-IN')}
+                        <div className="text-[#526058] font-bold text-[11px] pt-1 border-t border-[#E1EBE1]">
+                          अपेक्षित कक्षा: ₹{pt.lowerBound.toLocaleString('en-IN')} - ₹{pt.upperBound.toLocaleString('en-IN')}
                         </div>
                       )}
                     </div>
@@ -149,11 +192,11 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({
 
             <Legend
               verticalAlign="top"
-              height={40}
+              height={36}
               formatter={(value) => {
-                if (value === 'actualPrice') return t('forecast.historical');
-                if (value === 'predictedPrice') return t('forecast.predicted');
-                if (value === 'upperBound') return t('forecast.confidenceRange');
+                if (value === 'actualPrice') return 'मागील प्रत्यक्ष दर (Historical)';
+                if (value === 'predictedPrice') return isRising ? '🟢 वाढीचा अंदाज (Rising Forecast)' : '🔴 घटीचा अंदाज (Falling Forecast)';
+                if (value === 'upperBound') return 'संभाव्य अंदाज पट्टा (Confidence Band)';
                 return value;
               }}
             />
@@ -163,49 +206,51 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({
               type="monotone"
               dataKey="upperBound"
               stroke="none"
-              fill="url(#forecastConfidenceGrad)"
+              fill="url(#forecastWaveConfidenceGrad)"
               name="upperBound"
               isAnimationActive
-              animationDuration={1000}
+              animationDuration={800}
             />
 
             {/* Historical Price Solid Line */}
             <Line
               type="monotone"
               dataKey="actualPrice"
-              stroke="#2E7D32"
-              strokeWidth={3.5}
-              dot={{ r: 4, fill: '#2E7D32' }}
-              activeDot={{ r: 7, fill: '#1B4332' }}
+              stroke="#1B5E20"
+              strokeWidth={3}
+              dot={{ r: 3.5, fill: '#1B5E20' }}
+              activeDot={{ r: 6, fill: '#0F291E' }}
               name="actualPrice"
               connectNulls
               isAnimationActive
-              animationDuration={1200}
+              animationDuration={800}
             />
 
-            {/* Predicted Price Dashed Line */}
+            {/* Predicted Price Dynamic Wave Line (Green if rising, Red if falling) */}
             <Line
               type="monotone"
               dataKey="predictedPrice"
-              stroke="#FFC107"
+              stroke={waveColor}
               strokeWidth={3.5}
-              strokeDasharray="6 6"
-              dot={{ r: 4.5, fill: '#FFC107' }}
-              activeDot={{ r: 8, fill: '#D97706' }}
+              strokeDasharray="5 5"
+              dot={{ r: 4, fill: waveColor }}
+              activeDot={{ r: 7, fill: waveColor }}
               name="predictedPrice"
               connectNulls
               isAnimationActive
-              animationDuration={1400}
+              animationDuration={1000}
             />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
 
       {/* Explanatory Footer note */}
-      <div className="flex items-center gap-2 p-3 bg-[#F7FBF7] rounded-2xl border border-[#E1EBE1] text-xs text-[#6B7280] font-medium">
-        <Sparkles className="w-4 h-4 text-[#FFC107] shrink-0" />
+      <div className="flex items-center gap-2 p-3 bg-[#F4F9F4] rounded-2xl border border-[#D8E6D8] text-xs text-[#526058] font-bold">
+        <Sparkles className="w-4 h-4 text-[#FFB300] shrink-0" />
         <span>
-          पिवळी फिकट छटा (Shaded Area) AI मॉडेलचे कमाल आणि किमान दरांचे संभाव्य पट्टे (Confidence Band) दर्शवते.
+          {isRising
+            ? '✅ भावात वाढ अपेक्षित असल्यामुळे माल योग्य वेळेत चांगल्या भावात विकता येईल.'
+            : '⚠️ भावात घट होण्याची शक्यता असल्याने लवकरात लवकर विक्री करणे फायदेशीर ठरेल.'}
         </span>
       </div>
     </Card>

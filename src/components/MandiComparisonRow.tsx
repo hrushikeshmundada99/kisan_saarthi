@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { MANDI_LOCATIONS } from '../data/mockData';
+import { MANDI_LOCATIONS } from '../data/realData';
 import { Card } from './Card';
 import { Button } from './Button';
 import { Award, MapPin, Truck, ArrowRight } from 'lucide-react';

@@ -189,7 +189,10 @@ const resources = {
         Cotton: "कापूस",
         Pomegranate: "डाळिंब",
         Wheat: "गहू",
-        Tomato: "टोमॅटो"
+        Tomato: "टोमॅटो",
+        Maize: "मका",
+        Gram: "हरभरा",
+        Bajra: "बाजरी"
       },
       mandis: {
         Kopargaon: "कोपरगाव कृषी उत्पन्न बाजार समिती",
@@ -379,7 +382,10 @@ const resources = {
         Cotton: "Cotton",
         Pomegranate: "Pomegranate",
         Wheat: "Wheat",
-        Tomato: "Tomato"
+        Tomato: "Tomato",
+        Maize: "Maize",
+        Gram: "Gram",
+        Bajra: "Bajra"
       },
       mandis: {
         Kopargaon: "Kopargaon Agricultural Produce Market Committee (APMC)",

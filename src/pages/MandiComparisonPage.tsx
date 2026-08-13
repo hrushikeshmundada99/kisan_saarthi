@@ -5,7 +5,7 @@ import {
   MOCK_DATEWISE_COMPARISON_DATA,
   MANDIS
 } from '../data/mockMandiComparisonData';
-import { MANDI_LOCATIONS } from '../data/mockData';
+import { MANDI_LOCATIONS } from '../data/realData';
 import { MandiComparisonRow } from '../components/MandiComparisonRow';
 import { MandiDateMatrixTable } from '../components/MandiDateMatrixTable';
 import { CropSelector } from '../components/CropSelector';

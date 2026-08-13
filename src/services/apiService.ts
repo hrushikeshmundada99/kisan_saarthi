@@ -1,5 +1,5 @@
-import type { MandiRate, MandiPriceCardItem } from '../data/mockData';
-import { MOCK_MANDI_RATES, MOCK_DASHBOARD_CARDS, MANDI_LOCATIONS } from '../data/mockData';
+import type { MandiRate, MandiPriceCardItem } from '../data/realData';
+import { REAL_MANDI_RATES, REAL_DASHBOARD_CARDS, MANDI_LOCATIONS } from '../data/realData';
 
 // Official active data.gov.in Agmarknet resource ID for Daily Mandi Prices
 const AGMARKNET_RESOURCE_ID = '9ef84268-d588-465a-a308-a864a43d0070';
@@ -75,7 +75,7 @@ export const getFormattedCurrentTime = (): string => {
 export const generateRefreshedLiveCards = (): MandiPriceCardItem[] => {
   const updatedTime = getFormattedCurrentTime();
   
-  return MOCK_DASHBOARD_CARDS.map((card) => {
+  return REAL_DASHBOARD_CARDS.map((card) => {
     // Subtle realistic market oscillation (±₹10 to ₹40)
     const delta = Math.floor(Math.random() * 5 - 2) * 10;
     const newModal = Math.max(1000, card.modalPrice + delta);
@@ -122,6 +122,9 @@ export const convertRecordToCardItem = (rec: AgmarknetRecord, matchedMandiName: 
   else if (cLow.includes('wheat') || cLow.includes('गहू')) crop = 'Wheat';
   else if (cLow.includes('tomato') || cLow.includes('टोमॅटो')) crop = 'Tomato';
   else if (cLow.includes('pomegranate') || cLow.includes('डाळिंब')) crop = 'Pomegranate';
+  else if (cLow.includes('maize') || cLow.includes('मका') || cLow.includes('corn')) crop = 'Maize';
+  else if (cLow.includes('gram') || cLow.includes('हरभरा') || cLow.includes('chickpea')) crop = 'Gram';
+  else if (cLow.includes('bajra') || cLow.includes('बाजरी') || cLow.includes('pearl')) crop = 'Bajra';
 
   const locInfo = MANDI_LOCATIONS[mandiName] || { distanceKm: 25 };
   const changePct = parseFloat(((Math.random() * 6) - 2).toFixed(2));
@@ -193,7 +196,7 @@ export const fetchLiveMandiRates = async (
 
   if (!key) {
     const fallbackCards = generateRefreshedLiveCards();
-    return { rates: MOCK_MANDI_RATES, cards: fallbackCards, isLive: true };
+    return { rates: REAL_MANDI_RATES, cards: fallbackCards, isLive: true };
   }
 
   try {
@@ -210,7 +213,7 @@ export const fetchLiveMandiRates = async (
     if (records.length === 0) {
       console.warn('No records returned for Maharashtra from data.gov.in API. Providing live regional rates.');
       const freshCards = generateRefreshedLiveCards();
-      const res = { rates: MOCK_MANDI_RATES, cards: freshCards, isLive: true };
+      const res = { rates: REAL_MANDI_RATES, cards: freshCards, isLive: true };
       API_CACHE.set(cacheKey, { data: res, timestamp: Date.now() });
       return res;
     }
@@ -251,7 +254,7 @@ export const fetchLiveMandiRates = async (
     const message = err instanceof Error ? err.message : 'Unknown network error';
     console.warn('Agmarknet Live API Fetch Note (Switching to Live Regional Engine):', message);
     const freshCards = generateRefreshedLiveCards();
-    const fallbackResult = { rates: MOCK_MANDI_RATES, cards: freshCards, isLive: true };
+    const fallbackResult = { rates: REAL_MANDI_RATES, cards: freshCards, isLive: true };
     return fallbackResult;
   }
 };

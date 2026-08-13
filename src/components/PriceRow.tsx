@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { type MandiPriceCardItem } from '../data/mockData';
+import { type MandiPriceCardItem } from '../data/realData';
 import { Button } from './Button';
 import { MapPin, TrendingUp, TrendingDown, Minus, Clock, Scale, LineChart } from 'lucide-react';
 
@@ -17,7 +17,10 @@ const CROP_THEMES: Record<string, { emoji: string; badgeBg: string; text: string
   Sugarcane: { emoji: '🎋', badgeBg: 'bg-lime-100', text: 'text-lime-950', border: 'border-lime-300' },
   Pomegranate: { emoji: '🍎', badgeBg: 'bg-rose-100', text: 'text-rose-950', border: 'border-rose-300' },
   Wheat: { emoji: '🌾', badgeBg: 'bg-amber-100', text: 'text-amber-950', border: 'border-amber-300' },
-  Tomato: { emoji: '🍅', badgeBg: 'bg-red-100', text: 'text-red-950', border: 'border-red-300' }
+  Tomato: { emoji: '🍅', badgeBg: 'bg-red-100', text: 'text-red-950', border: 'border-red-300' },
+  Maize: { emoji: '🌽', badgeBg: 'bg-yellow-100', text: 'text-yellow-950', border: 'border-yellow-300' },
+  Gram: { emoji: '🧆', badgeBg: 'bg-orange-100', text: 'text-orange-950', border: 'border-orange-300' },
+  Bajra: { emoji: '🌾', badgeBg: 'bg-green-100', text: 'text-green-950', border: 'border-green-300' }
 };
 
 export const PriceRow: React.FC<PriceRowProps> = ({ card, onCompareClick, onForecastClick }) => {

@@ -9,7 +9,7 @@ interface CropSelectorProps {
   variant?: 'chips' | 'dropdown';
 }
 
-const DEFAULT_CROPS = ['Onion', 'Soybean', 'Cotton', 'Sugarcane', 'Pomegranate', 'Wheat', 'Tomato'];
+const DEFAULT_CROPS = ['Onion', 'Soybean', 'Cotton', 'Sugarcane', 'Pomegranate', 'Wheat', 'Tomato', 'Maize', 'Gram', 'Bajra'];
 
 const CROP_EMOJIS: Record<string, string> = {
   Onion: '🧅',
@@ -18,7 +18,10 @@ const CROP_EMOJIS: Record<string, string> = {
   Sugarcane: '🎋',
   Pomegranate: '🍎',
   Wheat: '🌾',
-  Tomato: '🍅'
+  Tomato: '🍅',
+  Maize: '🌽',
+  Gram: '🧆',
+  Bajra: '🌾'
 };
 
 const CROP_COLOR_STYLES: Record<string, { bg: string; text: string; border: string; activeBg: string }> = {
@@ -28,7 +31,10 @@ const CROP_COLOR_STYLES: Record<string, { bg: string; text: string; border: stri
   Sugarcane: { bg: 'bg-lime-50', text: 'text-lime-950', border: 'border-lime-300', activeBg: 'bg-gradient-to-r from-lime-700 to-emerald-800' },
   Pomegranate: { bg: 'bg-rose-50', text: 'text-rose-950', border: 'border-rose-200', activeBg: 'bg-gradient-to-r from-rose-700 to-red-800' },
   Wheat: { bg: 'bg-amber-50', text: 'text-amber-950', border: 'border-amber-200', activeBg: 'bg-gradient-to-r from-amber-600 to-orange-700' },
-  Tomato: { bg: 'bg-red-50', text: 'text-red-950', border: 'border-red-200', activeBg: 'bg-gradient-to-r from-red-700 to-rose-800' }
+  Tomato: { bg: 'bg-red-50', text: 'text-red-950', border: 'border-red-200', activeBg: 'bg-gradient-to-r from-red-700 to-rose-800' },
+  Maize: { bg: 'bg-yellow-50', text: 'text-yellow-950', border: 'border-yellow-300', activeBg: 'bg-gradient-to-r from-yellow-600 to-amber-700' },
+  Gram: { bg: 'bg-orange-50', text: 'text-orange-950', border: 'border-orange-200', activeBg: 'bg-gradient-to-r from-orange-600 to-amber-800' },
+  Bajra: { bg: 'bg-emerald-50', text: 'text-emerald-950', border: 'border-emerald-200', activeBg: 'bg-gradient-to-r from-emerald-800 to-green-900' }
 };
 
 export const CropSelector: React.FC<CropSelectorProps> = ({
