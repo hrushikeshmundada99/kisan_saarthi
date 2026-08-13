@@ -24,9 +24,17 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(targetUrl);
-    const data = await response.json();
-    return res.status(response.status).json(data);
+    const text = await response.text();
+
+    try {
+      const data = JSON.parse(text);
+      return res.status(response.status).json(data);
+    } catch {
+      // If response is XML or HTML, return a structured fallback response
+      console.warn('Agmarknet returned non-JSON format:', text.substring(0, 100));
+      return res.status(200).json({ records: [], format: 'xml_fallback' });
+    }
   } catch (error) {
-    return res.status(500).json({ error: error.message || 'Failed to fetch Agmarknet data' });
+    return res.status(200).json({ records: [], error: error.message || 'Failed to fetch Agmarknet data' });
   }
 }

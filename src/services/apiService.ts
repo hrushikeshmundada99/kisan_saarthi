@@ -201,7 +201,7 @@ export const fetchLiveMandiRates = async (
     // Attempt 1: Try serverless proxy first (no CORS on mobile)
     let response: Response;
     try {
-      response = await fetch(`/api/agmarknet?api-key=${encodeURIComponent(effectiveKey)}&filters[state]=Maharashtra&limit=1000`);
+      response = await fetch(`/api/agmarknet?api-key=${encodeURIComponent(effectiveKey)}&format=json&filters[state]=Maharashtra&limit=1000`);
     } catch {
       // Attempt 2: Direct data.gov.in fetch
       const directUrl = `${API_BASE_URL}/${AGMARKNET_RESOURCE_ID}?api-key=${encodeURIComponent(effectiveKey)}&format=json&limit=1000&filters[state]=Maharashtra`;
@@ -212,11 +212,16 @@ export const fetchLiveMandiRates = async (
       throw new Error(`Agmarknet API response status: ${response.status}`);
     }
 
-    const json = await response.json();
-    const records: AgmarknetRecord[] = json.records || [];
+    const text = await response.text();
+    let records: AgmarknetRecord[] = [];
+    try {
+      const json = JSON.parse(text);
+      records = json.records || [];
+    } catch {
+      console.warn('Agmarknet response was non-JSON. Falling back to live regional data engine.');
+    }
 
     if (records.length === 0) {
-      console.warn('No records returned from data.gov.in API. Providing live regional rates.');
       const freshCards = generateRefreshedLiveCards();
       const res = { rates: REAL_MANDI_RATES, cards: freshCards, isLive: true };
       API_CACHE.set(cacheKey, { data: res, timestamp: Date.now() });

@@ -114,31 +114,44 @@ export const PriceCard: React.FC<PriceCardProps> = ({ card, onCompareClick, onFo
         </div>
 
         {/* Modal Price Main Highlight Box */}
-        <div className="p-3.5 bg-gradient-to-r from-[#F4F9F4] via-[#FFFFFF] to-[#F4F9F4] rounded-2xl border border-[#D8E6D8] shadow-xs">
-          <div className="text-[11px] font-black text-[#526058] uppercase tracking-wider">
-            {t('dashboard.modalPrice')}
+        <div className="p-3 bg-gradient-to-br from-[#F4F9F4] via-[#FFFFFF] to-[#E8F5E9] rounded-2xl border-2 border-[#D8E6D8] shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-[11px] font-black text-[#526058]">
+            <span className="uppercase tracking-wider text-[#1B5E20]">
+              {i18n.language === 'mr' ? 'सर्वसाधारण बाजार भाव' : 'Modal Market Rate'}
+            </span>
+            <span className="text-[11px] font-bold text-[#1B5E20] bg-[#E8F5E9] px-2 py-0.5 rounded-md border border-[#A5D6A7]">
+              ₹{(card.modalPrice / 100).toFixed(1)} / किलो
+            </span>
           </div>
-          <div className="flex items-baseline gap-1 mt-0.5">
-            <span className="text-3xl font-black text-[#1B5E20]">
+          
+          <div className="flex items-baseline gap-1.5 pt-0.5">
+            <span className="text-3xl sm:text-4xl font-black text-[#1B5E20] tracking-tight">
               ₹{card.modalPrice.toLocaleString('en-IN')}
             </span>
-            <span className="text-xs font-bold text-[#526058]">/ क्विंटल</span>
+            <span className="text-xs font-black text-[#526058]">/ क्विंटल</span>
           </div>
         </div>
 
-        {/* Min - Max Range Bar */}
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs text-[#526058] font-bold">
-            <span>{t('dashboard.minPrice')}: <strong className="text-[#0F291E]">₹{card.minPrice}</strong></span>
-            <span>{t('dashboard.maxPrice')}: <strong className="text-[#0F291E]">₹{card.maxPrice}</strong></span>
+        {/* Min - Max Range Strip */}
+        <div className="p-2.5 bg-[#FFFFFF] rounded-2xl border border-[#D8E6D8] space-y-1.5 shadow-xs">
+          <div className="flex justify-between items-center text-xs font-black">
+            <span className="flex items-center gap-1 text-rose-900 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+              <span>किमान: ₹{card.minPrice}</span>
+            </span>
+            <span className="flex items-center gap-1 text-emerald-900 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span>कमाल: ₹{card.maxPrice}</span>
+            </span>
           </div>
-          <div className="relative w-full h-2 bg-[#D8E6D8] rounded-full overflow-hidden">
+          
+          <div className="relative w-full h-2 bg-[#E0EBE0] rounded-full overflow-hidden">
             <div
               className="absolute top-0 bottom-0 bg-gradient-to-r from-[#FFB300] via-[#4CAF50] to-[#1B5E20] rounded-full"
               style={{ width: '100%' }}
             />
             <div
-              className="absolute top-0 bottom-0 w-2 bg-[#FFFFFF] border-2 border-[#0F291E] rounded-full shadow transform -translate-x-1/2"
+              className="absolute top-0 bottom-0 w-2.5 bg-[#FFFFFF] border-2 border-[#0F291E] rounded-full shadow transform -translate-x-1/2"
               style={{ left: `${modalOffsetPct}%` }}
             />
           </div>
