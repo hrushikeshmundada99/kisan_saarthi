@@ -178,11 +178,11 @@ export const PriceAlertsPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+          <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 w-full sm:w-auto shrink-0">
             <button
               type="button"
               onClick={() => setGatewayModalOpen(true)}
-              className="px-3.5 py-2.5 rounded-2xl bg-[#FFFFFF] border-2 border-[#1B5E20] text-[#1B5E20] text-xs font-black hover:bg-[#E8F5E9] transition-all flex items-center gap-1.5 cursor-pointer shadow-xs min-h-[44px]"
+              className="px-3.5 py-2.5 rounded-2xl bg-[#FFFFFF] border-2 border-[#1B5E20] text-[#1B5E20] text-xs font-black hover:bg-[#E8F5E9] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs min-h-[44px]"
             >
               <Key className="w-4 h-4 text-[#FFB300]" />
               <span>SMS गेटवे (खरा SMS)</span>
@@ -192,7 +192,7 @@ export const PriceAlertsPage: React.FC = () => {
               variant="primary"
               size="md"
               onClick={() => setShowAddForm(!showAddForm)}
-              className="shadow-md shadow-emerald-900/15 min-h-[44px]"
+              className="shadow-md shadow-emerald-900/15 min-h-[44px] justify-center"
             >
               <Plus className="w-4 h-4 text-[#FFB300]" />
               <span>{i18n.language === 'mr' ? 'नवीन भाव अलर्ट सेट करा' : 'Set New Price Alert'}</span>

@@ -201,14 +201,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2 w-full md:w-auto">
           {onRefreshLive && (
             <Button
               variant="ghost"
               size="sm"
               onClick={handleRefreshClick}
               disabled={isFetchingLive}
-              className="border-2 border-[#FFB300] bg-amber-50 text-[#0F291E] font-black rounded-2xl min-h-[42px]"
+              className="border-2 border-[#FFB300] bg-amber-50 text-[#0F291E] font-black rounded-2xl min-h-[40px] justify-center text-xs"
             >
               <RefreshCw className={`w-4 h-4 text-[#D97706] ${isFetchingLive ? 'animate-spin' : ''}`} />
               <span>ताजे दर रीफ्रेश करा</span>
@@ -219,7 +219,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             variant="primary"
             size="sm"
             onClick={() => navigate('/forecast')}
-            className="rounded-2xl min-h-[42px] font-black"
+            className="rounded-2xl min-h-[40px] font-black justify-center text-xs"
           >
             <LineChart className="w-4 h-4 text-[#FFB300]" />
             <span>{t('dashboard.viewFullForecast')}</span>
@@ -229,7 +229,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             variant="secondary"
             size="sm"
             onClick={() => navigate('/comparison')}
-            className="rounded-2xl min-h-[42px] font-black border-2"
+            className="rounded-2xl min-h-[40px] font-black border-2 justify-center text-xs"
           >
             <Scale className="w-4 h-4 text-[#1B5E20]" />
             <span>{t('dashboard.compareMandis')}</span>

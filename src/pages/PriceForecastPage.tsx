@@ -145,19 +145,19 @@ export const PriceForecastPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Quick Info Badges */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="px-4 py-3 bg-[#FFFFFF] rounded-2xl border border-[#E1EBE1] text-center shadow-xs">
-              <span className="text-[11px] font-extrabold text-[#6B7280] uppercase block">
+          {/* Quick Info Badges (Responsive Stack / Row) */}
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-3 w-full md:w-auto shrink-0">
+            <div className="px-3 py-2 sm:px-4 sm:py-3 bg-[#FFFFFF] rounded-2xl border border-[#D8E6D8] text-center shadow-xs">
+              <span className="text-[10px] sm:text-[11px] font-black text-[#526058] uppercase block">
                 {i18n.language === 'mr' ? 'निवडलेले पिक' : 'Selected Crop'}
               </span>
-              <span className="text-base font-black text-[#2E7D32]">{t(`crops.${crop}`, crop)}</span>
+              <span className="text-sm sm:text-base font-black text-[#1B5E20] truncate block">{t(`crops.${crop}`, crop)}</span>
             </div>
-            <div className="px-4 py-3 bg-[#FFFFFF] rounded-2xl border border-[#E1EBE1] text-center shadow-xs">
-              <span className="text-[11px] font-extrabold text-[#6B7280] uppercase block">
-                {i18n.language === 'mr' ? 'कृषी उत्पन्न बाजार समिती' : 'Mandi'}
+            <div className="px-3 py-2 sm:px-4 sm:py-3 bg-[#FFFFFF] rounded-2xl border border-[#D8E6D8] text-center shadow-xs">
+              <span className="text-[10px] sm:text-[11px] font-black text-[#526058] uppercase block">
+                {i18n.language === 'mr' ? 'बाजार समिती' : 'Mandi'}
               </span>
-              <span className="text-base font-black text-[#1B4332]">{t(`mandis.${mandi}`, mandi)}</span>
+              <span className="text-sm sm:text-base font-black text-[#0F291E] truncate block">{t(`mandis.${mandi}`, mandi)}</span>
             </div>
           </div>
         </div>

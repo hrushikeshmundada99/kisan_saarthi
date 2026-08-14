@@ -154,21 +154,21 @@ export const CropRecommendationPage: React.FC = () => {
               )}
 
               {/* Crop Header */}
-              <div className="flex items-start justify-between gap-4 pt-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
                 <div>
-                  <span className="text-xs font-black text-[#2E7D32] uppercase tracking-wider">
+                  <span className="text-xs font-black text-[#1B5E20] uppercase tracking-wider">
                     {i18n.language === 'mr' ? `क्रमांक ${idx + 1} शिफारस` : `Rank #${idx + 1} Recommendation`}
                   </span>
-                  <h3 className="text-2xl font-black text-[#1B4332] mt-0.5">
+                  <h3 className="text-xl sm:text-2xl font-black text-[#0F291E] mt-0.5">
                     {i18n.language === 'mr' ? item.cropNameMr : item.cropNameEn}
                   </h3>
                 </div>
 
-                <div className="text-right shrink-0">
-                  <span className="text-xs text-[#6B7280] font-extrabold block">{t('recommendation.expectedProfit')}</span>
-                  <span className="text-2xl font-black text-[#2E7D32]">
+                <div className="sm:text-right bg-[#F4F9F4] sm:bg-transparent p-2.5 sm:p-0 rounded-xl border sm:border-0 border-[#D8E6D8] shrink-0">
+                  <span className="text-[11px] text-[#526058] font-bold block">{t('recommendation.expectedProfit')}</span>
+                  <span className="text-xl sm:text-2xl font-black text-[#1B5E20]">
                     ₹{item.expectedProfitPerAcre.toLocaleString('en-IN')}
-                    <span className="text-xs font-bold text-[#6B7280]">{t('recommendation.perAcre')}</span>
+                    <span className="text-xs font-bold text-[#526058]"> {t('recommendation.perAcre')}</span>
                   </span>
                 </div>
               </div>

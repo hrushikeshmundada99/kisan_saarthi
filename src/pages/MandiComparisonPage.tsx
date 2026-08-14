@@ -320,18 +320,18 @@ export const MandiComparisonPage: React.FC = () => {
         </div>
 
         {/* Quantity Slider Box */}
-        <div className="bg-[#F7FBF7] p-4 rounded-2xl border border-[#E1EBE1] flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
+        <div className="bg-[#F4F9F4] p-3.5 sm:p-4 rounded-2xl border border-[#D8E6D8] flex flex-col sm:flex-row items-center justify-between gap-3 pt-3">
           <div className="space-y-0.5 text-center sm:text-left w-full sm:w-auto">
-            <label className="text-sm font-extrabold text-[#1B4332] flex items-center gap-1.5 justify-center sm:justify-start">
-              <Truck className="w-4 h-4 text-[#FFC107]" />
+            <label className="text-xs sm:text-sm font-black text-[#0F291E] flex items-center gap-1.5 justify-center sm:justify-start">
+              <Truck className="w-4 h-4 text-[#FFB300]" />
               तुमच्या मालाचे एकूण वजन (क्विंटल):
             </label>
-            <p className="text-xs text-[#6B7280] font-medium">
+            <p className="text-[11px] sm:text-xs text-[#526058] font-semibold">
               वाहतूक खर्च वजनानुसार आपोआप मोजला जाईल
             </p>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-center">
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
             <input
               type="range"
               min="5"
@@ -339,9 +339,9 @@ export const MandiComparisonPage: React.FC = () => {
               step="5"
               value={quantity}
               onChange={(e) => setQuantity(Number(e.target.value))}
-              className="w-36 sm:w-48 accent-[#2E7D32] cursor-pointer"
+              className="flex-1 sm:w-48 accent-[#1B5E20] cursor-pointer"
             />
-            <span className="px-4 py-2 bg-[#2E7D32] text-[#FFFFFF] text-sm font-extrabold rounded-xl shrink-0 shadow-xs">
+            <span className="px-3.5 py-1.5 bg-[#1B5E20] text-[#FFFFFF] text-xs sm:text-sm font-black rounded-xl shrink-0 shadow-xs">
               {quantity} क्विंटल
             </span>
           </div>

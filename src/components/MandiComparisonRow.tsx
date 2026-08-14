@@ -102,42 +102,42 @@ export const MandiComparisonRow: React.FC<MandiComparisonRowProps> = ({
         </div>
 
         {/* Price Matrix & Net Profit Card Box */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 bg-[#F4F9F4] p-3.5 rounded-2xl border border-[#D8E6D8] text-center md:text-right shadow-xs">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-4 bg-[#F4F9F4] p-2.5 sm:p-3.5 rounded-2xl border border-[#D8E6D8] text-center md:text-right shadow-xs">
           {/* Raw Market Price */}
           <div>
-            <div className="text-[11px] font-black text-[#526058] uppercase tracking-wider">
+            <div className="text-[10px] sm:text-[11px] font-black text-[#526058] uppercase tracking-wider truncate">
               {t('comparison.tableRawPrice')}
             </div>
-            <div className="text-xl font-black text-[#0F291E] mt-0.5">
+            <div className="text-base sm:text-xl font-black text-[#0F291E] mt-0.5 whitespace-nowrap">
               ₹{rate.modalPrice.toLocaleString('en-IN')}
             </div>
-            <div className="text-[11px] text-[#1B5E20] font-black">
+            <div className="text-[10px] sm:text-[11px] text-[#1B5E20] font-black whitespace-nowrap">
               ₹{(rate.modalPrice / 100).toFixed(1)}/किलो
             </div>
           </div>
 
           {/* Transport Deductions */}
           <div>
-            <div className="text-[11px] font-black text-rose-700 uppercase tracking-wider">
+            <div className="text-[10px] sm:text-[11px] font-black text-rose-700 uppercase tracking-wider truncate">
               - {t('comparison.tableTransport')}
             </div>
-            <div className="text-xl font-black text-rose-600 mt-0.5">
+            <div className="text-base sm:text-xl font-black text-rose-600 mt-0.5 whitespace-nowrap">
               ₹{transportCostPerQ}
             </div>
-            <div className="text-[11px] text-rose-700 font-bold">
-              {i18n.language === 'mr' ? `एकूण ₹${totalTransportCost} (${quantityQuintals}q)` : `Total ₹${totalTransportCost} (${quantityQuintals}q)`}
+            <div className="text-[10px] sm:text-[11px] text-rose-700 font-bold truncate">
+              {i18n.language === 'mr' ? `एकूण ₹${totalTransportCost}` : `Total ₹${totalTransportCost}`}
             </div>
           </div>
 
           {/* Net Profit Card Highlight */}
-          <div className="border-l border-[#D8E6D8] pl-2 sm:pl-3">
-            <div className="text-[11px] font-black text-[#1B5E20] uppercase tracking-wider">
+          <div className="border-l border-[#D8E6D8] pl-1.5 sm:pl-3">
+            <div className="text-[10px] sm:text-[11px] font-black text-[#1B5E20] uppercase tracking-wider truncate">
               {t('comparison.tableNetPrice')}
             </div>
-            <div className="text-2xl font-black text-[#1B5E20] mt-0.5">
+            <div className="text-lg sm:text-2xl font-black text-[#1B5E20] mt-0.5 whitespace-nowrap">
               ₹{netPricePerQ.toLocaleString('en-IN')}
             </div>
-            <div className="text-[11px] font-black text-[#D97706]">
+            <div className="text-[10px] sm:text-[11px] font-black text-[#D97706] truncate">
               {i18n.language === 'mr' ? `एकूण ₹${totalNetPayout.toLocaleString('en-IN')}` : `Total ₹${totalNetPayout.toLocaleString('en-IN')}`}
             </div>
           </div>

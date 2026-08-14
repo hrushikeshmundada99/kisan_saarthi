@@ -71,7 +71,7 @@ export const CropSelector: React.FC<CropSelectorProps> = ({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2.5">
+    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 sm:flex-wrap">
       {crops.map((crop) => {
         const isSelected = crop === selectedCrop;
         const emoji = CROP_EMOJIS[crop] || '🌱';
@@ -81,13 +81,13 @@ export const CropSelector: React.FC<CropSelectorProps> = ({
           <button
             key={crop}
             onClick={() => onSelectCrop(crop)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-extrabold transition-all duration-300 cursor-pointer min-h-[48px] shadow-xs ${
+            className={`flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-black whitespace-nowrap shrink-0 transition-all duration-300 cursor-pointer min-h-[40px] sm:min-h-[46px] shadow-xs ${
               isSelected
-                ? `${colorStyle.activeBg} text-[#FFFFFF] shadow-md scale-105 ring-2 ring-[#2E7D32]/30`
-                : `${colorStyle.bg} ${colorStyle.text} border-2 ${colorStyle.border} hover:scale-102 hover:shadow-sm`
+                ? `${colorStyle.activeBg} text-[#FFFFFF] shadow-md scale-102 ring-2 ring-[#1B5E20]/30`
+                : `${colorStyle.bg} ${colorStyle.text} border-2 ${colorStyle.border} hover:scale-102 hover:shadow-xs`
             }`}
           >
-            <span className="text-lg">{emoji}</span>
+            <span className="text-base sm:text-lg">{emoji}</span>
             <span>{t(`crops.${crop}`, crop)}</span>
           </button>
         );

@@ -112,10 +112,10 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ isLive, onOpenApiKeyModal,
               </button>
             )}
 
-            {/* Live API Key Button */}
+            {/* Live API Key Button (Desktop / Tablet) */}
             <button
               onClick={onOpenApiKeyModal}
-              className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-2xl text-xs font-extrabold flex items-center gap-1.5 border transition-all duration-300 min-h-[38px] sm:min-h-[42px] cursor-pointer shadow-xs ${
+              className={`hidden sm:flex px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-2xl text-xs font-extrabold items-center gap-1.5 border transition-all duration-300 min-h-[38px] sm:min-h-[42px] cursor-pointer shadow-xs ${
                 isLive
                   ? 'bg-emerald-50 text-emerald-950 border-emerald-300 hover:bg-emerald-100'
                   : 'bg-amber-50 text-amber-950 border-amber-300 hover:bg-amber-100'
@@ -125,12 +125,12 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ isLive, onOpenApiKeyModal,
               {isLive ? (
                 <>
                   <ShieldCheck className="w-4 h-4 text-[#1B5E20] shrink-0" />
-                  <span className="hidden sm:inline">Live चालू दर</span>
+                  <span>Live चालू दर</span>
                 </>
               ) : (
                 <>
                   <Key className="w-4 h-4 text-[#FFB300] shrink-0" />
-                  <span className="hidden sm:inline">API Key</span>
+                  <span>API Key</span>
                 </>
               )}
             </button>
