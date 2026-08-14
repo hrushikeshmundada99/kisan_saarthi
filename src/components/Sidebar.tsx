@@ -30,11 +30,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
 
-  // Listen to global toggle event from HeaderNav hamburger
+  // Listen to global toggle/open/close events
   useEffect(() => {
     const handleToggle = () => setMobileOpen((prev) => !prev);
+    const handleOpen = () => setMobileOpen(true);
+    const handleClose = () => setMobileOpen(false);
+    const handleSetOpen = (e: Event) => {
+      const customEvent = e as CustomEvent<{ open?: boolean }>;
+      if (customEvent.detail && typeof customEvent.detail.open === 'boolean') {
+        setMobileOpen(customEvent.detail.open);
+      }
+    };
+
     window.addEventListener('TOGGLE_KISAN_SIDEBAR', handleToggle);
-    return () => window.removeEventListener('TOGGLE_KISAN_SIDEBAR', handleToggle);
+    window.addEventListener('OPEN_KISAN_SIDEBAR', handleOpen);
+    window.addEventListener('CLOSE_KISAN_SIDEBAR', handleClose);
+    window.addEventListener('SET_KISAN_SIDEBAR_OPEN', handleSetOpen);
+
+    return () => {
+      window.removeEventListener('TOGGLE_KISAN_SIDEBAR', handleToggle);
+      window.removeEventListener('OPEN_KISAN_SIDEBAR', handleOpen);
+      window.removeEventListener('CLOSE_KISAN_SIDEBAR', handleClose);
+      window.removeEventListener('SET_KISAN_SIDEBAR_OPEN', handleSetOpen);
+    };
   }, []);
 
   const navItems = [
@@ -78,7 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-210px)] pr-1">
           
           {/* Sidebar Top Brand Header */}
           <div className="flex items-center justify-between pb-3 border-b border-[#D8E6D8]">
@@ -149,6 +167,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
         {/* Sidebar Footer Widget */}
         <div className="space-y-2 pt-3 border-t border-[#D8E6D8]">
           
+          {/* Start Guided Tour Button */}
+          <button
+            onClick={() => {
+              try {
+                localStorage.removeItem('KISAN_SAARTHI_ONBOARDING_COMPLETED');
+              } catch {}
+              setMobileOpen(false);
+              window.dispatchEvent(new CustomEvent('START_KISAN_TOUR'));
+            }}
+            className="w-full p-2.5 rounded-2xl text-xs font-black flex items-center justify-between border bg-amber-50/80 hover:bg-amber-100 text-amber-950 border-amber-300 transition-all min-h-[38px] cursor-pointer shadow-2xs"
+          >
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#FFB300] shrink-0" />
+              <span>मार्गदर्शन (Take Tour)</span>
+            </div>
+            <ChevronRight className="w-3.5 h-3.5 text-[#526058]" />
+          </button>
+
           {/* API Key Status Pill */}
           <button
             onClick={() => {

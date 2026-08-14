@@ -32,6 +32,38 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === ONBOARDING_STEPS.length - 1;
 
+  // Helper to determine if a step targets a navbar / sidebar element
+  const isSidebarStep = (s: OnboardingStep | undefined): boolean => {
+    if (!s || !s.target) return false;
+    return (
+      s.id === 'sidebar-nav' ||
+      s.id.startsWith('nav-') ||
+      s.target.includes('sidebar') ||
+      s.target.includes('nav-')
+    );
+  };
+
+  // Open / Close Navbar/Sidebar drawer automatically when guiding through navbar steps
+  useEffect(() => {
+    if (!isOpen) {
+      window.dispatchEvent(new CustomEvent('CLOSE_KISAN_SIDEBAR'));
+      return;
+    }
+
+    if (isSidebarStep(step)) {
+      window.dispatchEvent(new CustomEvent('OPEN_KISAN_SIDEBAR'));
+    } else {
+      window.dispatchEvent(new CustomEvent('CLOSE_KISAN_SIDEBAR'));
+    }
+  }, [isOpen, currentStepIndex, step]);
+
+  // Clean up: Ensure sidebar is closed when tour is unmounted
+  useEffect(() => {
+    return () => {
+      window.dispatchEvent(new CustomEvent('CLOSE_KISAN_SIDEBAR'));
+    };
+  }, []);
+
   // Function to calculate target element bounding rect & scroll it into view
   const updateTargetRect = useCallback(() => {
     if (!step || !step.target || step.placement === 'center') {
@@ -39,33 +71,19 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
       return;
     }
 
-    let selector = step.target;
-    let el = document.querySelector(selector);
-
-    if (step.target.includes('nav-')) {
-      const isMobile = window.innerWidth < 1024;
-      if (isMobile) {
-        const mobileSelector = step.target.replace('nav-', 'mobile-nav-');
-        const mobileEl = document.querySelector(mobileSelector);
-        if (mobileEl) {
-          el = mobileEl;
-        }
-      }
-    }
+    const selector = step.target;
+    const el = document.querySelector(selector);
 
     if (el) {
-      // Scroll target element into view smoothly if not visible (except fixed bottom nav)
-      const isFixedBottom = el.closest('nav') && window.innerWidth < 1024;
-      if (!isFixedBottom) {
-        try {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-        } catch {}
-      }
+      // Scroll target element into view smoothly if needed
+      try {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      } catch {}
 
-      // Immediate & delayed rect calculation for smooth scroll animation
+      // Immediate & staggered rect calculations to adapt to sidebar opening animation (300ms)
       const compute = () => {
         const rect = el.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
+        if (rect.width > 0 && rect.height > 0 && rect.right > 0 && rect.bottom > 0) {
           setTargetRect(rect);
         } else {
           setTargetRect(null);
@@ -73,12 +91,14 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
       };
 
       compute();
-      const timer1 = setTimeout(compute, 150);
-      const timer2 = setTimeout(compute, 350);
+      const timer1 = setTimeout(compute, 60);
+      const timer2 = setTimeout(compute, 180);
+      const timer3 = setTimeout(compute, 360);
 
       return () => {
         clearTimeout(timer1);
         clearTimeout(timer2);
+        clearTimeout(timer3);
       };
     } else {
       setTargetRect(null);
@@ -89,7 +109,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
   useEffect(() => {
     if (!isOpen) return;
 
-    updateTargetRect();
+    const cleanup = updateTargetRect();
 
     let resizeTimer: number;
     const handleResize = () => {
@@ -102,6 +122,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
     window.addEventListener('resize', handleResize, { passive: true });
 
     return () => {
+      if (cleanup) cleanup();
       window.removeEventListener('resize', handleResize);
       clearTimeout(resizeTimer);
     };
@@ -131,6 +152,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
     try {
       localStorage.setItem('KISAN_SAARTHI_ONBOARDING_COMPLETED', 'true');
     } catch {}
+    window.dispatchEvent(new CustomEvent('CLOSE_KISAN_SIDEBAR'));
     onClose();
   };
 
@@ -147,8 +169,8 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const isMobile = vw < 768;
-    const tooltipWidth = Math.min(400, vw - (padding * 2));
-    const estimatedHeight = tooltipRef.current?.offsetHeight || 250;
+    const tooltipWidth = Math.min(390, vw - (padding * 2));
+    const estimatedHeight = tooltipRef.current?.offsetHeight || 240;
 
     let left = padding;
     let top = padding;
@@ -158,13 +180,13 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
       left = Math.max(padding, (vw - tooltipWidth) / 2);
 
       // Check vertical placement:
-      // If target is in the lower 50% of viewport or near bottom nav, place tooltip ABOVE target
-      if (targetRect.top > vh * 0.45 || targetRect.bottom + estimatedHeight + 75 > vh) {
+      // If target is in the lower half of viewport or near bottom nav, place tooltip ABOVE target
+      if (targetRect.top > vh * 0.48 || targetRect.bottom + estimatedHeight + 75 > vh) {
         // Place ABOVE
-        top = Math.max(padding + 55, targetRect.top - estimatedHeight - 16);
+        top = Math.max(padding + 55, targetRect.top - estimatedHeight - 14);
       } else {
         // Place BELOW
-        top = Math.min(vh - estimatedHeight - 75, targetRect.bottom + 16);
+        top = Math.min(vh - estimatedHeight - 75, targetRect.bottom + 14);
       }
     } else {
       // Desktop / Laptop positioning
