@@ -42,10 +42,9 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
     let selector = step.target;
     let el = document.querySelector(selector);
 
-    if (el && step.target.includes('nav-')) {
-      const rect = el.getBoundingClientRect();
-      // If primary nav target is hidden/offscreen (e.g. sidebar collapsed on mobile), try mobile nav item
-      if (rect.width === 0 || rect.height === 0 || rect.left < -50 || rect.right > window.innerWidth + 50) {
+    if (step.target.includes('nav-')) {
+      const isMobile = window.innerWidth < 1024;
+      if (isMobile) {
         const mobileSelector = step.target.replace('nav-', 'mobile-nav-');
         const mobileEl = document.querySelector(mobileSelector);
         if (mobileEl) {
@@ -55,11 +54,12 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
     }
 
     if (el) {
-      // Scroll target element into view smoothly if not visible
-      try {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      } catch {
-        // Fallback for browsers without options support
+      // Scroll target element into view smoothly if not visible (except fixed bottom nav)
+      const isFixedBottom = el.closest('nav') && window.innerWidth < 1024;
+      if (!isFixedBottom) {
+        try {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        } catch {}
       }
 
       // Immediate & delayed rect calculation for smooth scroll animation
@@ -85,7 +85,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
     }
   }, [step]);
 
-  // Update target rect whenever step or isOpen changes (smooth and lightweight)
+  // Update target rect whenever step or isOpen changes
   useEffect(() => {
     if (!isOpen) return;
 
@@ -118,7 +118,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
   };
 
   const handleBack = () => {
-    if (currentStepIndex > 0) {
+    if (!isFirstStep) {
       setCurrentStepIndex((prev) => prev - 1);
     }
   };
@@ -130,9 +130,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
   const handleComplete = () => {
     try {
       localStorage.setItem('KISAN_SAARTHI_ONBOARDING_COMPLETED', 'true');
-    } catch {
-      // Ignore storage errors
-    }
+    } catch {}
     onClose();
   };
 
@@ -141,50 +139,80 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
 
   const isCenteredModal = !step.target || step.placement === 'center' || !targetRect;
 
-  // Calculate dynamic tooltip positioning to NEVER obscure target element
+  // Calculate dynamic tooltip positioning to NEVER obscure target element and ALWAYS stay visible on screen
   const getTooltipStyle = (): React.CSSProperties => {
     if (isCenteredModal || !targetRect) return {};
 
-    const tooltipWidth = Math.min(420, window.innerWidth - 32);
-    const tooltipHeight = 220;
-    const padding = 16;
+    const padding = 12;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    const isMobile = vw < 768;
+    const tooltipWidth = Math.min(400, vw - (padding * 2));
+    const estimatedHeight = tooltipRef.current?.offsetHeight || 250;
 
-    let left = targetRect.left;
-    let top = targetRect.bottom + 16;
+    let left = padding;
+    let top = padding;
 
-    // Sidebar navigation steps (place to right of sidebar)
-    if (step.placement === 'right' || targetRect.left < 280) {
-      left = targetRect.right + 16;
-      top = Math.max(padding, Math.min(vh - tooltipHeight - padding, targetRect.top - 10));
+    if (isMobile) {
+      // On Mobile: Center horizontally
+      left = Math.max(padding, (vw - tooltipWidth) / 2);
 
-      // If sidebar tooltip overflows right edge on narrow screens, place below target
-      if (left + tooltipWidth > vw - padding) {
+      // Check vertical placement:
+      // If target is in the lower 50% of viewport or near bottom nav, place tooltip ABOVE target
+      if (targetRect.top > vh * 0.45 || targetRect.bottom + estimatedHeight + 75 > vh) {
+        // Place ABOVE
+        top = Math.max(padding + 55, targetRect.top - estimatedHeight - 16);
+      } else {
+        // Place BELOW
+        top = Math.min(vh - estimatedHeight - 75, targetRect.bottom + 16);
+      }
+    } else {
+      // Desktop / Laptop positioning
+      if (step.placement === 'right' || (targetRect.left < 280 && vw > 1024)) {
+        left = targetRect.right + 16;
+        top = Math.max(padding, Math.min(vh - estimatedHeight - padding, targetRect.top - 10));
+
+        // If sidebar tooltip overflows right edge on narrow screen, place above or below
+        if (left + tooltipWidth > vw - padding) {
+          left = Math.max(padding, (vw - tooltipWidth) / 2);
+          if (targetRect.bottom + estimatedHeight + padding > vh) {
+            top = Math.max(padding, targetRect.top - estimatedHeight - 16);
+          } else {
+            top = targetRect.bottom + 16;
+          }
+        }
+      } else if (targetRect.bottom + estimatedHeight + padding > vh) {
+        // Target near bottom of viewport -> place ABOVE
+        left = Math.max(padding, Math.min(vw - tooltipWidth - padding, targetRect.left));
+        top = Math.max(padding, targetRect.top - estimatedHeight - 16);
+      } else {
+        // Default place BELOW
         left = Math.max(padding, Math.min(vw - tooltipWidth - padding, targetRect.left));
         top = targetRect.bottom + 16;
       }
-    } 
-    // Elements near bottom of viewport (place tooltip above target)
-    else if (targetRect.bottom + tooltipHeight + 20 > vh) {
-      top = Math.max(padding, targetRect.top - tooltipHeight - 16);
     }
 
-    // Keep horizontal bounds within screen
-    if (left + tooltipWidth > vw - padding) {
-      left = Math.max(padding, vw - tooltipWidth - padding);
+    // Hard boundary safeguard: Dialog box NEVER clips off screen or behind bottom nav bar
+    const bottomClearance = isMobile ? 75 : padding;
+    const topClearance = isMobile ? 60 : padding;
+
+    if (top + estimatedHeight > vh - bottomClearance) {
+      top = Math.max(topClearance, vh - estimatedHeight - bottomClearance);
     }
-    if (left < padding) left = padding;
+    if (top < topClearance) {
+      top = topClearance;
+    }
 
     return {
       left: `${left}px`,
       top: `${top}px`,
-      maxWidth: `${tooltipWidth}px`
+      maxWidth: `${tooltipWidth}px`,
+      width: `${tooltipWidth}px`
     };
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden font-sans pointer-events-none">
+    <div className="fixed inset-0 z-[100] overflow-hidden font-sans pointer-events-none">
       
       {/* Transparent SVG Mask Overlay: 100% Clear Cutout Over Target Element */}
       <svg className="absolute inset-0 w-full h-full pointer-events-auto">
@@ -212,7 +240,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
           y="0"
           width="100%"
           height="100%"
-          fill="rgba(0, 0, 0, 0.65)"
+          fill="rgba(0, 0, 0, 0.68)"
           mask="url(#spotlight-mask-clear)"
         />
       </svg>
@@ -220,7 +248,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
       {/* Target Element Bright Pulsing Gold Border Ring */}
       {targetRect && (
         <div
-          className="fixed pointer-events-none z-50 border-3 border-[#FFB300] rounded-2xl shadow-[0_0_35px_rgba(255,179,0,0.85)] animate-pulse transition-all duration-300"
+          className="fixed pointer-events-none z-[101] border-3 border-[#FFB300] rounded-2xl shadow-[0_0_35px_rgba(255,179,0,0.85)] animate-pulse transition-all duration-300"
           style={{
             left: `${targetRect.left - 8}px`,
             top: `${targetRect.top - 8}px`,
@@ -232,21 +260,21 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
 
       {/* Tour Step Dialog Box */}
       <div
-        className={`fixed z-50 transition-all duration-300 pointer-events-auto ${
+        className={`fixed z-[102] transition-all duration-300 pointer-events-auto ${
           isCenteredModal
             ? 'inset-0 flex items-center justify-center p-4'
-            : 'p-2 sm:p-4'
+            : ''
         }`}
         style={getTooltipStyle()}
       >
         <div
           ref={tooltipRef}
-          className="w-full max-w-md bg-[#FFFFFF] rounded-3xl border-2 border-[#FFB300] p-5 sm:p-6 shadow-2xl shadow-emerald-950/40 animate-in zoom-in-95 duration-200 space-y-4"
+          className="w-full bg-[#FFFFFF] rounded-3xl border-2 border-[#FFB300] p-4 sm:p-6 shadow-2xl shadow-emerald-950/40 animate-in zoom-in-95 duration-200 space-y-3 sm:space-y-4"
         >
           {/* Top Header Bar */}
-          <div className="flex items-center justify-between border-b border-[#E2ECE2] pb-3">
+          <div className="flex items-center justify-between border-b border-[#E2ECE2] pb-2 sm:pb-3">
             <div className="flex items-center gap-2">
-              <span className="w-7 h-7 rounded-xl bg-[#FFB300] text-[#0F291E] flex items-center justify-center font-black text-xs shadow-xs">
+              <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-[#FFB300] text-[#0F291E] flex items-center justify-center font-black text-xs shadow-xs">
                 {currentStepIndex + 1}
               </span>
               <span className="text-xs font-black text-[#526058] tracking-wide uppercase">
@@ -265,7 +293,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
           </div>
 
           {/* Body Content */}
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             <div className="flex items-center gap-2">
               {isLastStep ? (
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
@@ -276,13 +304,13 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                 {currentTitle}
               </h3>
             </div>
-            <p className="text-xs sm:text-sm text-[#526058] font-medium leading-relaxed whitespace-pre-line">
+            <p className="text-xs sm:text-sm text-[#526058] font-semibold leading-relaxed whitespace-pre-line">
               {currentDesc}
             </p>
           </div>
 
           {/* Bottom Action Footer */}
-          <div className="flex items-center justify-between pt-3 border-t border-[#E2ECE2] gap-2">
+          <div className="flex items-center justify-between pt-2.5 sm:pt-3 border-t border-[#E2ECE2] gap-2">
             
             {/* Skip Link */}
             {!isLastStep ? (
@@ -290,7 +318,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                 onClick={handleSkip}
                 className="text-xs font-bold text-[#526058] hover:text-[#0F291E] underline cursor-pointer"
               >
-                {isMr ? 'मार्गदर्शन सोडा' : 'Skip Tour'}
+                {isMr ? 'मार्गदर्शन सोडा' : 'Skip'}
               </button>
             ) : <div />}
 
@@ -301,7 +329,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                   variant="secondary"
                   size="sm"
                   onClick={handleBack}
-                  className="rounded-xl min-h-[38px] px-3 font-bold border-2 text-xs"
+                  className="rounded-xl min-h-[36px] sm:min-h-[38px] px-3 font-bold border-2 text-xs cursor-pointer"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   <span>{isMr ? 'मागे' : 'Back'}</span>
@@ -313,7 +341,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                 variant="primary"
                 size="sm"
                 onClick={handleNext}
-                className="rounded-xl min-h-[38px] px-4 font-black text-xs shadow-md"
+                className="rounded-xl min-h-[36px] sm:min-h-[38px] px-4 font-black text-xs shadow-md cursor-pointer"
               >
                 <span>
                   {isLastStep
