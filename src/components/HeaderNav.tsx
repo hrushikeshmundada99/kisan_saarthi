@@ -158,32 +158,34 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ isLive, onOpenApiKeyModal,
             </div>
 
             {/* User Profile / Login Avatar */}
-            {isLoggedIn ? (
-              <button
-                onClick={() => navigate('/profile')}
-                className="flex items-center gap-2 p-1 sm:px-3 sm:py-1.5 rounded-2xl bg-[#F4F9F4] border border-[#D8E6D8] hover:bg-[#E8F5E9] transition-all cursor-pointer shadow-xs"
-              >
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] flex items-center justify-center text-[#FFFFFF] font-black text-xs">
-                  {user?.name?.charAt(0) || 'K'}
-                </div>
-                <div className="hidden lg:block text-left">
-                  <div className="text-xs font-black text-[#0F291E] leading-tight truncate max-w-[90px]">
-                    {user?.name || 'शेतकरी'}
+            <div data-tour="user-profile" className="shrink-0">
+              {isLoggedIn ? (
+                <button
+                  onClick={() => navigate('/profile')}
+                  className="flex items-center gap-2 p-1 sm:px-3 sm:py-1.5 rounded-2xl bg-[#F4F9F4] border border-[#D8E6D8] hover:bg-[#E8F5E9] transition-all cursor-pointer shadow-xs"
+                >
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] flex items-center justify-center text-[#FFFFFF] font-black text-xs">
+                    {user?.name?.charAt(0) || 'K'}
                   </div>
-                  <div className="text-[10px] text-[#526058] font-bold">
-                    {user?.phone || 'कोपरगाव'}
+                  <div className="hidden lg:block text-left">
+                    <div className="text-xs font-black text-[#0F291E] leading-tight truncate max-w-[90px]">
+                      {user?.name || 'शेतकरी'}
+                    </div>
+                    <div className="text-[10px] text-[#526058] font-bold">
+                      {user?.phone || 'कोपरगाव'}
+                    </div>
                   </div>
-                </div>
-              </button>
-            ) : (
-              <button
-                onClick={onOpenAuthModal}
-                className="px-3 py-1.5 sm:py-2 rounded-2xl text-xs font-black bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] text-[#FFFFFF] hover:opacity-95 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs min-h-[38px] sm:min-h-[42px]"
-              >
-                <LogIn className="w-4 h-4 text-[#FFB300]" />
-                <span className="hidden sm:inline">{isMr ? 'लॉगिन' : 'Login'}</span>
-              </button>
-            )}
+                </button>
+              ) : (
+                <button
+                  onClick={onOpenAuthModal}
+                  className="px-3 py-1.5 sm:py-2 rounded-2xl text-xs font-black bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] text-[#FFFFFF] hover:opacity-95 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs min-h-[38px] sm:min-h-[42px]"
+                >
+                  <LogIn className="w-4 h-4 text-[#FFB300]" />
+                  <span className="hidden sm:inline">{isMr ? 'लॉगिन' : 'Login'}</span>
+                </button>
+              )}
+            </div>
 
           </div>
 

@@ -1,449 +1,331 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import {
-  MOCK_TRENDS_DAILY_DATA,
-  getMonthlyAveragesForCrop,
-  type DailyTrendItem,
-  type MonthlyAverageItem
-} from '../data/mockTrendsData';
-import { CropSelector } from '../components/CropSelector';
-import { MandiSelector } from '../components/MandiSelector';
+  APMC_LIST,
+  CROP_LIST
+} from '../data/agmarknetDataset';
+import { MandiDataService, type MandiCropDataResult } from '../services/mandiDataService';
+import { calculateMandiForecast, type MandiForecastSummary } from '../utils/forecastEngine';
+import { MandiPriceTrendChart } from '../components/MandiPriceTrendChart';
 import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import {
-  ResponsiveContainer,
-  ComposedChart,
-  Line,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  Legend
-} from 'recharts';
-import {
   BarChart3,
-  Calendar,
-  Flame,
   TrendingUp,
-  Lightbulb,
+  TrendingDown,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  Sparkles,
+  Calendar,
+  Building2,
+  Sprout,
+  Info
 } from 'lucide-react';
 
-type RangeOption = '7d' | '30d' | '3m' | '1y';
-
 export const MarketTrendsPage: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
+  const isMr = i18n.language === 'mr';
 
-  // Read initial crop and mandi state from localStorage or default to Onion & Kopargaon
-  const [crop, setCrop] = useState<string>(() => {
-    try {
-      const saved = localStorage.getItem('SELECTED_CROPS_FILTER');
-      if (saved) {
-        const arr = JSON.parse(saved);
-        if (Array.isArray(arr) && arr.length > 0) return arr[0];
-      }
-    } catch {}
-    return 'Onion';
-  });
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [mandi, setMandi] = useState<string>(() => {
-    try {
-      const saved = localStorage.getItem('LAST_SELECTED_MANDI');
-      if (saved) return saved;
-    } catch {}
-    return 'Kopargaon';
-  });
+  // 1. Read APMC & Crop from URL query parameters (or fallback to defaults)
+  const apmcParam = searchParams.get('apmc');
+  const cropParam = searchParams.get('crop');
 
-  const [range, setRange] = useState<RangeOption>('30d');
+  const selectedApmc = useMemo(() => {
+    if (apmcParam) {
+      const match = APMC_LIST.find(
+        (a) => a.id.toLowerCase() === apmcParam.toLowerCase() || a.nameEn.toLowerCase().includes(apmcParam.toLowerCase())
+      );
+      if (match) return match.id;
+    }
+    return 'kopargaon';
+  }, [apmcParam]);
+
+  const selectedCrop = useMemo(() => {
+    if (cropParam) {
+      const match = CROP_LIST.find(
+        (c) => c.id.toLowerCase() === cropParam.toLowerCase() || c.nameEn.toLowerCase().includes(cropParam.toLowerCase())
+      );
+      if (match) return match.id;
+    }
+    return 'onion';
+  }, [cropParam]);
+
+  const [horizonDays, setHorizonDays] = useState<7 | 14>(7);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Persist selections
-  useEffect(() => {
-    try {
-      localStorage.setItem('LAST_SELECTED_MANDI', mandi);
-    } catch {}
-  }, [mandi]);
+  // Update URL params when dropdown selections change
+  const handleApmcChange = (newApmcId: string) => {
+    setSearchParams({ apmc: newApmcId, crop: selectedCrop });
+  };
 
-  // Simulate loading skeleton
+  const handleCropChange = (newCropId: string) => {
+    setSearchParams({ apmc: selectedApmc, crop: newCropId });
+  };
+
+  // Simulate smooth data fetch loading
   useEffect(() => {
     setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 300);
+    const timer = setTimeout(() => setIsLoading(false), 250);
     return () => clearTimeout(timer);
-  }, [crop, mandi, range]);
+  }, [selectedApmc, selectedCrop]);
 
-  // Slice daily dataset based on selected range (7d, 30d, 3m, 1y)
-  const slicedDailyData: DailyTrendItem[] = useMemo(() => {
-    const allMatching = MOCK_TRENDS_DAILY_DATA.filter(
-      (item) => item.crop === crop && item.mandiName === mandi
-    );
+  // Fetch Agmarknet data & calculate forecast
+  const mandiDataResult: MandiCropDataResult = useMemo(() => {
+    return MandiDataService.getMandiCropData(selectedApmc, selectedCrop);
+  }, [selectedApmc, selectedCrop]);
 
-    const totalLen = allMatching.length;
-    let daysToTake = 30;
-    if (range === '7d') daysToTake = 7;
-    if (range === '30d') daysToTake = 30;
-    if (range === '3m') daysToTake = 90;
-    if (range === '1y') daysToTake = 365;
+  const forecastSummary: MandiForecastSummary | null = useMemo(() => {
+    if (mandiDataResult.status !== 'SUCCESS') return null;
+    return calculateMandiForecast(mandiDataResult.records, horizonDays);
+  }, [mandiDataResult, horizonDays]);
 
-    return allMatching.slice(Math.max(0, totalLen - daysToTake));
-  }, [crop, mandi, range]);
-
-  // Monthly averages for seasonal section
-  const monthlyAverages: MonthlyAverageItem[] = useMemo(() => {
-    return getMonthlyAveragesForCrop(crop, mandi);
-  }, [crop, mandi]);
-
-  const peakMonthItem = monthlyAverages.find((m) => m.isPeakMonth) || monthlyAverages[9];
-
-  // Supply vs Demand Auto-Generated Insight Logic
-  const insightText = useMemo(() => {
-    if (slicedDailyData.length < 2) return '';
-
-    const firstPt = slicedDailyData[0];
-    const lastPt = slicedDailyData[slicedDailyData.length - 1];
-
-    const priceDiff = lastPt.modalPrice - firstPt.modalPrice;
-    const arrivalsDiff = lastPt.arrivalsQuantity - firstPt.arrivalsQuantity;
-    const isMarathi = i18n.language === 'mr';
-
-    if (arrivalsDiff > 100 && priceDiff < -30) {
-      return isMarathi
-        ? `मोठ्या प्रमाणावर आवक वाढल्यामुळे भावात घट झाली आहे — सध्या विक्री केल्यास अपेक्षित भाव न मिळण्याची शक्यता आहे.`
-        : `High arrivals are pushing prices down — selling now may fetch a lower rate.`;
-    } else if (arrivalsDiff < -100 && priceDiff > 30) {
-      return isMarathi
-        ? `बाजार समितीत आवक घटली असून मागणी वाढली आहे — साठवलेला माल विक्रीसाठी ही उत्तम वेळ आहे.`
-        : `Low arrivals and rising demand — a good time to sell if you have stock ready.`;
-    } else if (priceDiff > 0) {
-      return isMarathi
-        ? `बाजारात दरांचा कल तेजीचा असून आवक मर्यादित आहे — पुढील काही दिवसांत भाव स्थिर राहण्याची शक्यता आहे.`
-        : `Prices show an upward trend with moderate arrivals — favorable market conditions.`;
-    } else {
-      return isMarathi
-        ? `भाव आणि आवक स्थिर पातळीवर आहेत — बाजारपेठेत सर्वसामान्य मागणी-पुरवठा परिस्थिती आहे.`
-        : `Price and arrivals are stable — standard market conditions.`;
-    }
-  }, [slicedDailyData, i18n.language]);
+  const currentApmcInfo = APMC_LIST.find((a) => a.id === selectedApmc) || APMC_LIST[0];
+  const currentCropInfo = CROP_LIST.find((c) => c.id === selectedCrop) || CROP_LIST[0];
 
   return (
-    <div className="space-y-4 sm:space-y-5 pb-6 max-w-7xl mx-auto animate-in fade-in duration-200 px-1 sm:px-2">
+    <div className="space-y-6 max-w-7xl mx-auto pb-12 font-sans">
       
-      {/* 1. Header & Dropdowns Selector Card */}
-      <Card hoverable={false} className="p-6 sm:p-8 space-y-4 border border-[#E1EBE1] rounded-2xl shadow-sm bg-[#FFFFFF]">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#2E7D32]/10 text-[#2E7D32] text-xs font-black mb-2">
-            <BarChart3 className="w-4 h-4 text-[#FFC107]" />
-            <span>आवक व मागणी बुद्धिमत्ता (Supply vs Demand Engine)</span>
+      {/* Top Header Title & Description */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-[#1B5E20] via-[#2E7D32] to-[#144919] p-6 sm:p-8 rounded-3xl text-[#FFFFFF] shadow-xl relative overflow-hidden">
+        <div className="absolute right-0 top-0 w-64 h-64 bg-[#FFB300]/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="space-y-2 relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFB300]/20 border border-[#FFB300]/40 text-[#FFB300] text-xs font-black uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Agmarknet Live Intelligence</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-[#1B4332] tracking-tight">
-            {t('trends.title')}
+
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-[#FFFFFF]">
+            {isMr ? 'बाजार भाव कल व AI भाव अंदाज' : 'Mandi Price Trends & AI Forecast'}
           </h1>
-          <p className="text-sm text-[#6B7280] font-medium mt-1">
-            {t('trends.subtitle')}
+
+          <p className="text-sm sm:text-base text-emerald-100 font-medium max-w-2xl">
+            {isMr
+              ? 'महाराष्ट्रातील प्रमुख बाजार समित्यांचे दररोजचे ताजे भाव, ५-६ महिन्यांचे कल आणि पुढील ७-१४ दिवसांचा AI अंदाज एकाच जागी.'
+              : 'Daily government APMC prices, min-max price ranges, and 7-14 day AI trend predictions for Maharashtra mandis.'}
           </p>
         </div>
 
-        {/* Dropdowns + Date Range Selector Segmented Control */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-4 border-t border-[#E1EBE1]">
+        {/* Quick Data Sync Badge */}
+        <div className="relative z-10 flex flex-col sm:flex-row md:flex-col items-start md:items-end justify-center gap-1.5 shrink-0 bg-[#FFFFFF]/10 backdrop-blur-md p-4 rounded-2xl border border-[#FFFFFF]/20 text-xs">
+          <div className="flex items-center gap-1.5 font-black text-[#FFB300]">
+            <ShieldCheck className="w-4 h-4" />
+            <span>{isMr ? 'शासकीय Agmarknet डाटा' : 'Government Agmarknet Data'}</span>
+          </div>
+          <span className="text-emerald-100 font-bold">
+            {isMr ? 'अद्ययावत तारीख:' : 'Data Updated:'} {mandiDataResult.lastUpdated}
+          </span>
+        </div>
+      </div>
+
+      {/* Selector Control Bar: Two Dropdowns (Select APMC & Select Crop) */}
+      <Card hoverable={false} className="p-4 sm:p-6 bg-[#FFFFFF] border-2 border-[#D8E6D8] rounded-3xl shadow-sm space-y-4">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
           
-          {/* Crop Selector Column */}
-          <div className="md:col-span-4">
-            <label className="block text-xs font-extrabold text-[#1B4332] uppercase tracking-wider mb-2">
-              पिक निवडा:
+          {/* APMC Selector Dropdown */}
+          <div className="flex-1 space-y-1.5">
+            <label htmlFor="apmc-select" className="text-xs font-black uppercase tracking-wider text-[#0F291E] flex items-center gap-1.5">
+              <Building2 className="w-4 h-4 text-[#1B5E20]" />
+              <span>{isMr ? '१. बाजार समिती निवडा (Select APMC):' : '1. Select APMC Mandi:'}</span>
             </label>
-            <CropSelector
-              selectedCrop={crop}
-              onSelectCrop={(c) => setCrop(c)}
-              variant="dropdown"
-            />
-          </div>
-
-          {/* Mandi Selector Column */}
-          <div className="md:col-span-4">
-            <label className="block text-xs font-extrabold text-[#1B4332] uppercase tracking-wider mb-2">
-              मंडी निवडा:
-            </label>
-            <MandiSelector
-              selectedMandi={mandi}
-              onSelectMandi={(m) => setMandi(m)}
-            />
-          </div>
-
-          {/* Date Range Selector Segmented Buttons Column */}
-          <div className="md:col-span-4 space-y-2">
-            <label className="block text-xs font-extrabold text-[#1B4332] uppercase tracking-wider">
-              कालावधी (Timeframe):
-            </label>
-            
-            <div className="flex bg-[#F7FBF7] p-1.5 rounded-2xl border border-[#E1EBE1] text-xs font-black shadow-xs">
-              {(
-                [
-                  { id: '7d', labelMr: '7 दिवस', labelEn: '7 Days' },
-                  { id: '30d', labelMr: '30 दिवस', labelEn: '30 Days' },
-                  { id: '3m', labelMr: '3 महिने', labelEn: '3 Months' },
-                  { id: '1y', labelMr: '1 वर्ष', labelEn: '1 Year' }
-                ] as const
-              ).map((opt) => {
-                const isActive = range === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    onClick={() => setRange(opt.id)}
-                    className={`flex-1 py-2 rounded-xl transition-all duration-300 min-h-[38px] cursor-pointer ${
-                      isActive
-                        ? 'bg-[#2E7D32] text-[#FFFFFF] shadow-md scale-102'
-                        : 'text-[#6B7280] hover:text-[#2E7D32] hover:bg-[#FFFFFF]'
-                    }`}
-                  >
-                    {i18n.language === 'mr' ? opt.labelMr : opt.labelEn}
-                  </button>
-                );
-              })}
+            <div className="relative">
+              <select
+                id="apmc-select"
+                value={selectedApmc}
+                onChange={(e) => handleApmcChange(e.target.value)}
+                className="w-full bg-[#F4F9F4] border-2 border-[#A5D6A7] text-[#0F291E] font-black text-sm sm:text-base rounded-2xl px-4 py-3 appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1B5E20] shadow-xs"
+              >
+                {APMC_LIST.map((apmc) => (
+                  <option key={apmc.id} value={apmc.id}>
+                    {isMr ? apmc.nameMr : apmc.nameEn} ({apmc.district})
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#1B5E20] font-black text-xs">
+                ▼
+              </div>
             </div>
           </div>
 
+          {/* Crop Selector Dropdown */}
+          <div className="flex-1 space-y-1.5">
+            <label htmlFor="crop-select" className="text-xs font-black uppercase tracking-wider text-[#0F291E] flex items-center gap-1.5">
+              <Sprout className="w-4 h-4 text-[#1B5E20]" />
+              <span>{isMr ? '२. पिक निवडा (Select Crop):' : '2. Select Crop Commodity:'}</span>
+            </label>
+            <div className="relative">
+              <select
+                id="crop-select"
+                value={selectedCrop}
+                onChange={(e) => handleCropChange(e.target.value)}
+                className="w-full bg-[#F4F9F4] border-2 border-[#A5D6A7] text-[#0F291E] font-black text-sm sm:text-base rounded-2xl px-4 py-3 appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1B5E20] shadow-xs"
+              >
+                {CROP_LIST.map((cropItem) => (
+                  <option key={cropItem.id} value={cropItem.id}>
+                    {isMr ? cropItem.nameMr : cropItem.nameEn} — [{cropItem.category}]
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#1B5E20] font-black text-xs">
+                ▼
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Selected Combination Info Pill */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#E2ECE2] text-xs font-bold text-[#526058]">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#1B5E20]" />
+            <span>
+              {isMr ? 'निवडलेले संयोजन:' : 'Selected Combination:'}{' '}
+              <strong className="text-[#0F291E]">
+                {isMr ? currentCropInfo.nameMr : currentCropInfo.nameEn} @ {isMr ? currentApmcInfo.nameMr : currentApmcInfo.nameEn}
+              </strong>
+            </span>
+          </div>
+
+          <span className="text-[11px] text-[#526058] bg-[#F4F9F4] px-2.5 py-1 rounded-xl border border-[#D8E6D8]">
+            🔗 Shareable URL: <code className="text-[#1B5E20] font-mono font-bold">?apmc={selectedApmc}&crop={selectedCrop}</code>
+          </span>
         </div>
       </Card>
 
-      {/* Loading Skeleton State */}
+      {/* Main Data Content Section */}
       {isLoading ? (
-        <div className="space-y-6">
-          <Card hoverable={false} className="animate-pulse h-96 bg-[#F7FBF7] border border-[#E1EBE1] rounded-2xl"></Card>
-          <Card hoverable={false} className="animate-pulse h-48 bg-[#F7FBF7] border border-[#E1EBE1] rounded-2xl"></Card>
-        </div>
-      ) : slicedDailyData.length > 0 ? (
-        <>
-          {/* Dual-Axis Recharts Composed Chart */}
-          <Card hoverable={false} className="p-6 space-y-4 border border-[#E1EBE1] rounded-2xl shadow-sm bg-[#FFFFFF]">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#E1EBE1]">
-              <h3 className="text-lg font-extrabold text-[#1B4332] flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-[#2E7D32]" />
-                <span>
-                  {t(`crops.${crop}`, crop)} ({t(`mandis.${mandi}`, mandi)}) - {t('trends.priceVsArrivals')}
-                </span>
+        // Loading Skeleton State
+        <Card hoverable={false} className="p-8 sm:p-12 border-2 border-[#D8E6D8] rounded-3xl bg-[#FFFFFF] space-y-6 animate-pulse">
+          <div className="h-8 bg-[#E2ECE2] rounded-xl w-2/3" />
+          <div className="h-64 sm:h-80 bg-[#F4F9F4] rounded-2xl w-full" />
+          <div className="h-4 bg-[#E2ECE2] rounded-lg w-1/2" />
+        </Card>
+      ) : mandiDataResult.status === 'NO_DATA' ? (
+        // Empty State: No Data for Combination (e.g. Sugarcane daily auctions)
+        <EmptyState
+          icon={AlertCircle}
+          title={
+            isMr
+              ? `या पिक-बाजार समिती जोडीसाठी डेटा उपलब्ध नाही`
+              : `Price data for ${currentCropInfo.nameEn} at ${currentApmcInfo.nameEn} isn't available yet`
+          }
+          description={
+            isMr
+              ? `ऊस किंवा काही विशेष पिकांची खरेदी दररोजच्या बाजार लिलावाद्वारे होत नसल्याने शासकीय Agmarknet मध्ये या दर नोंदी नसतात. कृपया इतर पिक निवडा.`
+              : `Sugarcane and direct-contract crops do not trade through daily open mandi auctions. Consequently, Agmarknet daily price streams are not logged for this commodity. Please select another crop.`
+          }
+        />
+      ) : mandiDataResult.status === 'INSUFFICIENT_DATA' ? (
+        // Warning State: Insufficient Data (< 30 trade records)
+        <Card hoverable={false} className="p-6 sm:p-8 border-2 border-amber-300 bg-amber-50/80 rounded-3xl space-y-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-6 h-6 text-amber-700 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <h3 className="text-base sm:text-lg font-black text-amber-950">
+                {isMr ? 'अपुरी बाजार माहिती (Insufficient Data)' : `Insufficient trade data for ${currentCropInfo.nameEn} at ${currentApmcInfo.nameEn}`}
               </h3>
-
-              <span className="text-xs font-black text-[#2E7D32] bg-[#E8F5E9] px-3.5 py-1.5 rounded-full border border-[#81C784]/40">
-                नियम: आवक वाढल्यास दर घटतात, आवक घटल्यास तेजी येते
-              </span>
-            </div>
-
-            <div className="h-[340px] sm:h-[400px] w-full pt-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={slicedDailyData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="4 4" stroke="#E1EBE1" vertical={false} />
-                  
-                  <XAxis
-                    dataKey="displayDate"
-                    stroke="#6B7280"
-                    fontSize={11}
-                    fontWeight={700}
-                    tickLine={false}
-                    interval={range === '1y' ? 30 : range === '3m' ? 10 : range === '30d' ? 3 : 0}
-                  />
-                  
-                  <YAxis
-                    yAxisId="left"
-                    stroke="#2E7D32"
-                    fontSize={11}
-                    fontWeight={700}
-                    tickFormatter={(val) => `₹${val}`}
-                    tickLine={false}
-                    domain={['auto', 'auto']}
-                  />
-                  
-                  <YAxis
-                    yAxisId="right"
-                    orientation="right"
-                    stroke="#FFC107"
-                    fontSize={11}
-                    fontWeight={700}
-                    tickFormatter={(val) => `${val}q`}
-                    tickLine={false}
-                    domain={['auto', 'auto']}
-                  />
-
-                  <Tooltip
-                    content={({ active, payload, label }) => {
-                      if (active && payload && payload.length) {
-                        const item = payload[0].payload as DailyTrendItem;
-                        return (
-                          <div className="bg-[#FFFFFF] border-2 border-[#81C784] p-3.5 rounded-2xl shadow-xl text-xs space-y-1.5 min-w-[200px]">
-                            <div className="font-extrabold text-[#1B4332] border-b border-[#E1EBE1] pb-1">
-                              तारीख: {label} ({item.date})
-                            </div>
-                            <div className="text-[#2E7D32] font-black flex justify-between gap-4">
-                              <span>सरासरी दर (Price):</span>
-                              <span>₹{item.modalPrice.toLocaleString('en-IN')} / क्विंटल</span>
-                            </div>
-                            <div className="text-[#D97706] font-extrabold flex justify-between gap-4">
-                              <span>मंडी आवक (Arrivals):</span>
-                              <span>{item.arrivalsQuantity.toLocaleString('en-IN')} क्विंटल</span>
-                            </div>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-
-                  <Legend
-                    verticalAlign="top"
-                    height={36}
-                    formatter={(value) => {
-                      if (value === 'modalPrice') return `${t('trends.pricePerQuintal')} (Line)`;
-                      if (value === 'arrivalsQuantity') return `${t('trends.arrivalsQuintal')} (Bar)`;
-                      return value;
-                    }}
-                  />
-
-                  <Bar
-                    yAxisId="right"
-                    dataKey="arrivalsQuantity"
-                    fill="#FFB300"
-                    opacity={0.35}
-                    radius={[6, 6, 0, 0]}
-                    name="arrivalsQuantity"
-                    isAnimationActive
-                    animationDuration={800}
-                  />
-
-                  <Line
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="modalPrice"
-                    stroke={
-                      slicedDailyData.length >= 2 &&
-                      slicedDailyData[slicedDailyData.length - 1].modalPrice < slicedDailyData[0].modalPrice
-                        ? '#DC2626'
-                        : '#16A34A'
-                    }
-                    strokeWidth={3.5}
-                    dot={{
-                      r: range === '7d' || range === '30d' ? 4 : 0,
-                      fill:
-                        slicedDailyData.length >= 2 &&
-                        slicedDailyData[slicedDailyData.length - 1].modalPrice < slicedDailyData[0].modalPrice
-                          ? '#DC2626'
-                          : '#16A34A'
-                    }}
-                    activeDot={{ r: 7 }}
-                    name="modalPrice"
-                    isAnimationActive
-                    animationDuration={1000}
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
-          {/* Supply vs Demand Insight Card */}
-          <Card hoverable={false} className="p-6 border-2 border-[#81C784]/40 rounded-2xl bg-[#FFFFFF] shadow-sm space-y-3">
-            <div className="flex items-center gap-3 text-[#2E7D32]">
-              <div className="w-10 h-10 rounded-2xl bg-[#2E7D32] text-[#FFC107] flex items-center justify-center font-black shrink-0 shadow-md">
-                <Lightbulb className="w-5 h-5 stroke-[2.5]" />
-              </div>
-              <h3 className="text-xl font-black text-[#1B4332]">
-                मागणी-पुरवठा निष्कर्ष (Market Demand Insight)
-              </h3>
-            </div>
-
-            <div className="border-l-4 border-[#2E7D32] bg-[#F7FBF7] p-5 rounded-r-2xl border border-[#E1EBE1]">
-              <p className="text-base text-[#1B4332] leading-relaxed font-extrabold">
-                "{insightText}"
+              <p className="text-xs sm:text-sm text-amber-900 font-semibold leading-relaxed">
+                {isMr
+                  ? `या बाजार समितीत ${currentCropInfo.nameMr} पिकाच्या ३० दिवसांपेक्षा कमी दर नोंदी उपलब्ध आहेत. अचूक AI अंदाज व्यक्त करण्यासाठी किमान ३० दिवसांचा ऐतिहासिक डाटा आवश्यक असतो.`
+                  : `This APMC commodity pair has fewer than 30 trade records logged on Agmarknet. A minimum of 30 historical trade days is required to generate a credible trend forecast.`
+              }
               </p>
             </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#6B7280] font-extrabold pt-1">
-              <span className="flex items-center gap-1.5 text-[#2E7D32]">
-                <ShieldCheck className="w-4 h-4 text-[#43A047]" />
-                विश्लेषण कालावधी: <strong>{range.toUpperCase()}</strong>
-              </span>
-              <span className="flex items-center gap-1 text-[#FFC107]">
-                <AlertCircle className="w-4 h-4 text-[#FFC107]" />
-                Agmarknet नोंदणीकृत मंडी आवक आकडेवारी
-              </span>
-            </div>
-          </Card>
-
-          {/* Seasonal Pattern Section */}
-          <Card hoverable={false} className="p-6 space-y-4 border border-[#E1EBE1] rounded-2xl shadow-sm bg-[#FFFFFF]">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#E1EBE1]">
-              <div>
-                <h3 className="text-lg font-extrabold text-[#1B4332] flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-[#FFC107]" />
-                  <span>{t('trends.seasonalTitle')} ({t(`crops.${crop}`, crop)})</span>
-                </h3>
-                <p className="text-sm text-[#6B7280] font-medium mt-0.5">
-                  12 महिन्यांचे ऐतिहासिक सरासरी भाव आणि आवक चक्र
-                </p>
-              </div>
-
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-50 border border-amber-300 text-amber-950 rounded-2xl text-xs font-black shadow-xs">
-                <Flame className="w-4 h-4 text-[#FFC107]" />
-                <span>
-                  {i18n.language === 'mr'
-                    ? `ऐतिहासिकदृष्ट्या विक्रीसाठी सर्वोत्तम महिना: ${peakMonthItem.monthNameMr}`
-                    : `Historically best month to sell: ${peakMonthItem.monthNameEn}`}
-                </span>
-              </div>
-            </div>
-
-            {/* Heatmap-style 12 Month Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-              {monthlyAverages.map((item) => {
-                return (
-                  <div
-                    key={item.monthNameEn}
-                    className={`p-4 rounded-2xl border transition-all text-center space-y-1 relative ${
-                      item.isPeakMonth
-                        ? 'bg-amber-50 border-2 border-[#FFC107] shadow-sm ring-2 ring-[#FFC107]/30'
-                        : item.isCurrentMonth
-                        ? 'bg-[#E8F5E9] border-2 border-[#2E7D32]'
-                        : 'bg-[#FFFFFF] border-[#E1EBE1]'
-                    }`}
-                  >
-                    {item.isPeakMonth && (
-                      <span className="absolute -top-2.5 left-1/2 transform -translate-x-1/2 px-2.5 py-0.5 bg-[#FFC107] text-[#1B4332] text-[10px] font-black rounded-full shadow-xs">
-                        सर्वोत्तम
-                      </span>
-                    )}
-
-                    {item.isCurrentMonth && !item.isPeakMonth && (
-                      <span className="absolute -top-2.5 left-1/2 transform -translate-x-1/2 px-2.5 py-0.5 bg-[#2E7D32] text-[#FFFFFF] text-[10px] font-black rounded-full shadow-xs">
-                        चालू महिना
-                      </span>
-                    )}
-
-                    <div className="text-xs font-extrabold text-[#6B7280] pt-1 uppercase">
-                      {i18n.language === 'mr' ? item.monthNameMr : item.monthNameEn}
-                    </div>
-
-                    <div className={`text-base font-black ${item.isPeakMonth ? 'text-[#D97706]' : 'text-[#2E7D32]'}`}>
-                      ₹{item.avgPrice.toLocaleString('en-IN')}
-                    </div>
-
-                    <div className="text-[11px] text-[#6B7280] font-bold">
-                      आवक: {item.avgArrivals}q
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-        </>
+          </div>
+        </Card>
       ) : (
-        <EmptyState
-          title="कोणताही ट्रेंड डेटा उपलब्ध नाही"
-          description="निवडलेल्या पिक आणि मंडीसाठी माहिती प्रक्रियेत आहे."
-          actionLabel="रीसेट करा"
-          onAction={() => {
-            setCrop('Onion');
-            setMandi('Kopargaon');
-            setRange('30d');
-          }}
-        />
+        // Success State: Render Trend Summary Cards + Recharts Graph
+        <div className="space-y-6">
+          
+          {/* Trend Summary Metric Bar Above Graph */}
+          {forecastSummary && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              
+              {/* Metric 1: Current Modal Price */}
+              <Card hoverable={false} className="p-4 sm:p-5 bg-[#FFFFFF] border-2 border-[#D8E6D8] rounded-3xl shadow-xs space-y-1">
+                <span className="text-xs font-bold text-[#526058] flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 text-[#1B5E20]" />
+                  {isMr ? 'आजचा मुख्य बाजार भाव (Modal Rate)' : 'Current Modal Price'}
+                </span>
+                <div className="text-2xl sm:text-3xl font-black text-[#0F291E]">
+                  ₹{forecastSummary.currentPrice.toLocaleString('en-IN')}{' '}
+                  <span className="text-xs font-bold text-[#526058]">/क्विंटल</span>
+                </div>
+                <div className="text-[11px] font-bold text-[#526058]">
+                  {isMr ? 'मागील नोंदीतील ताजे दर' : 'Latest logged mandi rate'}
+                </div>
+              </Card>
+
+              {/* Metric 2: 7-Day Price Trend Change */}
+              <Card hoverable={false} className="p-4 sm:p-5 bg-[#FFFFFF] border-2 border-[#D8E6D8] rounded-3xl shadow-xs space-y-1">
+                <span className="text-xs font-bold text-[#526058] flex items-center gap-1.5">
+                  <BarChart3 className="w-4 h-4 text-[#1B5E20]" />
+                  {isMr ? '७ दिवसांतील भाव बदल' : '7-Day Price Movement'}
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <div className="text-2xl sm:text-3xl font-black text-[#0F291E]">
+                    {forecastSummary.pctChange7d >= 0 ? `+${forecastSummary.pctChange7d}%` : `${forecastSummary.pctChange7d}%`}
+                  </div>
+
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-black border flex items-center gap-1 ${
+                    forecastSummary.isRising
+                      ? 'bg-emerald-100 text-emerald-950 border-emerald-300'
+                      : 'bg-rose-100 text-rose-950 border-rose-300'
+                  }`}>
+                    {forecastSummary.isRising ? <TrendingUp className="w-4 h-4 text-emerald-700" /> : <TrendingDown className="w-4 h-4 text-rose-700" />}
+                    <span>{forecastSummary.isRising ? (isMr ? 'तेजी' : 'Up') : (isMr ? 'मंदी' : 'Down')}</span>
+                  </span>
+                </div>
+
+                <div className="text-[11px] font-bold text-[#526058]">
+                  {isMr ? `७ दिवसांपूर्वी: ₹${forecastSummary.price7DaysAgo}` : `7 days ago: ₹${forecastSummary.price7DaysAgo}/Q`}
+                </div>
+              </Card>
+
+              {/* Metric 3: Data Freshness Status */}
+              <Card hoverable={false} className="p-4 sm:p-5 bg-[#FFFFFF] border-2 border-[#D8E6D8] rounded-3xl shadow-xs space-y-1">
+                <span className="text-xs font-bold text-[#526058] flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-[#1B5E20]" />
+                  {isMr ? 'डाटा अद्ययावत तारीख' : 'Data Last Updated'}
+                </span>
+                <div className="text-xl sm:text-2xl font-black text-[#1B5E20] truncate">
+                  {forecastSummary.lastUpdatedDate}
+                </div>
+                <div className="text-[11px] font-bold text-[#526058]">
+                  {isMr ? 'Agmarknet शासकीय दर नोंदी' : 'Verified APMC trade stream'}
+                </div>
+              </Card>
+
+            </div>
+          )}
+
+          {/* Recharts Chart Component */}
+          {forecastSummary && (
+            <MandiPriceTrendChart
+              data={forecastSummary.chartPoints}
+              cropName={isMr ? currentCropInfo.nameMr : currentCropInfo.nameEn}
+              apmcName={isMr ? currentApmcInfo.nameMr : currentApmcInfo.nameEn}
+              horizonDays={horizonDays}
+              onHorizonChange={(d) => setHorizonDays(d)}
+            />
+          )}
+
+          {/* Mandatory Disclaimer Footer */}
+          <div className="p-4 bg-[#F4F9F4] border border-[#D8E6D8] rounded-2xl flex items-start gap-3 text-xs text-[#526058]">
+            <Info className="w-4 h-4 text-[#1B5E20] shrink-0 mt-0.5" />
+            <p className="font-semibold leading-relaxed">
+              <strong>{isMr ? 'टीप व अस्वीकरण:' : 'Disclaimer:'}</strong>{' '}
+              {isMr
+                ? 'हे भाव केंद्र सरकारच्या Agmarknet (data.gov.in) प्रणालीतील शासकीय दर नोंदींवर आधारित आहेत. पुढील ७-१४ दिवसांचे अंदाज हे सांख्यिकी आणि ऐतिहासिक आलेखांवर आधारित असून ते केवळ मार्गदर्शनासाठी आहेत; प्रत्यक्ष बाजारात आवक व वातावरणावर भाव बदलू शकतात.'
+                : 'Prices are based on official government mandi (Agmarknet) reported data. Price forecasts are indicative algorithmic projections based on historical moving averages and seasonal trends, not guaranteed financial guarantees.'}
+            </p>
+          </div>
+
+        </div>
       )}
 
     </div>

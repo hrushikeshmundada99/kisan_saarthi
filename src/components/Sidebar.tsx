@@ -118,7 +118,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
           </div>
 
           {/* Vertical Menu Navigation List */}
-          <nav className="space-y-1">
+          <nav data-tour="sidebar-nav" className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -126,6 +126,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
               return (
                 <button
                   key={item.id}
+                  data-tour={`nav-${item.id}`}
                   onClick={() => handleNavigate(item.path)}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all duration-200 cursor-pointer group min-h-[44px] ${
                     isActive
@@ -186,6 +187,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
           return (
             <button
               key={bItem.id}
+              data-tour={`mobile-nav-${bItem.id}`}
               onClick={() => handleNavigate(bItem.path)}
               className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer min-w-[58px] min-h-[48px] ${
                 isActive

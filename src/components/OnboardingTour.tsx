@@ -39,15 +39,37 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
       return;
     }
 
-    const el = document.querySelector(step.target);
+    let selector = step.target;
+    let el = document.querySelector(selector);
+
+    if (el && step.target.includes('nav-')) {
+      const rect = el.getBoundingClientRect();
+      // If primary nav target is hidden/offscreen (e.g. sidebar collapsed on mobile), try mobile nav item
+      if (rect.width === 0 || rect.height === 0 || rect.left < -50 || rect.right > window.innerWidth + 50) {
+        const mobileSelector = step.target.replace('nav-', 'mobile-nav-');
+        const mobileEl = document.querySelector(mobileSelector);
+        if (mobileEl) {
+          el = mobileEl;
+        }
+      }
+    }
+
     if (el) {
       // Scroll target element into view smoothly if not visible
-      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      try {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      } catch {
+        // Fallback for browsers without options support
+      }
 
       // Immediate & delayed rect calculation for smooth scroll animation
       const compute = () => {
         const rect = el.getBoundingClientRect();
-        setTargetRect(rect);
+        if (rect.width > 0 && rect.height > 0) {
+          setTargetRect(rect);
+        } else {
+          setTargetRect(null);
+        }
       };
 
       compute();
@@ -73,12 +95,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
     const handleResize = () => {
       clearTimeout(resizeTimer);
       resizeTimer = window.setTimeout(() => {
-        if (step && step.target) {
-          const el = document.querySelector(step.target);
-          if (el) {
-            setTargetRect(el.getBoundingClientRect());
-          }
-        }
+        updateTargetRect();
       }, 100);
     };
 
@@ -88,7 +105,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
       window.removeEventListener('resize', handleResize);
       clearTimeout(resizeTimer);
     };
-  }, [isOpen, currentStepIndex, updateTargetRect, step]);
+  }, [isOpen, currentStepIndex, updateTargetRect]);
 
   if (!isOpen) return null;
 
@@ -128,23 +145,29 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
   const getTooltipStyle = (): React.CSSProperties => {
     if (isCenteredModal || !targetRect) return {};
 
-    const tooltipWidth = 400;
+    const tooltipWidth = Math.min(420, window.innerWidth - 32);
     const tooltipHeight = 220;
     const padding = 16;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
     let left = targetRect.left;
-    let top = targetRect.bottom + 20;
+    let top = targetRect.bottom + 16;
 
     // Sidebar navigation steps (place to right of sidebar)
     if (step.placement === 'right' || targetRect.left < 280) {
-      left = targetRect.right + 20;
-      top = Math.max(padding, Math.min(vh - tooltipHeight - padding, targetRect.top));
+      left = targetRect.right + 16;
+      top = Math.max(padding, Math.min(vh - tooltipHeight - padding, targetRect.top - 10));
+
+      // If sidebar tooltip overflows right edge on narrow screens, place below target
+      if (left + tooltipWidth > vw - padding) {
+        left = Math.max(padding, Math.min(vw - tooltipWidth - padding, targetRect.left));
+        top = targetRect.bottom + 16;
+      }
     } 
     // Elements near bottom of viewport (place tooltip above target)
-    else if (targetRect.bottom + tooltipHeight + 40 > vh) {
-      top = Math.max(padding, targetRect.top - tooltipHeight - 20);
+    else if (targetRect.bottom + tooltipHeight + 20 > vh) {
+      top = Math.max(padding, targetRect.top - tooltipHeight - 16);
     }
 
     // Keep horizontal bounds within screen
@@ -155,7 +178,8 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
 
     return {
       left: `${left}px`,
-      top: `${top}px`
+      top: `${top}px`,
+      maxWidth: `${tooltipWidth}px`
     };
   };
 
