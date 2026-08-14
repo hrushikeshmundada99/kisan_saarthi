@@ -58,21 +58,29 @@ export const generate30DaysMandiComparisonData = (): DateWiseMandiPrice[] => {
 
       MANDIS.forEach((mandi) => {
         if (isSunday && (mandi === 'Yeola' || mandi === 'Sangamner')) {
-          // Simulate closed mandi on Sunday
           return;
         }
 
         const mandiOffset = MANDI_BASE_OFFSETS[mandi] || 0;
-        const trendSignal = Math.sin((30 - i) * 0.4) * 45;
-        const dayNoise = ((i * 7 + mandi.length * 3) % 15) - 7;
-        const modal = Math.round(base + mandiOffset + trendSignal + dayNoise);
+        const dayNoise = Math.sin((i + 1) * 0.7 + mandi.length) * 45;
+        const modal = Math.round(base + mandiOffset + dayNoise);
 
-        const spread = Math.round(150 + ((modal * 0.04)));
+        const spread = Math.round(modal * 0.08);
         const minPrice = modal - spread;
-        const maxPrice = modal + spread + 30;
+        const maxPrice = modal + spread;
 
-        const distance = mandi === 'Kopargaon' ? 0 : mandi === 'Rahata' ? 20 : mandi === 'Shrirampur' ? 42 : mandi === 'Yeola' ? 19 : mandi === 'Sangamner' ? 52 : mandi === 'Lasalgaon' ? 50 : mandi === 'Nashik' ? 90 : 100;
-        const arrivals = Math.round(1800 + Math.cos(i * 0.3 + mandi.length) * 500);
+        const distanceMap: Record<string, number> = {
+          Kopargaon: 0,
+          Rahata: 14,
+          Shrirampur: 28,
+          Yeola: 32,
+          Lasalgaon: 48,
+          Sangamner: 42,
+          Nashik: 85,
+          Ahilyanagar: 95
+        };
+
+        const arrivals = Math.round(400 + Math.abs(Math.cos(i * 0.5 + mandi.length) * 1800));
 
         records.push({
           date: dateStr,
@@ -83,7 +91,7 @@ export const generate30DaysMandiComparisonData = (): DateWiseMandiPrice[] => {
           modalPrice: modal,
           minPrice,
           maxPrice,
-          distanceFromKopargaon: distance,
+          distanceFromKopargaon: distanceMap[mandi] || 50,
           arrivalsQuantity: arrivals
         });
       });
@@ -93,4 +101,4 @@ export const generate30DaysMandiComparisonData = (): DateWiseMandiPrice[] => {
   return records;
 };
 
-export const MOCK_DATEWISE_COMPARISON_DATA = generate30DaysMandiComparisonData();
+export const DATEWISE_COMPARISON_DATA = generate30DaysMandiComparisonData();

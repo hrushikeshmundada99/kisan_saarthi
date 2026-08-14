@@ -4,9 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import {
-  MOCK_CROP_RECOMMENDATIONS,
+  CROP_RECOMMENDATIONS,
   type CropRecommendationItem
-} from '../data/mockWeatherAndRecommendationData';
+} from '../data/weatherAndRecommendationData';
 import {
   Sparkles,
   Award,
@@ -30,7 +30,7 @@ export const CropRecommendationPage: React.FC = () => {
 
   // Filtered & Ranked Recommendations
   const filteredCrops: CropRecommendationItem[] = useMemo(() => {
-    return MOCK_CROP_RECOMMENDATIONS.filter((item) => {
+    return CROP_RECOMMENDATIONS.filter((item) => {
       if (selectedSoil !== 'ALL' && !item.suitableSoil.includes(selectedSoil)) return false;
       if (selectedSeason !== 'ALL' && !item.suitableSeasons.includes(selectedSeason)) return false;
       if (selectedWater !== 'ALL' && item.waterRequirement !== selectedWater) return false;

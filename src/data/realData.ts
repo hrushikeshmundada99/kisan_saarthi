@@ -452,7 +452,9 @@ export const REAL_MANDI_RATES: MandiRate[] = REAL_DASHBOARD_CARDS.map((c) => ({
   dailyChangePct: c.priceChangePercent
 }));
 
-// Backwards compatibility aliases
+// Clean export aliases
+export const APP_DASHBOARD_CARDS = REAL_DASHBOARD_CARDS;
+export const APP_MANDI_RATES = REAL_MANDI_RATES;
 export const MOCK_DASHBOARD_CARDS = REAL_DASHBOARD_CARDS;
 export const MOCK_MANDI_RATES = REAL_MANDI_RATES;
 
@@ -478,6 +480,7 @@ export const REAL_ACTIVE_ALERTS_SUMMARY: ActiveAlertSummary[] = [
     status: "ACTIVE"
   }
 ];
+export const APP_ACTIVE_ALERTS_SUMMARY = REAL_ACTIVE_ALERTS_SUMMARY;
 export const MOCK_ACTIVE_ALERTS_SUMMARY = REAL_ACTIVE_ALERTS_SUMMARY;
 
 export const GENERATE_FORECAST_DATA = (crop: string, _mandi?: string): ForecastPoint[] => {

@@ -37,7 +37,7 @@ export interface ProcessingLinkageItem {
   recommendedActionEn: string;
 }
 
-export const MOCK_WEATHER_SIGNALS: WeatherSignalItem[] = [
+export const WEATHER_SIGNALS: WeatherSignalItem[] = [
   {
     date: '2026-08-07',
     condition: 'Rain',
@@ -70,7 +70,7 @@ export const MOCK_WEATHER_SIGNALS: WeatherSignalItem[] = [
   }
 ];
 
-export const MOCK_CROP_RECOMMENDATIONS: CropRecommendationItem[] = [
+export const CROP_RECOMMENDATIONS: CropRecommendationItem[] = [
   {
     id: 'rec-101',
     crop: 'Onion',
@@ -133,7 +133,7 @@ export const MOCK_CROP_RECOMMENDATIONS: CropRecommendationItem[] = [
   }
 ];
 
-export const MOCK_PROCESSING_LINKAGES: Record<string, ProcessingLinkageItem> = {
+export const PROCESSING_LINKAGES: Record<string, ProcessingLinkageItem> = {
   Onion: {
     crop: 'Onion',
     rawMandiPrice: 1950,
@@ -168,3 +168,8 @@ export const MOCK_PROCESSING_LINKAGES: Record<string, ProcessingLinkageItem> = {
     recommendedActionEn: 'Process via Ginning mill to separate lint & seed for +₹600/quintal higher realization.'
   }
 };
+
+// Aliases for backwards compatibility
+export const MOCK_WEATHER_SIGNALS = WEATHER_SIGNALS;
+export const MOCK_CROP_RECOMMENDATIONS = CROP_RECOMMENDATIONS;
+export const MOCK_PROCESSING_LINKAGES = PROCESSING_LINKAGES;

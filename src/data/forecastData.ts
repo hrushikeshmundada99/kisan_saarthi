@@ -59,32 +59,35 @@ export const getForecastDataForCombination = (crop: string, mandi: string): Fore
     });
   }
 
-  // Today (bridge point with both actual and predicted)
-  const today = new Date();
-  const todayStr = today.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  // Today bridge point
+  const todayStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  const todayPrice = Math.round(base);
+
   data.push({
     date: todayStr,
-    actualPrice: base,
-    predictedPrice: base,
-    upperBound: base,
-    lowerBound: base
+    actualPrice: todayPrice,
+    predictedPrice: todayPrice,
+    upperBound: todayPrice + 35,
+    lowerBound: todayPrice - 35
   });
 
-  // Future 30 days (actualPrice null, predictedPrice + confidence bounds)
+  // Future 30 days (predictedPrice present, actual null)
   for (let i = 1; i <= 30; i++) {
     const d = new Date();
     d.setDate(d.getDate() + i);
     const dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
 
-    const futurePrice = Math.round(base + (i * trendSlope) + (Math.cos(i * 0.4) * 18));
-    const bandMargin = Math.round(25 + (i * 4.5));
+    const futureTrend = base + (i * trendSlope);
+    const noise = Math.cos(i * 0.6) * 45;
+    const predicted = Math.round(futureTrend + noise);
+    const uncertaintyBand = Math.round(40 + (i * 2.5));
 
     data.push({
       date: dateStr,
       actualPrice: null,
-      predictedPrice: futurePrice,
-      upperBound: futurePrice + bandMargin,
-      lowerBound: Math.max(100, futurePrice - bandMargin)
+      predictedPrice: predicted,
+      upperBound: predicted + uncertaintyBand,
+      lowerBound: Math.max(100, predicted - uncertaintyBand)
     });
   }
 

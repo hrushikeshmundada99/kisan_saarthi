@@ -6,11 +6,11 @@ import {
   MANDIS_LIST,
   getForecastDataForCombination,
   type ForecastPointItem
-} from '../data/mockForecastData';
+} from '../data/forecastData';
 import {
-  MOCK_WEATHER_SIGNALS,
-  MOCK_PROCESSING_LINKAGES
-} from '../data/mockWeatherAndRecommendationData';
+  WEATHER_SIGNALS,
+  PROCESSING_LINKAGES
+} from '../data/weatherAndRecommendationData';
 import { ForecastChart } from '../components/ForecastChart';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -108,8 +108,8 @@ export const PriceForecastPage: React.FC = () => {
   }, [pctChangeNum, isRising, horizonDays, i18n.language]);
 
   // Weather signal data
-  const todayWeatherSignal = MOCK_WEATHER_SIGNALS[0];
-  const processingLinkage = MOCK_PROCESSING_LINKAGES[crop] || MOCK_PROCESSING_LINKAGES['Onion'];
+  const todayWeatherSignal = WEATHER_SIGNALS[0];
+  const processingLinkage = PROCESSING_LINKAGES[crop] || PROCESSING_LINKAGES['Onion'];
 
   return (
     <div className="space-y-4 sm:space-y-5 pb-6 max-w-7xl mx-auto animate-in fade-in duration-200">

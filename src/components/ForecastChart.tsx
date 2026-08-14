@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { type ForecastPointItem } from '../data/mockForecastData';
+import { type ForecastPointItem } from '../data/forecastData';
 import { Card } from './Card';
 import {
   ResponsiveContainer,

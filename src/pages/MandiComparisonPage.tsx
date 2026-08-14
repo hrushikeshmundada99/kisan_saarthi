@@ -2,9 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
-  MOCK_DATEWISE_COMPARISON_DATA,
+  DATEWISE_COMPARISON_DATA,
   MANDIS
-} from '../data/mockMandiComparisonData';
+} from '../data/mandiComparisonData';
 import { MANDI_LOCATIONS, REAL_DASHBOARD_CARDS } from '../data/realData';
 import { MandiComparisonRow } from '../components/MandiComparisonRow';
 import { MandiDateMatrixTable } from '../components/MandiDateMatrixTable';
@@ -139,7 +139,7 @@ export const MandiComparisonPage: React.FC = () => {
       });
     }
 
-    const matches = MOCK_DATEWISE_COMPARISON_DATA.filter(
+    const matches = DATEWISE_COMPARISON_DATA.filter(
       (r) => (r.crop === crop || r.commodity === crop) && r.date === selectedDate
     );
 
@@ -352,7 +352,7 @@ export const MandiComparisonPage: React.FC = () => {
       {showMatrixView ? (
         <MandiDateMatrixTable
           crop={crop}
-          records={MOCK_DATEWISE_COMPARISON_DATA}
+          records={DATEWISE_COMPARISON_DATA}
           datesList={last7DaysList}
         />
       ) : (

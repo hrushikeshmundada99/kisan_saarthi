@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { type DateWiseMandiPrice } from '../data/mockMandiComparisonData';
+import { type DateWiseMandiPrice } from '../data/mandiComparisonData';
 import { Card } from './Card';
 import { TrendingUp, TrendingDown, Minus, Calendar } from 'lucide-react';
 
