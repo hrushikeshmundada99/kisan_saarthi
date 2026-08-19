@@ -39,7 +39,7 @@ export interface MandiForecastSummary {
  */
 export function calculateMandiForecast(
   historicalRecords: DailyMandiPriceRecord[],
-  horizonDays: 7 | 14 = 7
+  horizonDays: 7 | 14 | 30 = 7
 ): MandiForecastSummary {
   if (!historicalRecords || historicalRecords.length === 0) {
     return {

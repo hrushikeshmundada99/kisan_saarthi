@@ -4,12 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { REAL_DASHBOARD_CARDS, type MandiPriceCardItem } from '../data/realData';
 import { getStoredAlerts, evaluateAlertStatus } from '../utils/alertManager';
 import { useToast } from '../components/Toast';
+import { useAuth } from '../context/AuthContext';
 import { PriceCard } from '../components/PriceCard';
 import { PriceRow } from '../components/PriceRow';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { OnboardingTour } from '../components/OnboardingTour';
 import { TodaySuggestionsCounter } from '../components/TodaySuggestionsCounter';
+import { SellTimingCard } from '../components/SellTimingCard';
+import { PredictionTransparencyPanel } from '../components/PredictionTransparencyPanel';
 import {
   LineChart,
   Scale,
@@ -51,13 +54,13 @@ interface DashboardPageProps {
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
   liveCards = REAL_DASHBOARD_CARDS,
-  isLive = true,
   isFetchingLive = false,
   onRefreshLive
 }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { user } = useAuth();
 
   // Read stored alerts & evaluate
   const storedAlerts = useMemo(() => {
@@ -79,6 +82,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       .filter((alt) => alt.evaluatedStatus !== 'DISABLED');
   }, [storedAlerts]);
 
+  // Farmer's personalized crop & preferred mandi
+  const primaryCrop = user?.primaryCrop || 'Onion';
+  const primaryMandi = user?.preferredMandis?.[0] || 'Kopargaon';
+
   // Onboarding Tour auto launch state for first time users
   const [runTour, setRunTour] = useState<boolean>(() => {
     try {
@@ -98,13 +105,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     };
   }, []);
 
-  // View format toggle: 'grid' (attractive visual cards) or 'row'
+  // View format toggle: 'grid' or 'row'
   const [viewMode, setViewMode] = useState<'grid' | 'row'>('grid');
 
-  // Selected crops filter array ('ALL' means show all crops)
+  // Selected crops filter array
   const [selectedCrops, setSelectedCrops] = useState<string[]>(['ALL']);
 
-  // Sort state: price_desc, price_asc, distance_asc
+  // Sort state
   const [sortBy, setSortBy] = useState<'price_desc' | 'price_asc' | 'distance_asc'>('price_desc');
 
   // Toggle crop chip selection
@@ -127,7 +134,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     });
   };
 
-  // Source cards: Use live API cards when available, fallback to real dataset
+  // Source cards
   const sourceCards: MandiPriceCardItem[] = useMemo(() => {
     if (liveCards && liveCards.length > 0) {
       return liveCards;
@@ -139,7 +146,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const filteredAndSortedCards = useMemo(() => {
     let result: MandiPriceCardItem[] = sourceCards;
 
-    // If 'ALL' is not selected, filter specifically by chosen crops
     if (!selectedCrops.includes('ALL') && selectedCrops.length > 0) {
       result = result.filter((card: MandiPriceCardItem) => selectedCrops.includes(card.crop));
     }
@@ -183,12 +189,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-[#1B5E20] text-[#FFFFFF] shadow-xs">
               <Sparkles className="w-3.5 h-3.5 text-[#FFB300]" />
-              रामराम शेतकरी दादा! (कोपरगाव व परिसर)
-            </span>
-
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-950 border border-emerald-300">
-              <span className={`w-2 h-2 rounded-full ${isLive ? 'bg-emerald-600 animate-pulse' : 'bg-amber-500'}`}></span>
-              {isLive ? 'थेट Agmarknet लाइव्ह दर' : 'ऑफलाईन डेटा'}
+              रामराम {user?.name ? `${user.name} दादा` : 'शेतकरी दादा'}! (कोपरगाव व परिसर)
             </span>
           </div>
           
@@ -256,7 +257,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       )}
 
-      {/* Today Suggestions Counter (Placed directly below active alert) */}
+      {/* Today Suggestions Counter */}
       <TodaySuggestionsCounter />
 
       {/* 2. Highlight Strip (Best Mandi in Area) */}
@@ -311,7 +312,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       )}
 
-      {/* 3. Crop Selection Filter Chips */}
+      {/* 3. 🎯 "When to Sell" Guidance Card with Farmer Feedback (Part 2 Integration) */}
+      <SellTimingCard
+        crop={primaryCrop}
+        mandi={primaryMandi}
+        onNavigateToForecast={() => navigate(`/forecast?crop=${primaryCrop}&mandi=${primaryMandi}`)}
+      />
+
+      {/* 4. Crop Selection Filter Chips */}
       <Card data-tour="crop-filters" hoverable={false} className="p-4 bg-[#FFFFFF] border-2 border-[#D8E6D8] rounded-3xl shadow-xs space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-black text-[#0F291E] uppercase tracking-wider">
@@ -325,7 +333,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
         {/* Chips */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* All Crops Button */}
           <button
             type="button"
             onClick={() => toggleCrop('ALL')}
@@ -363,7 +370,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       </Card>
 
-      {/* 4. Toolbar: Sort & View Toggle */}
+      {/* 5. Toolbar: Sort & View Toggle */}
       <div data-tour="market-sort-controls" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
         <div className="flex items-center gap-2 text-xs font-black text-[#0F291E]">
           <Sprout className="w-4 h-4 text-[#1B5E20]" />
@@ -380,8 +387,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               onChange={(e) => setSortBy(e.target.value as any)}
               className="bg-transparent text-xs font-black text-[#0F291E] focus:outline-none cursor-pointer"
             >
-              <option value="price_desc">सर्वाधिक भाव प्रथम (Highest Price)</option>
-              <option value="price_asc">कमीत कमी भाव प्रथम (Lowest Price)</option>
+              <option value="price_desc">जास्त भाव प्रथम (Highest Price)</option>
+              <option value="price_asc">कमी भाव प्रथम (Lowest Price)</option>
               <option value="distance_asc">जवळचे बाजार प्रथम (Closest Mandi)</option>
             </select>
           </div>
@@ -408,7 +415,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       </div>
 
-      {/* 5. Display Cards or Rows */}
+      {/* 6. Display Price Cards or Rows */}
       {filteredAndSortedCards.length > 0 ? (
         viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
@@ -440,6 +447,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           <p className="text-xs text-[#526058] font-semibold">कृपया वरील फिल्टरमधून दुसरे पिक निवडा.</p>
         </Card>
       )}
+
+      {/* 7. 🛡️ Prediction Transparency & Accuracy Panel (Part 4 Integration) */}
+      <PredictionTransparencyPanel />
 
     </div>
   );

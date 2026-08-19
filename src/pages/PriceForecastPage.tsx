@@ -16,6 +16,7 @@ import {
   type ModelTrainingState
 } from '../services/dailyModelUpdater';
 import { ForecastChart } from '../components/ForecastChart';
+import { SellTimingCard } from '../components/SellTimingCard';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { useToast } from '../components/Toast';
@@ -390,7 +391,10 @@ export const PriceForecastPage: React.FC = () => {
 
       </div>
 
-      {/* 5. Interactive Forecast Chart with Horizon Controls */}
+      {/* 5. 🎯 "When to Sell" AI Guidance Card with Real-world Feedback */}
+      <SellTimingCard crop={crop} mandi={mandi} />
+
+      {/* 6. Interactive Forecast Chart with Horizon Controls */}
       <ForecastChart
         crop={crop}
         mandi={mandi}

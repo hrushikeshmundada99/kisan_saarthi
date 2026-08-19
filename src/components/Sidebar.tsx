@@ -11,8 +11,6 @@ import {
   Bell,
   User,
   X,
-  ShieldCheck,
-  Key,
   ChevronRight,
   Sparkles,
   Compass
@@ -20,11 +18,11 @@ import {
 import { LanguageToggle } from './LanguageToggle';
 
 interface SidebarProps {
-  isLive: boolean;
-  onOpenApiKeyModal: () => void;
+  isLive?: boolean;
+  onOpenApiKeyModal?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) => {
+export const Sidebar: React.FC<SidebarProps> = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -66,11 +64,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
     { id: 'profile', path: '/profile', label: t('nav.profile'), icon: User }
   ];
 
-  // Mobile Bottom Quick Navigation Items (Thumb-friendly 5 buttons)
+  // Mobile Bottom Quick Navigation Items
   const mobileBottomNav = [
     { id: 'dashboard', path: '/dashboard', label: 'डॅशबोर्ड', icon: LayoutDashboard },
     { id: 'recommendation', path: '/recommendation', label: 'पिक सल्ला', icon: Compass },
-    { id: 'forecast', path: '/forecast', label: '७-दि अंदाज', icon: LineChart },
+    { id: 'forecast', path: '/forecast', label: 'भाव अंदाज', icon: LineChart },
     { id: 'comparison', path: '/comparison', label: 'बाजार तुलना', icon: Scale },
     { id: 'alerts', path: '/alerts', label: 'भाव अलर्ट', icon: Bell }
   ];
@@ -96,7 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-210px)] pr-1">
+        <div className="flex-1 overflow-y-auto space-y-4 pr-1">
           
           {/* Sidebar Top Brand Header */}
           <div className="flex items-center justify-between pb-3 border-b border-[#D8E6D8]">
@@ -164,8 +162,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
           </nav>
         </div>
 
-        {/* Sidebar Footer Widget */}
-        <div className="space-y-2 pt-3 border-t border-[#D8E6D8]">
+        {/* Sidebar Footer Widget: Clean, Balanced, Proportional */}
+        <div className="space-y-2.5 pt-3 border-t border-[#D8E6D8]">
           
           {/* Start Guided Tour Button */}
           <button
@@ -176,7 +174,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
               setMobileOpen(false);
               window.dispatchEvent(new CustomEvent('START_KISAN_TOUR'));
             }}
-            className="w-full p-2.5 rounded-2xl text-xs font-black flex items-center justify-between border bg-amber-50/80 hover:bg-amber-100 text-amber-950 border-amber-300 transition-all min-h-[38px] cursor-pointer shadow-2xs"
+            className="w-full p-2.5 rounded-2xl text-xs font-black flex items-center justify-between border bg-amber-50/90 hover:bg-amber-100 text-amber-950 border-amber-300 transition-all min-h-[40px] cursor-pointer shadow-2xs"
           >
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[#FFB300] shrink-0" />
@@ -185,27 +183,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
             <ChevronRight className="w-3.5 h-3.5 text-[#526058]" />
           </button>
 
-          {/* API Key Status Pill */}
-          <button
-            onClick={() => {
-              onOpenApiKeyModal();
-              setMobileOpen(false);
-            }}
-            className={`w-full p-2.5 rounded-2xl text-xs font-black flex items-center justify-between border transition-all min-h-[38px] cursor-pointer shadow-xs ${
-              isLive
-                ? 'bg-emerald-50 text-emerald-950 border-emerald-300 hover:bg-emerald-100'
-                : 'bg-amber-50 text-amber-950 border-amber-300 hover:bg-amber-100'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              {isLive ? <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" /> : <Key className="w-4 h-4 text-[#FFB300] shrink-0" />}
-              <span>{isLive ? 'Agmarknet Live' : 'API Key सेट करा'}</span>
-            </div>
-            <span className="text-[10px] underline">बदला</span>
-          </button>
+
 
           {/* Language Toggle Container */}
-          <div className="flex items-center justify-between px-3 py-1.5 bg-[#F4F9F4] rounded-2xl border border-[#D8E6D8]">
+          <div className="flex items-center justify-between px-3 py-2 bg-[#F4F9F4] rounded-2xl border border-[#D8E6D8] shadow-2xs">
             <span className="text-xs font-bold text-[#526058]">भाषा (Language):</span>
             <LanguageToggle />
           </div>
@@ -214,7 +195,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLive, onOpenApiKeyModal }) =
 
       </aside>
 
-      {/* Native-like Mobile Bottom Quick Navigation Bar (Fixed for high reachability) */}
+      {/* Native-like Mobile Bottom Quick Navigation Bar */}
       <nav aria-label="Mobile Navigation" className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FFFFFF]/98 backdrop-blur-xl border-t border-[#D8E6D8] px-1 py-1 flex justify-around items-center shadow-lg shadow-black/10">
         {mobileBottomNav.map((bItem) => {
           const Icon = bItem.icon;

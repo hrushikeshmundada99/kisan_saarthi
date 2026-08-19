@@ -118,6 +118,29 @@ const resources = {
         expectedPeak: "अंदाजित उच्चांक",
         expectedLow: "अंदाजित नीचांक"
       },
+      sellTiming: {
+        title: "कधी विकावे? AI शिफारस",
+        sellNow: "आत्ताच विका (Sell Today)",
+        waitDays: "थांबा ~{{days}} दिवस (Wait ~{{days}} Days)",
+        expectedGain: "संभाव्य नफा वाढ",
+        realization: "निकाली किंमत",
+        highConfidence: "उच्च खात्री",
+        modConfidence: "मध्यम खात्री",
+        lowConfidence: "कमी खात्री",
+        wasHelpful: "ही शिफारस तुम्हाला उपयुक्त वाटली का?",
+        feedbackThanks: "अभिप्राय नोंदवला, धन्यवाद!",
+        followUpTitle: "शेतकरी दादा, तुम्ही {{crop}} विकला का?",
+        followUpSub: "आम्ही {{days}} दिवसांपूर्वी ₹{{price}}/क्विंटल भावाचा अंदाज दिला होता. तुम्हाला प्रत्यक्षात काय भाव मिळाला?",
+        submitPrice: "भाव सबमिट करा"
+      },
+      transparency: {
+        title: "पारदर्शकता डॅशबोर्ड (Prediction Transparency)",
+        subtitle: "शेतकऱ्यांनी प्रत्यक्ष बाजारात मिळवलेल्या खऱ्या भावांवर आधारित खरी अचूकता",
+        reportsVerified: "शेतकरी नोंदी पडताळल्या",
+        priceAccuracy: "प्रत्यक्ष भाव अचूकता:",
+        foundHelpful: "शेतकऱ्यांना उपयुक्त:",
+        notEnoughData: "पुरेसा डेटा उपलब्ध नाही"
+      },
       comparison: {
         title: "बाजार दर तुलना व वाहतूक गणित",
         subtitle: "वाहतूक खर्च वजा करून खरोखर हातात पडणारा निखळ भाव (Net Payout)",
@@ -310,6 +333,29 @@ const resources = {
         currentPrice: "Current Modal Price",
         expectedPeak: "Expected Peak",
         expectedLow: "Expected Low"
+      },
+      sellTiming: {
+        title: "When to Sell? AI Guidance",
+        sellNow: "Sell Today",
+        waitDays: "Wait ~{{days}} Days",
+        expectedGain: "Expected Gain",
+        realization: "Realization",
+        highConfidence: "High Confidence",
+        modConfidence: "Moderate Confidence",
+        lowConfidence: "Low Confidence",
+        wasHelpful: "Was this recommendation helpful?",
+        feedbackThanks: "Feedback recorded, thanks!",
+        followUpTitle: "Farmer check-in: Did you sell your {{crop}}?",
+        followUpSub: "We projected ₹{{price}}/q {{days}} days ago. What price did you receive?",
+        submitPrice: "Submit Price"
+      },
+      transparency: {
+        title: "Prediction Transparency & Accuracy",
+        subtitle: "Real-world accuracy verified by actual farmer sell prices — open & transparent",
+        reportsVerified: "Farmer Reports Verified",
+        priceAccuracy: "Price Accuracy:",
+        foundHelpful: "Found Helpful:",
+        notEnoughData: "Not enough data yet"
       },
       comparison: {
         title: "Mandi Comparison & Transport Payout",

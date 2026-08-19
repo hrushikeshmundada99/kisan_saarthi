@@ -1,20 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LanguageToggle } from './LanguageToggle';
-import { ApiKeyModal } from './ApiKeyModal';
-import { Sprout, LayoutDashboard, LineChart, Scale, BarChart3, Calculator, Bell, User, Key, ShieldCheck } from 'lucide-react';
+import { Sprout, LayoutDashboard, LineChart, Scale, BarChart3, Calculator, Bell, User } from 'lucide-react';
 
 interface NavbarProps {
-  isLive: boolean;
-  onKeyUpdated: () => void;
+  isLive?: boolean;
+  onKeyUpdated?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ isLive, onKeyUpdated }) => {
+export const Navbar: React.FC<NavbarProps> = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
 
   const navItems = [
     { id: 'dashboard', path: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
@@ -76,30 +74,8 @@ export const Navbar: React.FC<NavbarProps> = ({ isLive, onKeyUpdated }) => {
               })}
             </nav>
 
-            {/* Right: API key + Language + Profile */}
+            {/* Right: Language + Profile */}
             <div className="flex items-center gap-2 sm:gap-3">
-              <button
-                onClick={() => setApiKeyModalOpen(true)}
-                className={`px-3.5 py-2 rounded-2xl text-xs font-bold flex items-center gap-1.5 border transition-all min-h-[44px] cursor-pointer shadow-xs ${
-                  isLive
-                    ? 'bg-emerald-50 text-emerald-950 border-emerald-300 hover:bg-emerald-100'
-                    : 'bg-amber-50 text-amber-950 border-amber-300 hover:bg-amber-100'
-                }`}
-                title="data.gov.in API Key"
-              >
-                {isLive ? (
-                  <>
-                    <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" />
-                    <span className="hidden sm:inline">Agmarknet Live</span>
-                  </>
-                ) : (
-                  <>
-                    <Key className="w-4 h-4 text-[#FFC107] shrink-0" />
-                    <span className="hidden sm:inline">API Key</span>
-                  </>
-                )}
-              </button>
-
               <LanguageToggle />
 
               <button
@@ -119,15 +95,6 @@ export const Navbar: React.FC<NavbarProps> = ({ isLive, onKeyUpdated }) => {
           </div>
         </div>
       </header>
-
-      <ApiKeyModal
-        isOpen={apiKeyModalOpen}
-        onClose={() => setApiKeyModalOpen(false)}
-        onKeySaved={() => {
-          onKeyUpdated();
-        }}
-        isLive={isLive}
-      />
     </>
   );
 };

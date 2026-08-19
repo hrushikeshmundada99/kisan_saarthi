@@ -1,0 +1,13 @@
+[
+  {
+    "id": "1864ca4c-51b0-438a-9cfa-6805508e1dd2",
+    "recommendation_id": "287fe8a8-4911-4076-993c-824f73e8136a",
+    "farmer_id": "1b6e116a-9729-49d8-9fa6-6cc6e12dfbdc",
+    "was_helpful": true,
+    "followed_advice": false,
+    "actual_sell_price": null,
+    "actual_sell_date": null,
+    "feedback_note": null,
+    "submitted_at": "2026-08-19T12:01:21.968Z"
+  }
+]

@@ -20,6 +20,12 @@ import changePasswordHandler from './api/auth/change-password.js';
 import cedaHandler from './api/ceda.js';
 // @ts-ignore
 import trainHandler from './api/forecast/train.js';
+// @ts-ignore
+import recommendationsIndexHandler from './api/recommendations/index.js';
+// @ts-ignore
+import recommendationsFeedbackHandler from './api/recommendations/feedback.js';
+// @ts-ignore
+import recommendationsStatsHandler from './api/recommendations/stats.js';
 
 const serverlessRoutes: Record<string, any> = {
   '/api/auth/signup': signupHandler,
@@ -30,6 +36,9 @@ const serverlessRoutes: Record<string, any> = {
   '/api/auth/change-password': changePasswordHandler,
   '/api/ceda': cedaHandler,
   '/api/forecast/train': trainHandler,
+  '/api/recommendations': recommendationsIndexHandler,
+  '/api/recommendations/feedback': recommendationsFeedbackHandler,
+  '/api/recommendations/stats': recommendationsStatsHandler,
 };
 
 /**
@@ -127,6 +136,9 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      watch: {
+        ignored: ['**/data/**', '**/supabase/**', '**/*.json'],
+      },
       proxy: {
         '/api/fast2sms': {
           target: 'https://www.fast2sms.com',
