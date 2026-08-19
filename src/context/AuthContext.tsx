@@ -1,104 +1,328 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 export interface UserProfile {
+  id?: string;
   name: string;
   phone: string;
+  mobile?: string;
   location: string;
   landSize: string;
   primaryCrop: string;
   preferredMandis: string[];
+  createdAt?: string;
+}
+
+export interface AuthResult {
+  success: boolean;
+  message?: string;
+  error?: string;
 }
 
 interface AuthContextType {
   user: UserProfile | null;
   isLoggedIn: boolean;
-  login: (phone: string, pin: string) => boolean;
-  signup: (name: string, phone: string, location: string, primaryCrop: string, pin: string) => boolean;
-  logout: () => void;
-  updateProfile: (updated: Partial<UserProfile>) => void;
-}
-
-const DEFAULT_USER: UserProfile = {
-  name: 'रमेश पाटील (Ramesh Patil)',
-  phone: '9822154321',
-  location: 'कोपरगाव, अहिल्यानगर (Kopargaon)',
-  landSize: '5 एकर (5 Acres)',
-  primaryCrop: 'Onion',
-  preferredMandis: ['Kopargaon', 'Rahata', 'Yeola', 'Sangamner']
-};
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>(() => {
-    try {
-      const saved = localStorage.getItem('KISAN_SAARTHI_AUTH_USER');
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch {
-      // fallback
-    }
-    return DEFAULT_USER; // Default logged-in state for instant preview
-  });
-
-  useEffect(() => {
-    try {
-      if (user) {
-        localStorage.setItem('KISAN_SAARTHI_AUTH_USER', JSON.stringify(user));
-      } else {
-        localStorage.removeItem('KISAN_SAARTHI_AUTH_USER');
-      }
-    } catch (e) {
-      console.warn('Failed to persist auth user:', e);
-    }
-  }, [user]);
-
-  const login = (phone: string, _pin: string): boolean => {
-    // Simple farmer auth validation
-    const savedUserStr = localStorage.getItem('KISAN_SAARTHI_REGISTERED_USER_' + phone);
-    if (savedUserStr) {
-      const parsed = JSON.parse(savedUserStr);
-      setUser(parsed);
-      return true;
-    }
-    
-    // Default demo login fallback
-    const newUser: UserProfile = {
-      ...DEFAULT_USER,
-      phone: phone || '9822154321'
-    };
-    setUser(newUser);
-    return true;
-  };
-
-  const signup = (
+  isLoading: boolean;
+  login: (phone: string, password: string) => Promise<AuthResult>;
+  signup: (
     name: string,
     phone: string,
     location: string,
     primaryCrop: string,
-    _pin: string
-  ): boolean => {
-    const newUser: UserProfile = {
-      name,
-      phone,
-      location: location || 'कोपरगाव, अहमदनगर',
-      landSize: '4 एकर',
-      primaryCrop: primaryCrop || 'Onion',
-      preferredMandis: ['Kopargaon', 'Rahata', 'Shrirampur']
-    };
+    password: string,
+    landSize?: string,
+    preferredMandis?: string[]
+  ) => Promise<AuthResult>;
+  logout: () => Promise<void>;
+  updateProfile: (updated: Partial<UserProfile>) => Promise<AuthResult>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<AuthResult>;
+  refreshSession: () => Promise<void>;
+}
 
-    localStorage.setItem('KISAN_SAARTHI_REGISTERED_USER_' + phone, JSON.stringify(newUser));
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Safe response JSON parser to prevent 'Unexpected end of JSON input'
+async function parseSafeJson(res: Response): Promise<{ ok: boolean; status: number; data: any }> {
+  let data: any = {};
+  try {
+    const text = await res.text();
+    if (text && text.trim()) {
+      data = JSON.parse(text);
+    }
+  } catch (parseErr) {
+    console.warn('[JSON Parse Note]:', parseErr);
+    data = { success: false, error: 'सर्व्हरकडून प्रतिसाद वाचता आला नाही.' };
+  }
+  return { ok: res.ok, status: res.status, data };
+}
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<UserProfile | null>(() => {
+    // Initial local cache read for fast UI paint while /api/auth/me validates
+    try {
+      const cached = localStorage.getItem('KISAN_SAARTHI_AUTH_USER_CACHE');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Sync user state to local cache for instant reload preview
+  const saveUserCache = (newUser: UserProfile | null) => {
     setUser(newUser);
-    return true;
+    try {
+      if (newUser) {
+        localStorage.setItem('KISAN_SAARTHI_AUTH_USER_CACHE', JSON.stringify(newUser));
+        localStorage.setItem('KISAN_SAARTHI_HAS_SESSION', 'true');
+      } else {
+        localStorage.removeItem('KISAN_SAARTHI_AUTH_USER_CACHE');
+        localStorage.removeItem('KISAN_SAARTHI_HAS_SESSION');
+      }
+    } catch (e) {
+      console.warn('Failed to sync user cache:', e);
+    }
   };
 
-  const logout = () => {
-    setUser(null);
+  // Restore authenticated session from backend via JWT httpOnly cookie
+  const refreshSession = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/auth/me', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      const { ok, data } = await parseSafeJson(res);
+
+      if (ok && data.success && data.user) {
+        saveUserCache(data.user);
+      } else {
+        saveUserCache(null);
+      }
+    } catch (err) {
+      console.warn('[AuthContext] Session restore note:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Check auth status on app initialization
+  useEffect(() => {
+    refreshSession();
+  }, [refreshSession]);
+
+  /**
+   * Real Server-Side Login with 10-digit mobile number + password
+   */
+  const login = async (phone: string, password: string): Promise<AuthResult> => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          mobile: phone,
+          password
+        })
+      });
+
+      const { ok, status, data } = await parseSafeJson(res);
+
+      if (!ok || !data.success) {
+        const errorMessage =
+          data.error ||
+          (status === 401
+            ? 'मोबाईल नंबर किंवा पासवर्ड चुकीचा आहे (Invalid credentials)'
+            : 'लॉगिन करताना त्रुटी आली. कृपया पुन्हा प्रयत्न करा.');
+        return { success: false, error: errorMessage };
+      }
+
+      if (data.user) {
+        saveUserCache(data.user);
+      }
+
+      return {
+        success: true,
+        message: data.message || 'लॉगिन यशस्वी झाले!'
+      };
+    } catch (err: any) {
+      console.error('[Login Error]:', err);
+      return {
+        success: false,
+        error: err?.message || 'सर्व्हरशी संपर्क होऊ शकला नाही. कृपया इंटरनेट तपासा.'
+      };
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const updateProfile = (updated: Partial<UserProfile>) => {
-    setUser((prev) => (prev ? { ...prev, ...updated } : null));
+  /**
+   * Real Server-Side Registration with strict unique mobile enforcement
+   */
+  const signup = async (
+    name: string,
+    phone: string,
+    location: string,
+    primaryCrop: string,
+    password: string,
+    landSize: string = '५ एकर (5 Acres)',
+    preferredMandis: string[] = ['Kopargaon', 'Rahata', 'Yeola']
+  ): Promise<AuthResult> => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          name,
+          mobile: phone,
+          location,
+          primaryCrop,
+          password,
+          landSize,
+          preferredMandis
+        })
+      });
+
+      const { ok, status, data } = await parseSafeJson(res);
+
+      if (!ok || !data.success) {
+        const errorMessage =
+          data.error ||
+          (status === 409
+            ? 'हा मोबाईल नंबर आधीच नोंदणीकृत आहे. कृपया लॉगिन करा.'
+            : 'नोंदणी करताना त्रुटी आली.');
+        return { success: false, error: errorMessage };
+      }
+
+      if (data.user) {
+        saveUserCache(data.user);
+      }
+
+      return {
+        success: true,
+        message: data.message || 'नवीन खाते यशस्वीरित्या तयार झाले!'
+      };
+    } catch (err: any) {
+      console.error('[Signup Error]:', err);
+      return {
+        success: false,
+        error: err?.message || 'सर्व्हरशी संपर्क होऊ शकला नाही. कृपया इंटरनेट तपासा.'
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Server-Side Logout: clears httpOnly cookie and client state
+   */
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (err) {
+      console.warn('[Logout Error]:', err);
+    } finally {
+      saveUserCache(null);
+    }
+  };
+
+  /**
+   * Server-Side Profile Update
+   */
+  const updateProfile = async (updated: Partial<UserProfile>): Promise<AuthResult> => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(updated)
+      });
+
+      const { ok, data } = await parseSafeJson(res);
+
+      if (!ok || !data.success) {
+        return {
+          success: false,
+          error: data.error || 'माहिती सेव्ह करताना त्रुटी आली.'
+        };
+      }
+
+      if (data.user) {
+        saveUserCache(data.user);
+      }
+
+      return {
+        success: true,
+        message: data.message || 'प्रोफाईल माहिती यशस्वीरित्या अपडेट केली!'
+      };
+    } catch (err: any) {
+      console.error('[Update Profile Error]:', err);
+      return {
+        success: false,
+        error: err?.message || 'माहिती सेव्ह करताना त्रुटी आली.'
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Server-Side Change Password for authenticated farmer
+   */
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<AuthResult> => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          currentPassword,
+          newPassword
+        })
+      });
+
+      const { ok, data } = await parseSafeJson(res);
+
+      if (!ok || !data.success) {
+        return {
+          success: false,
+          error: data.error || 'पासवर्ड बदलताना त्रुटी आली.'
+        };
+      }
+
+      return {
+        success: true,
+        message: data.message || 'पासवर्ड यशस्वीरित्या बदलला आहे!'
+      };
+    } catch (err: any) {
+      console.error('[Change Password Error]:', err);
+      return {
+        success: false,
+        error: err?.message || 'सर्व्हरशी संपर्क होऊ शकला नाही. कृपया इंटरनेट तपासा.'
+      };
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -106,10 +330,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         isLoggedIn: !!user,
+        isLoading,
         login,
         signup,
         logout,
-        updateProfile
+        updateProfile,
+        changePassword,
+        refreshSession
       }}
     >
       {children}

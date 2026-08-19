@@ -1,0 +1,50 @@
+[
+  {
+    "id": "943d8102-abf6-46d2-a205-f6e2855a3722",
+    "mobile": "8830126009",
+    "password_hash": "$2b$10$QCJxzNuy6NvKUtPBuli6g.zJhAuGiciEo4t3ynCE0ngMB67rJPjV.",
+    "name": "Kunal Gite",
+    "location": "राहाता शहर (Rahata City), राहाता (Rahata)",
+    "land_size": "५ एकर (5 Acres)",
+    "primary_crop": "Onion",
+    "preferred_mandis": [
+      "Kopargaon",
+      "Rahata",
+      "Yeola"
+    ],
+    "created_at": "2026-08-19T11:16:35.335Z",
+    "updated_at": "2026-08-19T11:16:35.335Z"
+  },
+  {
+    "id": "fc910b33-d43f-40fa-be2d-526753c50772",
+    "mobile": "9284417770",
+    "password_hash": "$2b$10$Y3PKNG9.F39YQZg.NikpGOlcEKW.Emb2n6BaJkXvlF30GCSXuvYgW",
+    "name": "kunal gite",
+    "location": "राहाता शहर (Rahata City), राहाता (Rahata)",
+    "land_size": "५ एकर (5 Acres)",
+    "primary_crop": "Onion",
+    "preferred_mandis": [
+      "Kopargaon",
+      "Rahata",
+      "Yeola"
+    ],
+    "created_at": "2026-08-19T11:19:23.791Z",
+    "updated_at": "2026-08-19T11:19:23.791Z"
+  },
+  {
+    "id": "1b6e116a-9729-49d8-9fa6-6cc6e12dfbdc",
+    "mobile": "9552735397",
+    "password_hash": "$2b$10$hBrP3zTJa9r/x7WzIw8IVuGvvH/l7alD1Exx6yNdjRc6fBkaFZ3iO",
+    "name": "sushant sondkar",
+    "location": "आश्वी (Ashwi), संगमनेर (Sangamner)",
+    "land_size": "३ एकर (3 Acres)",
+    "primary_crop": "Onion",
+    "preferred_mandis": [
+      "Kopargaon",
+      "Rahata",
+      "Yeola"
+    ],
+    "created_at": "2026-08-19T11:21:07.835Z",
+    "updated_at": "2026-08-19T11:21:07.835Z"
+  }
+]
