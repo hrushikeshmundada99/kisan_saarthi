@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 EEProject
 EEProject/
+__pycache__/
+page.html

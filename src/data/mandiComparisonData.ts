@@ -16,17 +16,17 @@ export const MANDIS = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Lasalgaon'
 
 const MANDI_BASE_OFFSETS: Record<string, number> = {
   Kopargaon: 0,
-  Rahata: 70,
-  Shrirampur: 15,
-  Yeola: 130,
-  Lasalgaon: 270,
-  Sangamner: -40,
-  Nashik: 200,
-  Ahilyanagar: 40
+  Rahata: -150,
+  Shrirampur: 20,
+  Yeola: 50,
+  Lasalgaon: 300,
+  Sangamner: -150,
+  Nashik: 50,
+  Ahilyanagar: 750
 };
 
 const CROP_BASE_PRICES: Record<string, number> = {
-  Onion: 1850,
+  Onion: 3950,
   Soybean: 4620,
   Cotton: 7240,
   Sugarcane: 3150,

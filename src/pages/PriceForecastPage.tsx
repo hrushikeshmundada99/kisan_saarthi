@@ -116,8 +116,8 @@ export const PriceForecastPage: React.FC = () => {
     return idx !== -1 ? idx : Math.min(30, forecastData.length - 1);
   }, [forecastData]);
 
-  const todayPoint = forecastData[todayIdx] || { actualPrice: 1850, predictedPrice: 1850 };
-  const currentPrice = todayPoint.actualPrice || todayPoint.predictedPrice || 1850;
+  const todayPoint = forecastData[todayIdx] || { actualPrice: 3950, predictedPrice: 3950 };
+  const currentPrice = todayPoint.actualPrice || todayPoint.predictedPrice || 3950;
 
   // Peak in future horizon window
   const futureSlice = forecastData.slice(todayIdx, todayIdx + horizonDays + 1);

@@ -130,7 +130,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
       // Find mandi modal price from real data
       const matchedRate = REAL_MANDI_RATES.find(
         (r) => r.commodity === crop && r.mandi === mName
-      ) || { modalPrice: crop === 'Onion' ? 1850 : 4620 };
+      ) || { modalPrice: crop === 'Onion' ? 3950 : 4620 };
 
       const modalPrice = matchedRate.modalPrice;
       const grossRevenue = Math.round(modalPrice * totalYieldQuintals);

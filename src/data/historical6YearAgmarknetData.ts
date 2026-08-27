@@ -38,7 +38,7 @@ export const SUPPORTED_MANDIS = [
 
 // Base commodity economic reference values (₹/quintal)
 const CROP_MACRO_BASE: Record<string, { base2020: number; annualInflation: number; seasonalAmplitude: number; peakMonth: number }> = {
-  Onion: { base2020: 1350, annualInflation: 0.075, seasonalAmplitude: 0.42, peakMonth: 10 },        // Peak in Oct-Nov (Diwali/Pre-Kharif shortage)
+  Onion: { base2020: 2420, annualInflation: 0.075, seasonalAmplitude: 0.42, peakMonth: 10 },        // Peak in Oct-Nov (Diwali/Pre-Kharif shortage)
   Soybean: { base2020: 3600, annualInflation: 0.055, seasonalAmplitude: 0.18, peakMonth: 6 },       // Peak in June-July (Sowing demand)
   Cotton: { base2020: 5400, annualInflation: 0.062, seasonalAmplitude: 0.22, peakMonth: 4 },        // Peak in April-May
   Wheat: { base2020: 1950, annualInflation: 0.048, seasonalAmplitude: 0.15, peakMonth: 12 },       // Peak in Dec-Jan
@@ -53,13 +53,13 @@ const CROP_MACRO_BASE: Record<string, { base2020: number; annualInflation: numbe
 // Mandi-specific location price offsets
 const MANDI_OFFSETS: Record<string, number> = {
   Kopargaon: 0,
-  Rahata: 65,
+  Rahata: -150,
   Shrirampur: 20,
-  Yeola: 120,
-  Lasalgaon: 250, // Premium for Grade-1 export onion
-  Sangamner: -35,
-  Nashik: 190,
-  Ahilyanagar: 45
+  Yeola: 50,
+  Lasalgaon: 300, // Grade-1 export onion premium (4250 vs 3950)
+  Sangamner: -150,
+  Nashik: 50,
+  Ahilyanagar: 750
 };
 
 /**

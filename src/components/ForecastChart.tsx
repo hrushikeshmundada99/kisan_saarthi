@@ -37,8 +37,8 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({
 
   // Compute overall forecast price direction (Up = Green, Down = Red)
   const { isRising, pctChange } = useMemo(() => {
-    const todayPt = filteredData[30] || { actualPrice: 1850, predictedPrice: 1850 };
-    const startPrice = todayPt.actualPrice || todayPt.predictedPrice || 1850;
+    const todayPt = filteredData[30] || { actualPrice: 3950, predictedPrice: 3950 };
+    const startPrice = todayPt.actualPrice || todayPt.predictedPrice || 3950;
     const lastPt = filteredData[filteredData.length - 1];
     const endPrice = lastPt?.predictedPrice || startPrice;
     const diff = endPrice - startPrice;

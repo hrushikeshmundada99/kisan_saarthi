@@ -25,6 +25,7 @@ const LOCAL_DB_DIR = path.resolve(process.cwd(), 'data');
 const FARMERS_FILE = path.join(LOCAL_DB_DIR, 'farmers.json');
 const SELL_RECS_FILE = path.join(LOCAL_DB_DIR, 'sell_recommendations.json');
 const REC_FEEDBACK_FILE = path.join(LOCAL_DB_DIR, 'recommendation_feedback.json');
+const CROP_PRICES_FILE = path.join(LOCAL_DB_DIR, 'crop_prices.json');
 
 function ensureLocalFiles() {
   try {
@@ -39,6 +40,9 @@ function ensureLocalFiles() {
     }
     if (!fs.existsSync(REC_FEEDBACK_FILE)) {
       fs.writeFileSync(REC_FEEDBACK_FILE, JSON.stringify([], null, 2), 'utf8');
+    }
+    if (!fs.existsSync(CROP_PRICES_FILE)) {
+      fs.writeFileSync(CROP_PRICES_FILE, JSON.stringify([], null, 2), 'utf8');
     }
   } catch (err) {
     console.warn('[Local DB Init Note]:', err.message);
@@ -147,6 +151,22 @@ export async function query(text, params = []) {
           );
 
           CREATE INDEX IF NOT EXISTS idx_rec_feedback_rec_id ON recommendation_feedback(recommendation_id);
+
+          -- 4. Crop prices table
+          CREATE TABLE IF NOT EXISTS crop_prices (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            crop TEXT NOT NULL,
+            price NUMERIC NOT NULL,
+            unit TEXT NOT NULL DEFAULT '₹/Quintal',
+            region TEXT NOT NULL,
+            source TEXT NOT NULL DEFAULT 'live',
+            source_name TEXT DEFAULT 'Agmarknet',
+            confidence TEXT DEFAULT 'high',
+            last_updated TIMESTAMPTZ DEFAULT now(),
+            UNIQUE (crop, region)
+          );
+
+          CREATE INDEX IF NOT EXISTS idx_crop_prices_crop_region ON crop_prices (crop, region);
         `);
         isTableInitialized = true;
       }
@@ -170,6 +190,66 @@ export async function query(text, params = []) {
  */
 function executeLocalQuery(sql, params = []) {
   const normalizedSql = sql.trim().toLowerCase();
+
+  // ----------------------------------------------------
+  // D. CROP PRICES TABLE
+  // ----------------------------------------------------
+  if (normalizedSql.includes('crop_prices')) {
+    const prices = readJsonFile(CROP_PRICES_FILE);
+
+    // 1. INSERT INTO / UPSERT crop_prices
+    if (normalizedSql.startsWith('insert into crop_prices') || normalizedSql.includes('on conflict')) {
+      const [crop, price, unit, region, source, sourceName, confidence, lastUpdated] = params;
+
+      const newRecord = {
+        id: crypto.randomUUID(),
+        crop: String(crop),
+        price: Number(price),
+        unit: String(unit || '₹/Quintal'),
+        region: String(region),
+        source: String(source || 'live'),
+        source_name: String(sourceName || 'Agmarknet'),
+        confidence: String(confidence || 'high'),
+        last_updated: lastUpdated || new Date().toISOString()
+      };
+
+      const existingIdx = prices.findIndex(
+        (p) => String(p.crop).toLowerCase() === String(crop).toLowerCase() &&
+               String(p.region).toLowerCase() === String(region).toLowerCase()
+      );
+
+      if (existingIdx !== -1) {
+        prices[existingIdx] = {
+          ...prices[existingIdx],
+          ...newRecord,
+          id: prices[existingIdx].id
+        };
+      } else {
+        prices.push(newRecord);
+      }
+
+      writeJsonFile(CROP_PRICES_FILE, prices);
+      const savedRecord = existingIdx !== -1 ? prices[existingIdx] : newRecord;
+      return { rows: [savedRecord], rowCount: 1 };
+    }
+
+    // 2. SELECT * FROM crop_prices WHERE ...
+    if (normalizedSql.includes('where')) {
+      const matched = prices.filter((item) => {
+        let isMatch = true;
+        if (params[0] !== undefined) {
+          isMatch = isMatch && String(item.crop).toLowerCase() === String(params[0]).toLowerCase();
+        }
+        if (params[1] !== undefined) {
+          isMatch = isMatch && String(item.region).toLowerCase() === String(params[1]).toLowerCase();
+        }
+        return isMatch;
+      });
+      return { rows: matched, rowCount: matched.length };
+    }
+
+    return { rows: prices, rowCount: prices.length };
+  }
 
   // ----------------------------------------------------
   // A. SELL RECOMMENDATIONS TABLE

@@ -69,7 +69,7 @@ export const get6YearHistoryRecords = (crop: string, mandi: string): DailyHistor
 
 // Fallback generator for zero-crash guarantee
 function generateFallbackSeries(_crop: string, _mandi: string): ForecastPointItem[] {
-  const base = 1850;
+  const base = _crop === 'Onion' ? 3950 : 4620;
   const data: ForecastPointItem[] = [];
 
   for (let i = 30; i >= 1; i--) {

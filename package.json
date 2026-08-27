@@ -9,11 +9,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "test": "node tests/cropPriceAiFallback.test.js",
     "start": "serve -s dist -l $PORT",
     "lint": "oxlint",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@google/genai": "^2.19.0",
     "@tailwindcss/vite": "^4.3.3",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",

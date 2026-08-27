@@ -95,79 +95,79 @@ export const REAL_DASHBOARD_CARDS: MandiPriceCardItem[] = [
     id: "card-on-las",
     mandiName: "Lasalgaon",
     crop: "Onion",
-    modalPrice: 2120,
-    minPrice: 1650,
-    maxPrice: 2340,
+    modalPrice: 4250,
+    minPrice: 3800,
+    maxPrice: 4450,
     priceChangePercent: 8.16,
     priceChangeAmount: 160,
     distanceFromKopargaon: 50,
     lastUpdated: "आज, 10:45 AM",
-    history7Days: create7DayHistory(2120, 160)
+    history7Days: create7DayHistory(4250, 160)
   },
   {
     id: "card-on-kop",
     mandiName: "Kopargaon",
     crop: "Onion",
-    modalPrice: 1850,
-    minPrice: 1400,
-    maxPrice: 2050,
+    modalPrice: 3950,
+    minPrice: 3450,
+    maxPrice: 4150,
     priceChangePercent: 3.35,
-    priceChangeAmount: 60,
+    priceChangeAmount: 120,
     distanceFromKopargaon: 0,
     lastUpdated: "आज, 11:30 AM",
-    history7Days: create7DayHistory(1850, 60)
+    history7Days: create7DayHistory(3950, 120)
   },
   {
     id: "card-on-rah",
     mandiName: "Rahata",
     crop: "Onion",
-    modalPrice: 1920,
-    minPrice: 1500,
-    maxPrice: 2100,
+    modalPrice: 3800,
+    minPrice: 3350,
+    maxPrice: 4000,
     priceChangePercent: 4.63,
     priceChangeAmount: 85,
     distanceFromKopargaon: 20,
     lastUpdated: "आज, 11:45 AM",
-    history7Days: create7DayHistory(1920, 85)
+    history7Days: create7DayHistory(3800, 85)
   },
   {
     id: "card-on-yeo",
     mandiName: "Yeola",
     crop: "Onion",
-    modalPrice: 1980,
-    minPrice: 1550,
-    maxPrice: 2150,
+    modalPrice: 4000,
+    minPrice: 3550,
+    maxPrice: 4200,
     priceChangePercent: 5.88,
     priceChangeAmount: 110,
     distanceFromKopargaon: 19,
     lastUpdated: "आज, 10:30 AM",
-    history7Days: create7DayHistory(1980, 110)
+    history7Days: create7DayHistory(4000, 110)
   },
   {
     id: "card-on-nas",
     mandiName: "Nashik",
     crop: "Onion",
-    modalPrice: 2050,
-    minPrice: 1600,
-    maxPrice: 2250,
+    modalPrice: 4000,
+    minPrice: 3550,
+    maxPrice: 4250,
     priceChangePercent: 7.33,
     priceChangeAmount: 140,
     distanceFromKopargaon: 90,
     lastUpdated: "आज, 12:15 PM",
-    history7Days: create7DayHistory(2050, 140)
+    history7Days: create7DayHistory(4000, 140)
   },
   {
     id: "card-on-san",
     mandiName: "Sangamner",
     crop: "Onion",
-    modalPrice: 1810,
-    minPrice: 1350,
-    maxPrice: 1980,
-    priceChangePercent: -1.36,
-    priceChangeAmount: -25,
+    modalPrice: 3800,
+    minPrice: 3350,
+    maxPrice: 4000,
+    priceChangePercent: 3.50,
+    priceChangeAmount: 125,
     distanceFromKopargaon: 52,
     lastUpdated: "आज, 11:10 AM",
-    history7Days: create7DayHistory(1810, -25)
+    history7Days: create7DayHistory(3800, 125)
   },
 
   // 🌱 Soybean (सोयाबीन) - Genuine APMC Rates
@@ -484,16 +484,17 @@ export const APP_ACTIVE_ALERTS_SUMMARY = REAL_ACTIVE_ALERTS_SUMMARY;
 export const MOCK_ACTIVE_ALERTS_SUMMARY = REAL_ACTIVE_ALERTS_SUMMARY;
 
 export const GENERATE_FORECAST_DATA = (crop: string, _mandi?: string): ForecastPoint[] => {
-  const basePrice =
-    crop === 'Onion' ? 1850 :
-    crop === 'Soybean' ? 4620 :
-    crop === 'Cotton' ? 7240 :
-    crop === 'Pomegranate' ? 8450 :
-    crop === 'Wheat' ? 2480 :
-    crop === 'Tomato' ? 1420 :
-    crop === 'Maize' ? 2280 :
-    crop === 'Gram' ? 5850 :
-    crop === 'Bajra' ? 2350 : 3150;
+  const matchingCard = _mandi ? REAL_DASHBOARD_CARDS.find(c => c.crop === crop && c.mandiName.toLowerCase() === _mandi.toLowerCase()) : null;
+  const basePrice = matchingCard ? matchingCard.modalPrice :
+    crop === 'Onion' ? 3950 :
+      crop === 'Soybean' ? 4620 :
+        crop === 'Cotton' ? 7240 :
+          crop === 'Pomegranate' ? 8450 :
+            crop === 'Wheat' ? 2480 :
+              crop === 'Tomato' ? 1420 :
+                crop === 'Maize' ? 2280 :
+                  crop === 'Gram' ? 5850 :
+                    crop === 'Bajra' ? 2350 : 3150;
 
   const result: ForecastPoint[] = [];
 
@@ -584,7 +585,7 @@ export const INITIAL_ALERTS: PriceAlert[] = [
     id: "alt-3",
     commodity: "Onion",
     mandi: "Yeola",
-    targetPrice: 1950,
+    targetPrice: 4000,
     condition: "ABOVE",
     channel: "WhatsApp",
     status: "TRIGGERED",

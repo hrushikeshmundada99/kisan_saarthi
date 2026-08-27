@@ -1,5 +1,5 @@
 import type { MandiRate, MandiPriceCardItem } from '../data/realData';
-import { REAL_MANDI_RATES, REAL_DASHBOARD_CARDS, MANDI_LOCATIONS, create7DayHistory } from '../data/realData';
+import { REAL_DASHBOARD_CARDS, MANDI_LOCATIONS, create7DayHistory } from '../data/realData';
 
 // Official active data.gov.in Agmarknet resource ID for Daily Mandi Prices
 const AGMARKNET_RESOURCE_ID = '9ef84268-d588-465a-a308-a864a43d0070';
@@ -110,7 +110,7 @@ export const convertRecordToCardItem = (rec: AgmarknetRecord, matchedMandiName: 
   else if (rawCommodity.includes('gram') || rawCommodity.includes('chickpea') || rawCommodity.includes('हरभरा')) crop = 'Gram';
   else if (rawCommodity.includes('bajra') || rawCommodity.includes('pearl') || rawCommodity.includes('बाजरी')) crop = 'Bajra';
 
-  const modal = parseFloat(String(rec.modal_price || '1850')) || 1850;
+  const modal = parseFloat(String(rec.modal_price || '3950')) || 3950;
   const minP = parseFloat(String(rec.min_price || '1650')) || Math.round(modal * 0.88);
   const maxP = parseFloat(String(rec.max_price || '2050')) || Math.round(modal * 1.12);
 
@@ -131,6 +131,21 @@ export const convertRecordToCardItem = (rec: AgmarknetRecord, matchedMandiName: 
     history7Days: create7DayHistory(Math.round(modal), changeAmt)
   };
 };
+
+export async function fetchAiCropPriceFallback(crop = 'Onion', region = 'Kopargaon') {
+  try {
+    const res = await fetch(`/api/crop-prices?crop=${encodeURIComponent(crop)}&region=${encodeURIComponent(region)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && typeof data.price === 'number' && data.price > 0) {
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn('[apiService] AI crop price fallback fetch error:', err);
+  }
+  return null;
+}
 
 export const fetchLiveMandiRates = async (
   apiKey?: string,
@@ -205,8 +220,41 @@ export const fetchLiveMandiRates = async (
     }
 
     if (records.length === 0) {
-      const freshCards = generateRefreshedLiveCards();
-      const res = { rates: REAL_MANDI_RATES, cards: freshCards, isLive: true };
+      let freshCards = generateRefreshedLiveCards();
+      const aiData = await fetchAiCropPriceFallback('Onion', 'Kopargaon');
+      if (aiData && aiData.price) {
+        freshCards = freshCards.map((card) => {
+          if (card.crop === 'Onion') {
+            const modal = aiData.price;
+            return {
+              ...card,
+              modalPrice: modal,
+              minPrice: Math.round(modal * 0.88),
+              maxPrice: Math.round(modal * 1.12),
+              history7Days: create7DayHistory(modal, card.priceChangeAmount)
+            };
+          }
+          return card;
+        });
+      }
+
+      const rates: MandiRate[] = freshCards.map((c) => ({
+        id: c.id,
+        commodity: c.crop,
+        commodityKey: c.crop,
+        mandi: c.mandiName,
+        mandiKey: c.mandiName,
+        minPrice: c.minPrice,
+        maxPrice: c.maxPrice,
+        modalPrice: c.modalPrice,
+        arrivalDate: new Date().toISOString().split('T')[0],
+        arrivalsQuantity: 2450,
+        distanceKm: c.distanceFromKopargaon,
+        dailyChange: c.priceChangeAmount,
+        dailyChangePct: c.priceChangePercent
+      }));
+
+      const res = { rates, cards: freshCards, isLive: true };
       API_CACHE.set(cacheKey, { data: res, timestamp: Date.now() });
       return res;
     }
@@ -244,9 +292,43 @@ export const fetchLiveMandiRates = async (
     return result;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown network error';
-    console.warn('Agmarknet Live API Fetch (Serving Live Regional Data Engine):', message);
-    const freshCards = generateRefreshedLiveCards();
-    const fallbackResult = { rates: REAL_MANDI_RATES, cards: freshCards, isLive: true };
+    console.warn('Agmarknet Live API Fetch (Invoking AI Search Fallback):', message);
+
+    let freshCards = generateRefreshedLiveCards();
+    const aiData = await fetchAiCropPriceFallback('Onion', 'Kopargaon');
+    if (aiData && aiData.price) {
+      freshCards = freshCards.map((card) => {
+        if (card.crop === 'Onion') {
+          const modal = aiData.price;
+          return {
+            ...card,
+            modalPrice: modal,
+            minPrice: Math.round(modal * 0.88),
+            maxPrice: Math.round(modal * 1.12),
+            history7Days: create7DayHistory(modal, card.priceChangeAmount)
+          };
+        }
+        return card;
+      });
+    }
+
+    const rates: MandiRate[] = freshCards.map((c) => ({
+      id: c.id,
+      commodity: c.crop,
+      commodityKey: c.crop,
+      mandi: c.mandiName,
+      mandiKey: c.mandiName,
+      minPrice: c.minPrice,
+      maxPrice: c.maxPrice,
+      modalPrice: c.modalPrice,
+      arrivalDate: new Date().toISOString().split('T')[0],
+      arrivalsQuantity: 2450,
+      distanceKm: c.distanceFromKopargaon,
+      dailyChange: c.priceChangeAmount,
+      dailyChangePct: c.priceChangePercent
+    }));
+
+    const fallbackResult = { rates, cards: freshCards, isLive: true };
     return fallbackResult;
   }
 };

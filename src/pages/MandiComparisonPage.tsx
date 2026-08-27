@@ -98,10 +98,10 @@ export const MandiComparisonPage: React.FC = () => {
       const cardMap = new Map(liveCardsForCrop.map((c) => [c.mandiName, c]));
 
       const defaultBasePrices: Record<string, number> = {
-        Onion: 1850, Soybean: 4620, Cotton: 7240, Sugarcane: 3150, Pomegranate: 8450,
+        Onion: 3950, Soybean: 4620, Cotton: 7240, Sugarcane: 3150, Pomegranate: 8450,
         Wheat: 2480, Tomato: 1420, Maize: 2280, Gram: 5850, Bajra: 2350
       };
-      const base = liveCardsForCrop[0]?.modalPrice || defaultBasePrices[crop] || 1850;
+      const base = liveCardsForCrop[0]?.modalPrice || defaultBasePrices[crop] || 3950;
 
       return MANDIS.map((mandi) => {
         const liveCard = cardMap.get(mandi);
@@ -112,13 +112,13 @@ export const MandiComparisonPage: React.FC = () => {
           modal = liveCard.modalPrice;
         } else {
           // Realistic regional variance for mandis without explicit single card
-          if (mandi === 'Lasalgaon' && crop === 'Onion') modal = base + 270;
-          else if (mandi === 'Nashik') modal = base + 150;
-          else if (mandi === 'Yeola') modal = base + 80;
-          else if (mandi === 'Rahata') modal = base + 60;
-          else if (mandi === 'Sangamner') modal = base - 30;
-          else if (mandi === 'Shrirampur') modal = base + 40;
-          else if (mandi === 'Ahilyanagar') modal = base + 90;
+          if (mandi === 'Lasalgaon' && crop === 'Onion') modal = 4250;
+          else if (mandi === 'Nashik') modal = 4000;
+          else if (mandi === 'Yeola') modal = 4000;
+          else if (mandi === 'Rahata') modal = 3800;
+          else if (mandi === 'Sangamner') modal = 3800;
+          else if (mandi === 'Shrirampur') modal = base + 20;
+          else if (mandi === 'Ahilyanagar') modal = 4700;
         }
 
         const minP = liveCard ? liveCard.minPrice : Math.round(modal * 0.89);
@@ -146,10 +146,10 @@ export const MandiComparisonPage: React.FC = () => {
     // Fallback: If date was selected dynamically outside generated dataset array, generate rows for target mandis
     if (matches.length === 0) {
       const basePrices: Record<string, number> = {
-        Onion: 1850, Soybean: 4620, Cotton: 7240, Sugarcane: 3150, Pomegranate: 8450,
+        Onion: 3950, Soybean: 4620, Cotton: 7240, Sugarcane: 3150, Pomegranate: 8450,
         Wheat: 2480, Tomato: 1420, Maize: 2280, Gram: 5850, Bajra: 2350
       };
-      const base = basePrices[crop] || 1850;
+      const base = basePrices[crop] || 3950;
 
       return MANDIS.map((mandi) => {
         const dist = MANDI_LOCATIONS[mandi]?.distanceKm ?? (mandi === 'Kopargaon' ? 0 : 25);

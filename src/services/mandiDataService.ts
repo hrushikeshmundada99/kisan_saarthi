@@ -18,7 +18,7 @@ export interface MandiCropDataResult {
   recordCount: number;
 }
 
-const CACHE_KEY_PREFIX = 'KISAN_SAARTHI_MANDI_CACHE_V4_';
+const CACHE_KEY_PREFIX = 'KISAN_SAARTHI_MANDI_CACHE_V5_';
 
 export class MandiDataService {
   /**

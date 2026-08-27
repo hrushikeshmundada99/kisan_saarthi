@@ -34,7 +34,7 @@ const CROP_SEASONAL_CURVES: Record<string, number[]> = {
 };
 
 const CROP_BASE_PRICES: Record<string, number> = {
-  Onion: 1850,
+  Onion: 3950,
   Soybean: 4620,
   Cotton: 7240,
   Sugarcane: 3150,
@@ -45,12 +45,12 @@ const CROP_BASE_PRICES: Record<string, number> = {
 
 const MANDI_OFFSETS: Record<string, number> = {
   Kopargaon: 0,
-  Rahata: 70,
-  Shrirampur: 15,
-  Yeola: 130,
-  Sangamner: -40,
-  Nashik: 200,
-  Ahilyanagar: 40
+  Rahata: -150,
+  Shrirampur: 20,
+  Yeola: 50,
+  Sangamner: -150,
+  Nashik: 50,
+  Ahilyanagar: 750
 };
 
 // Generate 365 days of realistic historical daily dataset

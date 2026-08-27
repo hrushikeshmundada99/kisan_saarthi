@@ -136,10 +136,10 @@ export const CROP_RECOMMENDATIONS: CropRecommendationItem[] = [
 export const PROCESSING_LINKAGES: Record<string, ProcessingLinkageItem> = {
   Onion: {
     crop: 'Onion',
-    rawMandiPrice: 1950,
+    rawMandiPrice: 3950,
     channelNameMr: 'कांदा चाळ साठवणूक व निर्जलीकरण (Dehydration & Storage Net)',
     channelNameEn: 'Onion Storage & Dehydration Processing',
-    processedPricePerQ: 2650,
+    processedPricePerQ: 4650,
     processingCostPerQ: 250,
     netExtraProfitPerQ: 450,
     recommendedActionMr: 'सध्या मंडीत विकण्याऐवजी १ महिना चाळीत साठवून निर्जलीकरण केंद्रास विकल्यास रु. ४५०/क्विंटल अतिरिक्त नफा मिळेल.',

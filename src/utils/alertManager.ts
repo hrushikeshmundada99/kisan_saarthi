@@ -54,7 +54,7 @@ const INITIAL_ALERTS: PriceAlertItem[] = [
     crop: "Onion",
     mandi: "Kopargaon",
     condition: "ABOVE",
-    targetPrice: 1850,
+    targetPrice: 3950,
     farmerPhone: "9822154321",
     notificationMethods: ["SMS", "In-App"],
     status: "TRIGGERED",
@@ -66,11 +66,11 @@ const INITIAL_ALERTS: PriceAlertItem[] = [
 export const getCurrentPriceForAlert = (crop: string, mandi: string): number => {
   if (mandi === 'ANY') {
     const matching = REAL_DASHBOARD_CARDS.filter((c) => c.crop === crop);
-    if (matching.length === 0) return 1850;
+    if (matching.length === 0) return crop === 'Onion' ? 3950 : 4620;
     return Math.max(...matching.map((m) => m.modalPrice));
   } else {
     const match = REAL_DASHBOARD_CARDS.find((c) => c.crop === crop && c.mandiName === mandi);
-    return match ? match.modalPrice : 1850;
+    return match ? match.modalPrice : (crop === 'Onion' ? 3950 : 4620);
   }
 };
 

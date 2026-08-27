@@ -1,0 +1,40 @@
+name: Scrape Daily APMC Prices
+
+on:
+  schedule:
+    # Run daily at 06:00 UTC (11:30 AM IST)
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install beautifulsoup4 requests
+
+      - name: Run APMC Scraper
+        run: |
+          python apmc_kopargaon_scraper.py --publish public/data/prices.json
+
+      - name: Commit and Push Updated Prices
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/prices.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "auto: update live APMC prices [skip ci]" && git push)

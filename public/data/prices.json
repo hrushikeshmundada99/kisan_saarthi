@@ -1,0 +1,944 @@
+{
+  "category": "veg",
+  "date": "2026-08-27",
+  "scraped_at_utc": "2026-08-27T04:47:10Z",
+  "row_count": 55,
+  "source_url": "https://apmcmumbai.org/bajarbhav/view-daily-bajarbhav/veg/2026-08-27",
+  "rows": [
+    {
+      "commodity": "भुईमूग शेंगा",
+      "variety": null,
+      "unit": null,
+      "min_price": "7000",
+      "max_price": "11000",
+      "modal_price": "9000",
+      "arrival_qty": "172",
+      "date": null,
+      "raw_cells": [
+        "भुईमूग शेंगा",
+        "172",
+        "7000",
+        "11000",
+        "9000"
+      ]
+    },
+    {
+      "commodity": "लिंबू",
+      "variety": null,
+      "unit": null,
+      "min_price": "2000",
+      "max_price": "4000",
+      "modal_price": "3000",
+      "arrival_qty": "115",
+      "date": null,
+      "raw_cells": [
+        "लिंबू",
+        "115",
+        "2000",
+        "4000",
+        "3000"
+      ]
+    },
+    {
+      "commodity": "आले (सातारा)",
+      "variety": null,
+      "unit": null,
+      "min_price": "8000",
+      "max_price": "14000",
+      "modal_price": "11000",
+      "arrival_qty": "1069",
+      "date": null,
+      "raw_cells": [
+        "आले (सातारा)",
+        "1069",
+        "8000",
+        "14000",
+        "11000"
+      ]
+    },
+    {
+      "commodity": "आले बेंगलोर",
+      "variety": null,
+      "unit": null,
+      "min_price": "5000",
+      "max_price": "15000",
+      "modal_price": "10000",
+      "arrival_qty": "0",
+      "date": null,
+      "raw_cells": [
+        "आले बेंगलोर",
+        "0",
+        "5000",
+        "15000",
+        "10000"
+      ]
+    },
+    {
+      "commodity": "आरवी (अळू कंद)",
+      "variety": null,
+      "unit": null,
+      "min_price": "2000",
+      "max_price": "2400",
+      "modal_price": "2200",
+      "arrival_qty": "210",
+      "date": null,
+      "raw_cells": [
+        "आरवी (अळू कंद)",
+        "210",
+        "2000",
+        "2400",
+        "2200"
+      ]
+    },
+    {
+      "commodity": "आवळा",
+      "variety": null,
+      "unit": null,
+      "min_price": "11000",
+      "max_price": "13000",
+      "modal_price": "12000",
+      "arrival_qty": "0",
+      "date": null,
+      "raw_cells": [
+        "आवळा",
+        "0",
+        "11000",
+        "13000",
+        "12000"
+      ]
+    },
+    {
+      "commodity": "भेंडी नंबर १",
+      "variety": null,
+      "unit": null,
+      "min_price": "2400",
+      "max_price": "3000",
+      "modal_price": "2700",
+      "arrival_qty": "84",
+      "date": null,
+      "raw_cells": [
+        "भेंडी नंबर १",
+        "84",
+        "2400",
+        "3000",
+        "2700"
+      ]
+    },
+    {
+      "commodity": "भेंडी नंबर २",
+      "variety": null,
+      "unit": null,
+      "min_price": "1600",
+      "max_price": "2000",
+      "modal_price": "1800",
+      "arrival_qty": "0",
+      "date": null,
+      "raw_cells": [
+        "भेंडी नंबर २",
+        "0",
+        "1600",
+        "2000",
+        "1800"
+      ]
+    },
+    {
+      "commodity": "भोपळा (डांगर)",
+      "variety": null,
+      "unit": null,
+      "min_price": "600",
+      "max_price": "1200",
+      "modal_price": "900",
+      "arrival_qty": "800",
+      "date": null,
+      "raw_cells": [
+        "भोपळा (डांगर)",
+        "800",
+        "600",
+        "1200",
+        "900"
+      ]
+    },
+    {
+      "commodity": "भोपळा (दुधी)",
+      "variety": null,
+      "unit": null,
+      "min_price": "1000",
+      "max_price": "2000",
+      "modal_price": "1500",
+      "arrival_qty": "418",
+      "date": null,
+      "raw_cells": [
+        "भोपळा (दुधी)",
+        "418",
+        "1000",
+        "2000",
+        "1500"
+      ]
+    },
+    {
+      "commodity": "चवळी शेंग",
+      "variety": null,
+      "unit": null,
+      "min_price": "3000",
+      "max_price": "3600",
+      "modal_price": "3300",
+      "arrival_qty": "56",
+      "date": null,
+      "raw_cells": [
+        "चवळी शेंग",
+        "56",
+        "3000",
+        "3600",
+        "3300"
+      ]
+    },
+    {
+      "commodity": "ढेमसे",
+      "variety": null,
+      "unit": null,
+      "min_price": "2000",
+      "max_price": "3000",
+      "modal_price": "2500",
+      "arrival_qty": "28",
+      "date": null,
+      "raw_cells": [
+        "ढेमसे",
+        "28",
+        "2000",
+        "3000",
+        "2500"
+      ]
+    },
+    {
+      "commodity": "फरसबी",
+      "variety": null,
+      "unit": null,
+      "min_price": "3000",
+      "max_price": "4000",
+      "modal_price": "3500",
+      "arrival_qty": "373",
+      "date": null,
+      "raw_cells": [
+        "फरसबी",
+        "373",
+        "3000",
+        "4000",
+        "3500"
+      ]
+    },
+    {
+      "commodity": "फ्लावर",
+      "variety": null,
+      "unit": null,
+      "min_price": "1000",
+      "max_price": "1600",
+      "modal_price": "1300",
+      "arrival_qty": "1693",
+      "date": null,
+      "raw_cells": [
+        "फ्लावर",
+        "1693",
+        "1000",
+        "1600",
+        "1300"
+      ]
+    },
+    {
+      "commodity": "गाजर",
+      "variety": null,
+      "unit": null,
+      "min_price": "2000",
+      "max_price": "3000",
+      "modal_price": "2500",
+      "arrival_qty": "1522",
+      "date": null,
+      "raw_cells": [
+        "गाजर",
+        "1522",
+        "2000",
+        "3000",
+        "2500"
+      ]
+    },
+    {
+      "commodity": "गवार",
+      "variety": null,
+      "unit": null,
+      "min_price": "5000",
+      "max_price": "8000",
+      "modal_price": "6500",
+      "arrival_qty": "166",
+      "date": null,
+      "raw_cells": [
+        "गवार",
+        "166",
+        "5000",
+        "8000",
+        "6500"
+      ]
+    },
+    {
+      "commodity": "घेवडा",
+      "variety": null,
+      "unit": null,
+      "min_price": "3000",
+      "max_price": "4000",
+      "modal_price": "3500",
+      "arrival_qty": "315",
+      "date": null,
+      "raw_cells": [
+        "घेवडा",
+        "315",
+        "3000",
+        "4000",
+        "3500"
+      ]
+    },
+    {
+      "commodity": "कैरी",
+      "variety": null,
+      "unit": null,
+      "min_price": "5000",
+      "max_price": "6000",
+      "modal_price": "5500",
+      "arrival_qty": "165",
+      "date": null,
+      "raw_cells": [
+        "कैरी",
+        "165",
+        "5000",
+        "6000",
+        "5500"
+      ]
+    },
+    {
+      "commodity": "काकडी नंबर १",
+      "variety": null,
+      "unit": null,
+      "min_price": "1600",
+      "max_price": "2000",
+      "modal_price": "1800",
+      "arrival_qty": "916",
+      "date": null,
+      "raw_cells": [
+        "काकडी नंबर १",
+        "916",
+        "1600",
+        "2000",
+        "1800"
+      ]
+    },
+    {
+      "commodity": "काकडी नंबर २",
+      "variety": null,
+      "unit": null,
+      "min_price": "1200",
+      "max_price": "1400",
+      "modal_price": "1300",
+      "arrival_qty": "0",
+      "date": null,
+      "raw_cells": [
+        "काकडी नंबर २",
+        "0",
+        "1200",
+        "1400",
+        "1300"
+      ]
+    },
+    {
+      "commodity": "कारली",
+      "variety": null,
+      "unit": null,
+      "min_price": "3000",
+      "max_price": "4000",
+      "modal_price": "3500",
+      "arrival_qty": "230",
+      "date": null,
+      "raw_cells": [
+        "कारली",
+        "230",
+        "3000",
+        "4000",
+        "3500"
+      ]
+    },
+    {
+      "commodity": "केळी भाजी",
+      "variety": null,
+      "unit": null,
+      "min_price": "2600",
+      "max_price": "3000",
+      "modal_price": "2800",
+      "arrival_qty": "30",
+      "date": null,
+      "raw_cells": [
+        "केळी भाजी",
+        "30",
+        "2600",
+        "3000",
+        "2800"
+      ]
+    },
+    {
+      "commodity": "कोबी",
+      "variety": null,
+      "unit": null,
+      "min_price": "600",
+      "max_price": "1000",
+      "modal_price": "800",
+      "arrival_qty": "1906",
+      "date": null,
+      "raw_cells": [
+        "कोबी",
+        "1906",
+        "600",
+        "1000",
+        "800"
+      ]
+    },
+    {
+      "commodity": "कोहळा",
+      "variety": null,
+      "unit": null,
+      "min_price": "800",
+      "max_price": "1200",
+      "modal_price": "1000",
+      "arrival_qty": "30",
+      "date": null,
+      "raw_cells": [
+        "कोहळा",
+        "30",
+        "800",
+        "1200",
+        "1000"
+      ]
+    },
+    {
+      "commodity": "मिरची ढोबळी",
+      "variety": null,
+      "unit": null,
+      "min_price": "2000",
+      "max_price": "3000",
+      "modal_price": "2500",
+      "arrival_qty": "748",
+      "date": null,
+      "raw_cells": [
+        "मिरची ढोबळी",
+        "748",
+        "2000",
+        "3000",
+        "2500"
+      ]
+    },
+    {
+      "commodity": "पडवळ",
+      "variety": null,
+      "unit": null,
+      "min_price": "2000",
+      "max_price": "2600",
+      "modal_price": "2300",
+      "arrival_qty": "96",
+      "date": null,
+      "raw_cells": [
+        "पडवळ",
+        "96",
+        "2000",
+        "2600",
+        "2300"
+      ]
+    },
+    {
+      "commodity": "परवर",
+      "variety": null,
+      "unit": null,
+      "min_price": "4000",
+      "max_price": "5000",
+      "modal_price": "4500",
+      "arrival_qty": "154",
+      "date": null,
+      "raw_cells": [
+        "परवर",
+        "154",
+        "4000",
+        "5000",
+        "4500"
+      ]
+    },
+    {
+      "commodity": "फणस",
+      "variety": null,
+      "unit": null,
+      "min_price": "1600",
+      "max_price": "2400",
+      "modal_price": "2000",
+      "arrival_qty": "0",
+      "date": null,
+      "raw_cells": [
+        "फणस",
+        "0",
+        "1600",
+        "2400",
+        "2000"
+      ]
+    },
+    {
+      "commodity": "रताळी",
+      "variety": null,
+      "unit": null,
+      "min_price": "1600",
+      "max_price": "3000",
+      "modal_price": "2300",
+      "arrival_qty": "426",
+      "date": null,
+      "raw_cells": [
+        "रताळी",
+        "426",
+        "1600",
+        "3000",
+        "2300"
+      ]
+    },
+    {
+      "commodity": "शेवगा शेंग",
+      "variety": null,
+      "unit": null,
+      "min_price": "3000",
+      "max_price": "4000",
+      "modal_price": "3500",
+      "arrival_qty": "796",
+      "date": null,
+      "raw_cells": [
+        "शेवगा शेंग",
+        "796",
+        "3000",
+        "4000",
+        "3500"
+      ]
+    },
+    {
+      "commodity": "शिराळी दोडका",
+      "variety": null,
+      "unit": null,
+      "min_price": "2600",
+      "max_price": "3600",
+      "modal_price": "3100",
+      "arrival_qty": "369",
+      "date": null,
+      "raw_cells": [
+        "शिराळी दोडका",
+        "369",
+        "2600",
+        "3600",
+        "3100"
+      ]
+    },
+    {
+      "commodity": "सुरण",
+      "variety": null,
+      "unit": null,
+      "min_price": "2600",
+      "max_price": "3000",
+      "modal_price": "2800",
+      "arrival_qty": "700",
+      "date": null,
+      "raw_cells": [
+        "सुरण",
+        "700",
+        "2600",
+        "3000",
+        "2800"
+      ]
+    },
+    {
+      "commodity": "टोमॅटो नंबर १",
+      "variety": null,
+      "unit": null,
+      "min_price": "1500",
+      "max_price": "2000",
+      "modal_price": "1750",
+      "arrival_qty": "2404",
+      "date": null,
+      "raw_cells": [
+        "टोमॅटो नंबर १",
+        "2404",
+        "1500",
+        "2000",
+        "1750"
+      ]
+    },
+    {
+      "commodity": "टोमॅटो नंबर २",
+      "variety": null,
+      "unit": null,
+      "min_price": "1000",
+      "max_price": "1400",
+      "modal_price": "1200",
+      "arrival_qty": "2404",
+      "date": null,
+      "raw_cells": [
+        "टोमॅटो नंबर २",
+        "2404",
+        "1000",
+        "1400",
+        "1200"
+      ]
+    },
+    {
+      "commodity": "तोंडली कळी",
+      "variety": null,
+      "unit": null,
+      "min_price": "3000",
+      "max_price": "3600",
+      "modal_price": "3300",
+      "arrival_qty": "286",
+      "date": null,
+      "raw_cells": [
+        "तोंडली कळी",
+        "286",
+        "3000",
+        "3600",
+        "3300"
+      ]
+    },
+    {
+      "commodity": "तोंडली जाडी",
+      "variety": null,
+      "unit": null,
+      "min_price": "2000",
+      "max_price": "2600",
+      "modal_price": "2300",
+      "arrival_qty": "0",
+      "date": null,
+      "raw_cells": [
+        "तोंडली जाडी",
+        "0",
+        "2000",
+        "2600",
+        "2300"
+      ]
+    },
+    {
+      "commodity": "वाटाणा",
+      "variety": null,
+      "unit": null,
+      "min_price": "5000",
+      "max_price": "7000",
+      "modal_price": "6000",
+      "arrival_qty": "1330",
+      "date": null,
+      "raw_cells": [
+        "वाटाणा",
+        "1330",
+        "5000",
+        "7000",
+        "6000"
+      ]
+    },
+    {
+      "commodity": "वालवड",
+      "variety": null,
+      "unit": null,
+      "min_price": "4000",
+      "max_price": "5000",
+      "modal_price": "4500",
+      "arrival_qty": "199",
+      "date": null,
+      "raw_cells": [
+        "वालवड",
+        "199",
+        "4000",
+        "5000",
+        "4500"
+      ]
+    },
+    {
+      "commodity": "वांगी काटेरी",
+      "variety": null,
+      "unit": null,
+      "min_price": "1600",
+      "max_price": "2400",
+      "modal_price": "2000",
+      "arrival_qty": "821",
+      "date": null,
+      "raw_cells": [
+        "वांगी काटेरी",
+        "821",
+        "1600",
+        "2400",
+        "2000"
+      ]
+    },
+    {
+      "commodity": "वांगी काळी",
+      "variety": null,
+      "unit": null,
+      "min_price": "2000",
+      "max_price": "2600",
+      "modal_price": "2300",
+      "arrival_qty": "0",
+      "date": null,
+      "raw_cells": [
+        "वांगी काळी",
+        "0",
+        "2000",
+        "2600",
+        "2300"
+      ]
+    },
+    {
+      "commodity": "मिरची ज्वाला",
+      "variety": null,
+      "unit": null,
+      "min_price": "3000",
+      "max_price": "4000",
+      "modal_price": "3500",
+      "arrival_qty": "1374",
+      "date": null,
+      "raw_cells": [
+        "मिरची ज्वाला",
+        "1374",
+        "3000",
+        "4000",
+        "3500"
+      ]
+    },
+    {
+      "commodity": "मिरची लवंगी",
+      "variety": null,
+      "unit": null,
+      "min_price": "1000",
+      "max_price": "1600",
+      "modal_price": "1300",
+      "arrival_qty": "0",
+      "date": null,
+      "raw_cells": [
+        "मिरची लवंगी",
+        "0",
+        "1000",
+        "1600",
+        "1300"
+      ]
+    },
+    {
+      "commodity": "कढीपत्ता",
+      "variety": null,
+      "unit": null,
+      "min_price": "3000",
+      "max_price": "4000",
+      "modal_price": "3500",
+      "arrival_qty": "120",
+      "date": null,
+      "raw_cells": [
+        "कढीपत्ता",
+        "120",
+        "3000",
+        "4000",
+        "3500"
+      ]
+    },
+    {
+      "commodity": "कांदापात नाशिक",
+      "variety": null,
+      "unit": null,
+      "min_price": "1000",
+      "max_price": "1200",
+      "modal_price": "1100",
+      "arrival_qty": "518",
+      "date": null,
+      "raw_cells": [
+        "कांदापात नाशिक",
+        "518",
+        "1000",
+        "1200",
+        "1100"
+      ]
+    },
+    {
+      "commodity": "कांदापात पुणे",
+      "variety": null,
+      "unit": null,
+      "min_price": "700",
+      "max_price": "800",
+      "modal_price": "750",
+      "arrival_qty": "0",
+      "date": null,
+      "raw_cells": [
+        "कांदापात पुणे",
+        "0",
+        "700",
+        "800",
+        "750"
+      ]
+    },
+    {
+      "commodity": "कोथिंबीर नाशिक",
+      "variety": null,
+      "unit": null,
+      "min_price": "500",
+      "max_price": "600",
+      "modal_price": "550",
+      "arrival_qty": "1216",
+      "date": null,
+      "raw_cells": [
+        "कोथिंबीर नाशिक",
+        "1216",
+        "500",
+        "600",
+        "550"
+      ]
+    },
+    {
+      "commodity": "कोथिंबीर पुणे",
+      "variety": null,
+      "unit": null,
+      "min_price": "200",
+      "max_price": "400",
+      "modal_price": "300",
+      "arrival_qty": "0",
+      "date": null,
+      "raw_cells": [
+        "कोथिंबीर पुणे",
+        "0",
+        "200",
+        "400",
+        "300"
+      ]
+    },
+    {
+      "commodity": "मेथी नाशिक",
+      "variety": null,
+      "unit": null,
+      "min_price": "800",
+      "max_price": "1000",
+      "modal_price": "900",
+      "arrival_qty": "258",
+      "date": null,
+      "raw_cells": [
+        "मेथी नाशिक",
+        "258",
+        "800",
+        "1000",
+        "900"
+      ]
+    },
+    {
+      "commodity": "मेथी भाजी",
+      "variety": null,
+      "unit": null,
+      "min_price": "800",
+      "max_price": "900",
+      "modal_price": "850",
+      "arrival_qty": "0",
+      "date": null,
+      "raw_cells": [
+        "मेथी भाजी",
+        "0",
+        "800",
+        "900",
+        "850"
+      ]
+    },
+    {
+      "commodity": "मुळा",
+      "variety": null,
+      "unit": null,
+      "min_price": "3000",
+      "max_price": "4000",
+      "modal_price": "3500",
+      "arrival_qty": "66",
+      "date": null,
+      "raw_cells": [
+        "मुळा",
+        "66",
+        "3000",
+        "4000",
+        "3500"
+      ]
+    },
+    {
+      "commodity": "पालक नाशिक",
+      "variety": null,
+      "unit": null,
+      "min_price": "700",
+      "max_price": "800",
+      "modal_price": "750",
+      "arrival_qty": "609",
+      "date": null,
+      "raw_cells": [
+        "पालक नाशिक",
+        "609",
+        "700",
+        "800",
+        "750"
+      ]
+    },
+    {
+      "commodity": "पालक पुणे",
+      "variety": null,
+      "unit": null,
+      "min_price": "500",
+      "max_price": "600",
+      "modal_price": "550",
+      "arrival_qty": "0",
+      "date": null,
+      "raw_cells": [
+        "पालक पुणे",
+        "0",
+        "500",
+        "600",
+        "550"
+      ]
+    },
+    {
+      "commodity": "पुदिना",
+      "variety": null,
+      "unit": null,
+      "min_price": "600",
+      "max_price": "800",
+      "modal_price": "700",
+      "arrival_qty": "108",
+      "date": null,
+      "raw_cells": [
+        "पुदिना",
+        "108",
+        "600",
+        "800",
+        "700"
+      ]
+    },
+    {
+      "commodity": "शेपू नाशिक",
+      "variety": null,
+      "unit": null,
+      "min_price": "600",
+      "max_price": "800",
+      "modal_price": "700",
+      "arrival_qty": "40",
+      "date": null,
+      "raw_cells": [
+        "शेपू नाशिक",
+        "40",
+        "600",
+        "800",
+        "700"
+      ]
+    },
+    {
+      "commodity": "शेपू पुणे",
+      "variety": null,
+      "unit": null,
+      "min_price": "600",
+      "max_price": "700",
+      "modal_price": "650",
+      "arrival_qty": "0",
+      "date": null,
+      "raw_cells": [
+        "शेपू पुणे",
+        "0",
+        "600",
+        "700",
+        "650"
+      ]
+    }
+  ]
+}

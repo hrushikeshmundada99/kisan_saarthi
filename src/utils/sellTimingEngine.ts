@@ -72,7 +72,7 @@ export function calculateSellTimingRecommendation(
   const forecast14 = calculateMandiForecast(records, 14);
   const forecast30 = calculateMandiForecast(records, 30);
 
-  const currentPrice = forecast7.currentPrice || 1850;
+  const currentPrice = forecast7.currentPrice || (crop.toLowerCase().includes('onion') ? 3950 : 4620);
 
   // Extract future projection points
   const p7 = forecast7.chartPoints[forecast7.chartPoints.length - 1];
