@@ -26,6 +26,10 @@ import recommendationsIndexHandler from './api/recommendations/index.js';
 import recommendationsFeedbackHandler from './api/recommendations/feedback.js';
 // @ts-ignore
 import recommendationsStatsHandler from './api/recommendations/stats.js';
+// @ts-ignore
+import sendEmailAlertHandler from './api/alerts/send-email.js';
+// @ts-ignore
+import assistantAskHandler from './api/assistant/ask.js';
 
 const serverlessRoutes: Record<string, any> = {
   '/api/auth/signup': signupHandler,
@@ -39,6 +43,8 @@ const serverlessRoutes: Record<string, any> = {
   '/api/recommendations': recommendationsIndexHandler,
   '/api/recommendations/feedback': recommendationsFeedbackHandler,
   '/api/recommendations/stats': recommendationsStatsHandler,
+  '/api/alerts/send-email': sendEmailAlertHandler,
+  '/api/assistant/ask': assistantAskHandler,
 };
 
 /**

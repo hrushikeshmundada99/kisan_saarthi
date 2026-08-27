@@ -23,7 +23,8 @@ import {
   AlertCircle,
   MapPin,
   Compass,
-  Layers
+  Layers,
+  Mail
 } from 'lucide-react';
 
 interface AuthModalProps {
@@ -60,6 +61,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   // Signup Form Fields
   const [signupName, setSignupName] = useState<string>('');
   const [signupPhone, setSignupPhone] = useState<string>('');
+  const [signupEmail, setSignupEmail] = useState<string>('');
   const [selectedTaluka, setSelectedTaluka] = useState<string>('Kopargaon');
   const [selectedVillage, setSelectedVillage] = useState<string>('कोपरगाव शहर (Kopargaon City)');
   const [customVillage, setCustomVillage] = useState<string>('');
@@ -194,11 +196,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       finalLocation,
       signupCrop,
       signupPassword,
-      signupLandSize
+      signupLandSize,
+      ['Kopargaon', 'Rahata', 'Yeola'],
+      signupEmail.trim()
     );
     setIsSubmitting(false);
 
     if (result.success) {
+      if (signupEmail.trim()) {
+        try {
+          localStorage.setItem('KISAN_SAARTHI_USER_EMAIL', signupEmail.trim());
+        } catch {}
+      }
       showToast('नवीन खाते यशस्वीरित्या तयार झाले! (Account Created)', 'success');
       onClose();
     } else {
@@ -295,7 +304,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   maxLength={10}
                   value={loginPhone}
                   onChange={(e) => setLoginPhone(e.target.value.replace(/\D/g, ''))}
-                  placeholder="9822XXXXXX"
+                  placeholder="98220 12345"
                   className="w-full pl-16 pr-4 min-h-[46px] bg-[#F4F9F4] border-2 border-[#D8E6D8] rounded-2xl text-sm font-black text-[#0F291E] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-4 focus:ring-[#1B5E20]/20 focus:border-[#1B5E20] transition-all"
                   required
                 />
@@ -379,9 +388,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   maxLength={10}
                   value={signupPhone}
                   onChange={(e) => setSignupPhone(e.target.value.replace(/\D/g, ''))}
-                  placeholder="9822XXXXXX"
+                  placeholder="98220 12345"
                   className="w-full pl-15 pr-3 py-2 min-h-[44px] bg-[#F4F9F4] border-2 border-[#D8E6D8] rounded-2xl text-sm font-black text-[#0F291E] focus:outline-none focus:ring-4 focus:ring-[#1B5E20]/20 focus:border-[#1B5E20]"
                   required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-[#0F291E] uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span>ई-मेल पत्ता (Email - भाव अलर्टसाठी):</span>
+                <span className="text-[10px] text-[#1B5E20] font-black">ऐच्छिक</span>
+              </label>
+              <div className="relative flex items-center">
+                <Mail className="absolute left-3.5 w-4 h-4 text-[#1B5E20] shrink-0 pointer-events-none" />
+                <input
+                  type="email"
+                  value={signupEmail}
+                  onChange={(e) => setSignupEmail(e.target.value)}
+                  placeholder="farmer@example.com"
+                  className="w-full pl-10 pr-4 min-h-[44px] bg-[#F4F9F4] border-2 border-[#D8E6D8] rounded-2xl text-sm font-black text-[#0F291E] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-4 focus:ring-[#1B5E20]/20 focus:border-[#1B5E20]"
                 />
               </div>
             </div>

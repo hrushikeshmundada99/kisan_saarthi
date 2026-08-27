@@ -11,6 +11,7 @@ import {
 import { Card } from './Card';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from './Toast';
+import { sendPriceAlertEmail } from '../utils/emailAlertService';
 import {
   Bell,
   BellOff,
@@ -24,7 +25,9 @@ import {
   Send,
   MessageSquareText,
   Radio,
-  CheckCheck
+  CheckCheck,
+  Mail,
+  AlertCircle
 } from 'lucide-react';
 
 interface AlertCardProps {
@@ -54,6 +57,24 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onToggleStatus, onD
   const smsText = generateSmsAlertText(alert, farmerName);
   const smsUrl = generateSmsDirectUrl(alert, farmerPhone, farmerName);
 
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailSuccessTime, setEmailSuccessTime] = useState<string | null>(null);
+
+  const cachedEmail = typeof window !== 'undefined' ? localStorage.getItem('KISAN_SAARTHI_USER_EMAIL') : null;
+  const initialEmail = (alert.farmerEmail || user?.email || cachedEmail || 'farmer@gmail.com').replace('example.com', 'gmail.com');
+  const [customEmail, setCustomEmail] = useState<string>(initialEmail);
+  const farmerEmail = customEmail || initialEmail;
+
+  const emailSubject = encodeURIComponent(`Price Alert Triggered: ${cropName} at ${mandiName}`);
+  const emailBody = encodeURIComponent(
+    `रामराम ${farmerName}!\n\n` +
+    `${cropName} पिकाचा भाव ${mandiName} बाजार समितीत ₹${currentPrice}/क्विंटल पोहोचला आहे.\n` +
+    `लक्ष्य भाव: ₹${alert.targetPrice}/क्विंटल.\n\n` +
+    `किसान सारथी • APMC Intelligence`
+  );
+  const emailMailtoUrl = `mailto:${farmerEmail}?subject=${emailSubject}&body=${emailBody}`;
+
   const handleSendSms = async () => {
     setIsSendingSms(true);
     try {
@@ -65,6 +86,46 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onToggleStatus, onD
       showToast('SMS पाठवताना अडचण आली, कृपया पुन्हा प्रयत्न करा', 'error');
     } finally {
       setIsSendingSms(false);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    setIsSendingEmail(true);
+    setEmailError(null);
+    try {
+      const res = await sendPriceAlertEmail({
+        alertId: alert.id,
+        toEmail: farmerEmail,
+        cropName,
+        mandiName,
+        currentPrice,
+        targetPrice: alert.targetPrice,
+        condition: alert.condition,
+        farmerName
+      });
+
+      if (res.success && res.messageId) {
+        setEmailError(null);
+        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        setEmailSuccessTime(timeStr);
+        showToast(
+          i18n.language === 'mr'
+            ? `📧 ${farmerEmail} वर ई-मेल अलर्ट यशस्वीरीत्या पाठवला!`
+            : `📧 Email alert successfully sent to ${farmerEmail}`,
+          'success'
+        );
+      } else {
+        setEmailSuccessTime(null);
+        const errMsg = res.error || 'ई-मेल पाठवता आला नाही';
+        setEmailError(errMsg);
+        showToast(errMsg, 'error');
+      }
+    } catch (err: any) {
+      const errMsg = err?.message || 'ई-मेल पाठवताना त्रुटी आली';
+      setEmailError(errMsg);
+      showToast(errMsg, 'error');
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
@@ -176,7 +237,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onToggleStatus, onD
         </div>
       )}
 
-      {/* Direct Mobile SIM SMS Action Button & Preview */}
+      {/* Notification Actions: Direct SMS + Email Alert + View SMS */}
       <div className="space-y-2 ml-1.5">
         <div className="flex flex-col sm:flex-row gap-2">
           {/* Direct Send SMS Button */}
@@ -184,17 +245,32 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onToggleStatus, onD
             type="button"
             onClick={handleSendSms}
             disabled={isSendingSms}
-            className="flex-1 py-2.5 px-4 rounded-2xl bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] text-[#FFFFFF] text-xs font-black hover:from-[#144919] hover:to-[#1B5E20] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-emerald-950/15 min-h-[44px]"
+            className="flex-1 py-2.5 px-3 rounded-2xl bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] text-[#FFFFFF] text-xs font-black hover:from-[#144919] hover:to-[#1B5E20] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-emerald-950/15 min-h-[44px]"
           >
             <Smartphone className="w-4 h-4 text-[#FFB300]" />
             <span>
               {isSendingSms
                 ? 'SMS पाठवला जात आहे...'
                 : i18n.language === 'mr'
-                ? 'मोबाईलवर थेट SMS पाठवा (Send SIM SMS)'
-                : 'Send SIM SMS to Mobile'}
+                ? 'SIM SMS पाठवा'
+                : 'Send SIM SMS'}
             </span>
             <Send className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Email Alert Action Button */}
+          <button
+            type="button"
+            onClick={handleSendEmail}
+            disabled={isSendingEmail}
+            className="flex-1 py-2.5 px-3 rounded-2xl bg-[#FFFFFF] border-2 border-[#1B5E20] text-[#1B5E20] text-xs font-black hover:bg-[#E8F5E9] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs min-h-[44px]"
+          >
+            <Mail className="w-4 h-4 text-[#FFB300]" />
+            <span>
+              {isSendingEmail
+                ? (i18n.language === 'mr' ? 'ई-मेल पाठवत आहे...' : 'Sending Email...')
+                : (i18n.language === 'mr' ? 'ई-मेल अलर्ट पाठवा (Email)' : 'Email Alert')}
+            </span>
           </button>
 
           {/* View SMS Text Button */}
@@ -204,9 +280,42 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onToggleStatus, onD
             className="py-2 px-3 rounded-2xl border border-[#D8E6D8] bg-[#F4F9F4] text-xs font-black text-[#0F291E] hover:bg-[#E8F5E9] transition-all flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer"
           >
             <MessageSquareText className="w-4 h-4 text-[#1B5E20]" />
-            <span>{showSmsPreview ? (i18n.language === 'mr' ? 'लपवा' : 'Hide SMS') : (i18n.language === 'mr' ? 'SMS मजकूर पहा' : 'View SMS')}</span>
+            <span>{showSmsPreview ? (i18n.language === 'mr' ? 'लपवा' : 'Hide') : (i18n.language === 'mr' ? 'SMS पहा' : 'View SMS')}</span>
           </button>
         </div>
+
+        {/* Email Error Alert Banner (if failure e.g. missing API key or network) */}
+        {emailError && (
+          <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-2 text-xs text-rose-800 font-bold animate-in fade-in duration-200">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <span>{emailError}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Email Success Confirmation Banner */}
+        {emailSuccessTime && !emailError && (
+          <div className="p-3.5 bg-emerald-50 border-2 border-emerald-300 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-emerald-950 font-black animate-in fade-in duration-200 shadow-xs">
+            <div className="flex items-center gap-1.5">
+              <CheckCheck className="w-4 h-4 text-[#2E7D32] shrink-0" />
+              <span>{i18n.language === 'mr' ? `ई-मेल पाठवला गेला (${farmerEmail})` : `Email dispatched to ${farmerEmail}`}</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <a
+                href={emailMailtoUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-2.5 py-1 rounded-xl bg-[#FFFFFF] border border-[#1B5E20] text-[#1B5E20] text-[11px] font-black hover:bg-[#E8F5E9] transition-all flex items-center gap-1 shadow-xs cursor-pointer"
+              >
+                <Mail className="w-3.5 h-3.5 text-[#FFB300]" />
+                <span>Gmail मध्ये उघडा</span>
+              </a>
+              <span className="text-[10px] text-[#526058] font-bold">{emailSuccessTime}</span>
+            </div>
+          </div>
+        )}
 
         {/* SMS Live Delivery Notification / Preview Bubble */}
         {showSmsPreview && (

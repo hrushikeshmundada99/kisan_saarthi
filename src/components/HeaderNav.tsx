@@ -4,7 +4,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Bell,
   MapPin,
-  Sparkles,
   LogIn,
   Sprout,
   Menu
@@ -51,10 +50,10 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ onOpenAuthModal, onStartTo
               <Menu className="w-5 h-5 text-[#1B5E20]" />
             </button>
 
-            {/* Brand Logo Header Anchor (Clickable Home) */}
+            {/* Brand Logo Header Anchor (Visible on Mobile/Tablet, hidden on Desktop where Sidebar logo is visible) */}
             <div 
               onClick={() => navigate('/')} 
-              className="flex items-center gap-2.5 cursor-pointer group shrink-0"
+              className="lg:hidden flex items-center gap-2.5 cursor-pointer group shrink-0"
               title={t('appName')}
             >
               <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-[#1B5E20] via-[#2E7D32] to-[#144919] flex items-center justify-center text-[#FFB300] shadow-md shadow-emerald-950/15 group-hover:scale-105 transition-transform duration-200">
@@ -70,47 +69,10 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ onOpenAuthModal, onStartTo
               </div>
             </div>
 
-            {/* Divider (Desktop / Laptop) */}
-            <div className="h-6 w-px bg-[#D8E6D8] hidden md:block" />
-
-            {/* Region Pill Badge (Laptop / Desktop) */}
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#F4F9F4] border border-[#D8E6D8] text-xs font-black text-[#0F291E] shadow-2xs">
-              <MapPin className="w-3.5 h-3.5 text-[#FFB300] shrink-0" />
-              <span>
-                {isMr ? 'कोपरगाव व परिसर' : 'Kopargaon APMC Region'}
-              </span>
-            </div>
-
-            {/* AI Platform Badge (Laptop / Desktop) */}
-            <div className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-black bg-emerald-50 text-[#1B5E20] border border-emerald-200 shadow-2xs">
-              <Sparkles className="w-3.5 h-3.5 text-[#FFB300] animate-pulse shrink-0" />
-              <span>
-                {isMr ? 'AI कृषी बाजार सल्लागार' : 'AI Market Intelligence'}
-              </span>
-            </div>
           </div>
 
-          {/* Right Controls: Tour + Notification + Language + Profile/Auth (Cleanly Proportioned) */}
+          {/* Right Controls: Notification + Language + Profile/Auth (Cleanly Proportioned) */}
           <div className="flex items-center gap-2 sm:gap-3">
-            
-            {/* Take Tour Button (Visible on md, lg, xl screens for balanced right bar) */}
-            <button
-              onClick={() => {
-                try {
-                  localStorage.removeItem('KISAN_SAARTHI_ONBOARDING_COMPLETED');
-                } catch {}
-                if (onStartTour) {
-                  onStartTour();
-                } else {
-                  window.dispatchEvent(new CustomEvent('START_KISAN_TOUR'));
-                }
-              }}
-              className="hidden md:flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-black bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 transition-colors cursor-pointer shadow-xs min-h-[40px]"
-              title={isMr ? 'डॅशबोर्ड मार्गदर्शन' : 'Take Tour'}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#FFB300]" />
-              <span>{isMr ? 'मार्गदर्शन' : 'Take Tour'}</span>
-            </button>
 
             {/* Notification Bell Button */}
             <button

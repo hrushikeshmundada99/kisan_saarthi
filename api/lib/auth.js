@@ -151,6 +151,7 @@ export function sanitizeFarmer(row) {
     id: row.id,
     mobile: row.mobile,
     phone: row.mobile, // compatibility alias
+    email: row.email || row.farmer_email || null,
     name: row.name,
     location: row.location || 'कोपरगाव, अहिल्यानगर',
     landSize: row.land_size || '5 एकर',

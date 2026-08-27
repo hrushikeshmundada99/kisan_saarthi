@@ -7,6 +7,7 @@ import { Sidebar } from './components/Sidebar';
 import { HeaderNav } from './components/HeaderNav';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { AuthModal } from './components/AuthModal';
+import { VoiceAssistantWidget } from './components/VoiceAssistantWidget';
 import { LoadingSkeleton } from './components/LoadingSkeleton';
 import { fetchLiveMandiRates } from './services/apiService';
 import type { MandiPriceCardItem } from './data/realData';
@@ -120,6 +121,9 @@ function AppContent() {
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
       />
+
+      {/* Floating ChatGPT-Style Multilingual Voice Assistant */}
+      <VoiceAssistantWidget />
     </div>
   );
 }
