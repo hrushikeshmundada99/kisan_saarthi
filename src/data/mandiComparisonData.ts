@@ -11,7 +11,7 @@ export interface DateWiseMandiPrice {
   arrivalsQuantity: number; // in quintals
 }
 
-export const CROPS = ['Onion', 'Soybean', 'Cotton', 'Sugarcane', 'Pomegranate', 'Wheat', 'Tomato'];
+export const CROPS = ['Onion', 'Soybean', 'Cotton', 'Sugarcane', 'Pomegranate', 'Wheat', 'Tomato', 'Maize', 'Gram', 'Bajra'];
 export const MANDIS = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Lasalgaon', 'Sangamner', 'Nashik', 'Ahilyanagar'];
 
 const MANDI_BASE_OFFSETS: Record<string, number> = {
@@ -26,13 +26,16 @@ const MANDI_BASE_OFFSETS: Record<string, number> = {
 };
 
 const CROP_BASE_PRICES: Record<string, number> = {
-  Onion: 3950,
-  Soybean: 4620,
-  Cotton: 7240,
-  Sugarcane: 3150,
-  Pomegranate: 8450,
-  Wheat: 2480,
-  Tomato: 1420
+  Onion: 4050,
+  Soybean: 5850,
+  Cotton: 7350,
+  Sugarcane: 3140,
+  Pomegranate: 8500,
+  Wheat: 2650,
+  Tomato: 1560,
+  Maize: 2350,
+  Gram: 6180,
+  Bajra: 2410
 };
 
 // Generate 30 days of historical date-wise comparison dataset

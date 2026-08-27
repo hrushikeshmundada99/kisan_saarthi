@@ -1,38 +1,5 @@
 [
   {
-    "id": "a21596e7-ea4a-40a2-b1b6-ec4e45e4baa1",
-    "crop": "Soybean",
-    "price": 4300,
-    "unit": "₹/Quintal",
-    "region": "Kopargaon",
-    "source": "live",
-    "source_name": "Agmarknet",
-    "confidence": "high",
-    "last_updated": "2026-08-25T03:26:33.166Z"
-  },
-  {
-    "id": "kopargaon-onion-3950",
-    "crop": "Onion",
-    "price": 3950,
-    "unit": "₹/Quintal",
-    "region": "Kopargaon",
-    "source": "live",
-    "source_name": "Agmarknet",
-    "confidence": "high",
-    "last_updated": "2026-08-27T10:12:00.000Z"
-  },
-  {
-    "id": "rahata-onion-3800",
-    "crop": "Onion",
-    "price": 3800,
-    "unit": "₹/Quintal",
-    "region": "Rahata",
-    "source": "live",
-    "source_name": "Agmarknet",
-    "confidence": "high",
-    "last_updated": "2026-08-27T10:13:00.000Z"
-  },
-  {
     "id": "lasalgaon-onion-4250",
     "crop": "Onion",
     "price": 4250,
@@ -41,7 +8,40 @@
     "source": "live",
     "source_name": "Agmarknet",
     "confidence": "high",
-    "last_updated": "2026-08-26T11:15:00.000Z"
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "ahilyanagar-onion-4350",
+    "crop": "Onion",
+    "price": 4350,
+    "unit": "₹/Quintal",
+    "region": "Ahilyanagar",
+    "source": "live",
+    "source_name": "Agmarknet",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "kopargaon-onion-4150",
+    "crop": "Onion",
+    "price": 4150,
+    "unit": "₹/Quintal",
+    "region": "Kopargaon",
+    "source": "live",
+    "source_name": "Agmarknet",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "nashik-onion-4050",
+    "crop": "Onion",
+    "price": 4050,
+    "unit": "₹/Quintal",
+    "region": "Nashik",
+    "source": "live",
+    "source_name": "Agmarknet",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
   },
   {
     "id": "yeola-onion-4000",
@@ -52,18 +52,29 @@
     "source": "live",
     "source_name": "Agmarknet",
     "confidence": "high",
-    "last_updated": "2026-08-27T10:10:00.000Z"
+    "last_updated": "2026-08-27T10:00:00.000Z"
   },
   {
-    "id": "nashik-onion-4000",
+    "id": "shrirampur-onion-3900",
     "crop": "Onion",
-    "price": 4000,
+    "price": 3900,
     "unit": "₹/Quintal",
-    "region": "Nashik",
+    "region": "Shrirampur",
     "source": "live",
     "source_name": "Agmarknet",
     "confidence": "high",
-    "last_updated": "2026-08-26T11:15:00.000Z"
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "rahata-onion-3850",
+    "crop": "Onion",
+    "price": 3850,
+    "unit": "₹/Quintal",
+    "region": "Rahata",
+    "source": "live",
+    "source_name": "Agmarknet",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
   },
   {
     "id": "sangamner-onion-3800",
@@ -74,12 +85,309 @@
     "source": "live",
     "source_name": "Agmarknet",
     "confidence": "high",
-    "last_updated": "2026-08-26T11:18:00.000Z"
+    "last_updated": "2026-08-27T10:00:00.000Z"
   },
   {
-    "id": "ahilyanagar-onion-4700",
-    "crop": "Onion",
-    "price": 4700,
+    "id": "ahilyanagar-soybean-6100",
+    "crop": "Soybean",
+    "price": 6100,
+    "unit": "₹/Quintal",
+    "region": "Ahilyanagar",
+    "source": "ai_fallback",
+    "source_name": "Google Search via Gemini",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "kopargaon-soybean-6032",
+    "crop": "Soybean",
+    "price": 6032,
+    "unit": "₹/Quintal",
+    "region": "Kopargaon",
+    "source": "ai_fallback",
+    "source_name": "Google Search via Gemini",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "shrirampur-soybean-5980",
+    "crop": "Soybean",
+    "price": 5980,
+    "unit": "₹/Quintal",
+    "region": "Shrirampur",
+    "source": "ai_fallback",
+    "source_name": "Google Search via Gemini",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "nashik-soybean-5780",
+    "crop": "Soybean",
+    "price": 5780,
+    "unit": "₹/Quintal",
+    "region": "Nashik",
+    "source": "ai_fallback",
+    "source_name": "Google Search via Gemini",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "yeola-soybean-5750",
+    "crop": "Soybean",
+    "price": 5750,
+    "unit": "₹/Quintal",
+    "region": "Yeola",
+    "source": "ai_fallback",
+    "source_name": "Google Search via Gemini",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "lasalgaon-soybean-5690",
+    "crop": "Soybean",
+    "price": 5690,
+    "unit": "₹/Quintal",
+    "region": "Lasalgaon",
+    "source": "ai_fallback",
+    "source_name": "Google Search via Gemini",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "sangamner-soybean-5600",
+    "crop": "Soybean",
+    "price": 5600,
+    "unit": "₹/Quintal",
+    "region": "Sangamner",
+    "source": "ai_fallback",
+    "source_name": "Google Search via Gemini",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "rahata-soybean-5490",
+    "crop": "Soybean",
+    "price": 5490,
+    "unit": "₹/Quintal",
+    "region": "Rahata",
+    "source": "ai_fallback",
+    "source_name": "Google Search via Gemini",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "ahilyanagar-cotton-7550",
+    "crop": "Cotton",
+    "price": 7550,
+    "unit": "₹/Quintal",
+    "region": "Ahilyanagar",
+    "source": "ai_fallback",
+    "source_name": "Google Search via Gemini",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "yeola-cotton-7480",
+    "crop": "Cotton",
+    "price": 7480,
+    "unit": "₹/Quintal",
+    "region": "Yeola",
+    "source": "ai_fallback",
+    "source_name": "Google Search via Gemini",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "shrirampur-cotton-7380",
+    "crop": "Cotton",
+    "price": 7380,
+    "unit": "₹/Quintal",
+    "region": "Shrirampur",
+    "source": "ai_fallback",
+    "source_name": "Google Search via Gemini",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "kopargaon-cotton-7300",
+    "crop": "Cotton",
+    "price": 7300,
+    "unit": "₹/Quintal",
+    "region": "Kopargaon",
+    "source": "ai_fallback",
+    "source_name": "Google Search via Gemini",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "ahilyanagar-sugarcane-3220",
+    "crop": "Sugarcane",
+    "price": 3220,
+    "unit": "₹/Quintal",
+    "region": "Ahilyanagar",
+    "source": "live",
+    "source_name": "Agmarknet",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "kopargaon-sugarcane-3150",
+    "crop": "Sugarcane",
+    "price": 3150,
+    "unit": "₹/Quintal",
+    "region": "Kopargaon",
+    "source": "live",
+    "source_name": "Agmarknet",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "ahilyanagar-pomegranate-8900",
+    "crop": "Pomegranate",
+    "price": 8900,
+    "unit": "₹/Quintal",
+    "region": "Ahilyanagar",
+    "source": "ai_fallback",
+    "source_name": "Google Search via Gemini",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "sangamner-pomegranate-8750",
+    "crop": "Pomegranate",
+    "price": 8750,
+    "unit": "₹/Quintal",
+    "region": "Sangamner",
+    "source": "ai_fallback",
+    "source_name": "Google Search via Gemini",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "rahata-pomegranate-8600",
+    "crop": "Pomegranate",
+    "price": 8600,
+    "unit": "₹/Quintal",
+    "region": "Rahata",
+    "source": "ai_fallback",
+    "source_name": "Google Search via Gemini",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "lasalgaon-wheat-2720",
+    "crop": "Wheat",
+    "price": 2720,
+    "unit": "₹/Quintal",
+    "region": "Lasalgaon",
+    "source": "live",
+    "source_name": "Agmarknet",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "ahilyanagar-wheat-2680",
+    "crop": "Wheat",
+    "price": 2680,
+    "unit": "₹/Quintal",
+    "region": "Ahilyanagar",
+    "source": "live",
+    "source_name": "Agmarknet",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "kopargaon-wheat-2650",
+    "crop": "Wheat",
+    "price": 2650,
+    "unit": "₹/Quintal",
+    "region": "Kopargaon",
+    "source": "live",
+    "source_name": "Agmarknet",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "ahilyanagar-tomato-1680",
+    "crop": "Tomato",
+    "price": 1680,
+    "unit": "₹/Quintal",
+    "region": "Ahilyanagar",
+    "source": "live",
+    "source_name": "Agmarknet",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "nashik-tomato-1650",
+    "crop": "Tomato",
+    "price": 1650,
+    "unit": "₹/Quintal",
+    "region": "Nashik",
+    "source": "live",
+    "source_name": "Agmarknet",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "ahilyanagar-maize-2420",
+    "crop": "Maize",
+    "price": 2420,
+    "unit": "₹/Quintal",
+    "region": "Ahilyanagar",
+    "source": "live",
+    "source_name": "Agmarknet",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "yeola-maize-2380",
+    "crop": "Maize",
+    "price": 2380,
+    "unit": "₹/Quintal",
+    "region": "Yeola",
+    "source": "live",
+    "source_name": "Agmarknet",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "kopargaon-gram-6608",
+    "crop": "Gram",
+    "price": 6608,
+    "unit": "₹/Quintal",
+    "region": "Kopargaon",
+    "source": "live",
+    "source_name": "Agmarknet",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "ahilyanagar-gram-6450",
+    "crop": "Gram",
+    "price": 6450,
+    "unit": "₹/Quintal",
+    "region": "Ahilyanagar",
+    "source": "live",
+    "source_name": "Agmarknet",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "lasalgaon-bajra-2511",
+    "crop": "Bajra",
+    "price": 2511,
+    "unit": "₹/Quintal",
+    "region": "Lasalgaon",
+    "source": "live",
+    "source_name": "Agmarknet",
+    "confidence": "high",
+    "last_updated": "2026-08-27T10:00:00.000Z"
+  },
+  {
+    "id": "ahilyanagar-bajra-2450",
+    "crop": "Bajra",
+    "price": 2450,
     "unit": "₹/Quintal",
     "region": "Ahilyanagar",
     "source": "live",

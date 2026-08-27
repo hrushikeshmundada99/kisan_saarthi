@@ -18,8 +18,8 @@ interface MandiPriceTrendChartProps {
   data: MandiTrendChartPoint[];
   cropName: string;
   apmcName: string;
-  horizonDays: 7 | 14;
-  onHorizonChange: (days: 7 | 14) => void;
+  horizonDays: 7 | 14 | 30;
+  onHorizonChange: (days: 7 | 14 | 30) => void;
 }
 
 export const MandiPriceTrendChart: React.FC<MandiPriceTrendChartProps> = ({
@@ -61,12 +61,12 @@ export const MandiPriceTrendChart: React.FC<MandiPriceTrendChartProps> = ({
           </p>
         </div>
 
-        {/* 7-Day vs 14-Day Horizon Segmented Selector */}
+        {/* 7-Day vs 14-Day vs 30-Day Horizon Segmented Selector */}
         <div className="flex items-center gap-1.5 p-1 bg-[#F4F9F4] border border-[#D8E6D8] rounded-2xl self-start sm:self-auto">
           <span className="text-[11px] font-black text-[#526058] px-2">
             {isMr ? 'अंदाज कालावधी:' : 'Forecast Horizon:'}
           </span>
-          {([7, 14] as const).map((days) => {
+          {([7, 14, 30] as const).map((days) => {
             const isActive = horizonDays === days;
             return (
               <button

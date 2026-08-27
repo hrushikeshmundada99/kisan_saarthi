@@ -1,6 +1,8 @@
 // Comprehensive 6-Year Historical Agmarknet Dataset (2020 - 2026) for Kisan Saarthi AI Engine
 // Covering 2,190 days of daily APMC trading across Kopargaon & neighboring mandis
 
+import { REAL_DASHBOARD_CARDS } from './realData';
+
 export interface DailyHistoricalRecord {
   date: string;       // YYYY-MM-DD
   dayOfYear: number;  // 1 - 365
@@ -38,16 +40,16 @@ export const SUPPORTED_MANDIS = [
 
 // Base commodity economic reference values (₹/quintal)
 const CROP_MACRO_BASE: Record<string, { base2020: number; annualInflation: number; seasonalAmplitude: number; peakMonth: number }> = {
-  Onion: { base2020: 2420, annualInflation: 0.075, seasonalAmplitude: 0.42, peakMonth: 10 },        // Peak in Oct-Nov (Diwali/Pre-Kharif shortage)
-  Soybean: { base2020: 3600, annualInflation: 0.055, seasonalAmplitude: 0.18, peakMonth: 6 },       // Peak in June-July (Sowing demand)
-  Cotton: { base2020: 5400, annualInflation: 0.062, seasonalAmplitude: 0.22, peakMonth: 4 },        // Peak in April-May
-  Wheat: { base2020: 1950, annualInflation: 0.048, seasonalAmplitude: 0.15, peakMonth: 12 },       // Peak in Dec-Jan
-  Sugarcane: { base2020: 2750, annualInflation: 0.042, seasonalAmplitude: 0.12, peakMonth: 2 },     // FRP linkage
-  Pomegranate: { base2020: 6200, annualInflation: 0.070, seasonalAmplitude: 0.35, peakMonth: 8 },   // Mrig Bahar peak
-  Tomato: { base2020: 1100, annualInflation: 0.082, seasonalAmplitude: 0.55, peakMonth: 7 },       // High summer volatility
-  Maize: { base2020: 1650, annualInflation: 0.050, seasonalAmplitude: 0.20, peakMonth: 5 },        // Poultry demand
-  Gram: { base2020: 4200, annualInflation: 0.052, seasonalAmplitude: 0.18, peakMonth: 9 },         // Festive demand
-  Bajra: { base2020: 1750, annualInflation: 0.045, seasonalAmplitude: 0.16, peakMonth: 1 }         // Winter consumption
+  Onion: { base2020: 2500, annualInflation: 0.075, seasonalAmplitude: 0.35, peakMonth: 10 },
+  Soybean: { base2020: 4100, annualInflation: 0.055, seasonalAmplitude: 0.18, peakMonth: 6 },
+  Cotton: { base2020: 5500, annualInflation: 0.045, seasonalAmplitude: 0.15, peakMonth: 4 },
+  Wheat: { base2020: 2000, annualInflation: 0.045, seasonalAmplitude: 0.12, peakMonth: 12 },
+  Sugarcane: { base2020: 2750, annualInflation: 0.022, seasonalAmplitude: 0.08, peakMonth: 2 },
+  Pomegranate: { base2020: 6400, annualInflation: 0.045, seasonalAmplitude: 0.25, peakMonth: 8 },
+  Tomato: { base2020: 1200, annualInflation: 0.048, seasonalAmplitude: 0.35, peakMonth: 7 },
+  Maize: { base2020: 1750, annualInflation: 0.045, seasonalAmplitude: 0.15, peakMonth: 5 },
+  Gram: { base2020: 4400, annualInflation: 0.050, seasonalAmplitude: 0.16, peakMonth: 9 },
+  Bajra: { base2020: 1800, annualInflation: 0.042, seasonalAmplitude: 0.14, peakMonth: 1 }
 };
 
 // Mandi-specific location price offsets
@@ -56,7 +58,7 @@ const MANDI_OFFSETS: Record<string, number> = {
   Rahata: -150,
   Shrirampur: 20,
   Yeola: 50,
-  Lasalgaon: 300, // Grade-1 export onion premium (4250 vs 3950)
+  Lasalgaon: 300,
   Sangamner: -150,
   Nashik: 50,
   Ahilyanagar: 750
@@ -75,7 +77,7 @@ function seededRandom(seed: number): () => number {
 }
 
 /**
- * Generates 6 full years (2020-01-01 to 2026-08-19, ~2,420 days) of daily Agmarknet records
+ * Generates 6 full years (2020-01-01 to 2026-08-27) of daily Agmarknet records
  */
 export function generate6YearHistoricalSeries(crop: string, mandi: string): DailyHistoricalRecord[] {
   const cropConfig = CROP_MACRO_BASE[crop] || CROP_MACRO_BASE['Onion'];
@@ -83,7 +85,7 @@ export function generate6YearHistoricalSeries(crop: string, mandi: string): Dail
   const records: DailyHistoricalRecord[] = [];
 
   const startDate = new Date('2020-01-01');
-  const endDate = new Date('2026-08-19');
+  const endDate = new Date('2026-08-27');
 
   let currentDate = new Date(startDate);
   let dayIndex = 0;
@@ -110,19 +112,19 @@ export function generate6YearHistoricalSeries(crop: string, mandi: string): Dail
     const seasonalPhase = (2 * Math.PI * (dayOfYear - peakDay)) / 365.25;
     const seasonalFactor = 1 + cropConfig.seasonalAmplitude * Math.cos(seasonalPhase);
 
-    // 3. Multi-year Macro Shock (e.g. 2020 Covid supply bottleneck, 2022 Monsoon unseasonal rains, 2023 Export duty policy)
+    // 3. Multi-year Macro Shock
     let macroShock = 1.0;
-    if (year === 2020 && month >= 9 && month <= 11) macroShock = 1.25; // 2020 late monsoon damage
-    if (year === 2022 && month >= 7 && month <= 9) macroShock = 1.18;  // 2022 flood impact
-    if (year === 2023 && month >= 8 && month <= 11 && crop === 'Onion') macroShock = 0.88; // 2023 export duty dampening
-    if (year === 2024 && month >= 8 && month <= 11) macroShock = 1.32; // 2024 strong price surge
-    if (year === 2025 && month >= 9 && month <= 12) macroShock = 1.15; // 2025 steady demand
-    if (year === 2026 && month >= 5) macroShock = 1.08;                // 2026 healthy market
+    if (year === 2020 && month >= 9 && month <= 11) macroShock = 1.25;
+    if (year === 2022 && month >= 7 && month <= 9) macroShock = 1.18;
+    if (year === 2023 && month >= 8 && month <= 11 && crop === 'Onion') macroShock = 0.88;
+    if (year === 2024 && month >= 8 && month <= 11) macroShock = 1.22;
+    if (year === 2025 && month >= 9 && month <= 12) macroShock = 1.12;
+    if (year === 2026 && month >= 5) macroShock = 1.05;
 
     // 4. Short-term APMC Noise & Weekly Auction Oscillation
     const dayOfWeek = currentDate.getDay(); // 0 = Sun
-    const weeklyAuctionFactor = dayOfWeek === 1 || dayOfWeek === 4 ? 1.02 : dayOfWeek === 0 ? 0.98 : 1.0; // Monday/Thursday peak trading
-    const noise = (random() - 0.48) * (trendBase * 0.06);
+    const weeklyAuctionFactor = dayOfWeek === 1 || dayOfWeek === 4 ? 1.02 : dayOfWeek === 0 ? 0.98 : 1.0;
+    const noise = (random() - 0.48) * (trendBase * 0.04);
 
     // Modal Price calculation
     const modalPrice = Math.round(trendBase * seasonalFactor * macroShock * weeklyAuctionFactor + noise);
@@ -157,6 +159,29 @@ export function generate6YearHistoricalSeries(crop: string, mandi: string): Dail
 
     currentDate.setDate(currentDate.getDate() + 1);
     dayIndex++;
+  }
+
+  // Anchor the final record to today's live card modal price
+  const liveCard = REAL_DASHBOARD_CARDS.find(
+    (c) => c.crop === crop && c.mandiName.toLowerCase() === mandi.toLowerCase()
+  );
+  if (liveCard && records.length > 0) {
+    const targetPrice = liveCard.modalPrice;
+    const lastIdx = records.length - 1;
+    const initialLastPrice = records[lastIdx].modalPrice;
+    const diff = targetPrice - initialLastPrice;
+
+    // Smoothly blend difference over final 14 days
+    const blendDays = Math.min(14, records.length);
+    for (let k = 0; k < blendDays; k++) {
+      const idx = lastIdx - (blendDays - 1 - k);
+      const factor = (k + 1) / blendDays;
+      const adjustedModal = Math.round(records[idx].modalPrice + diff * factor);
+      const spread = Math.round(adjustedModal * 0.10);
+      records[idx].modalPrice = adjustedModal;
+      records[idx].minPrice = Math.max(100, adjustedModal - spread);
+      records[idx].maxPrice = adjustedModal + spread;
+    }
   }
 
   return records;

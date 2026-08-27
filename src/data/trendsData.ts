@@ -19,8 +19,8 @@ export interface MonthlyAverageItem {
   isCurrentMonth: boolean;
 }
 
-const CROPS = ['Onion', 'Soybean', 'Cotton', 'Sugarcane', 'Pomegranate', 'Wheat', 'Tomato'];
-const MANDIS = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Sangamner', 'Nashik', 'Ahilyanagar'];
+const CROPS = ['Onion', 'Soybean', 'Cotton', 'Sugarcane', 'Pomegranate', 'Wheat', 'Tomato', 'Maize', 'Gram', 'Bajra'];
+const MANDIS = ['Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Sangamner', 'Nashik', 'Ahilyanagar', 'Lasalgaon'];
 
 const CROP_SEASONAL_CURVES: Record<string, number[]> = {
   // Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec
@@ -30,17 +30,23 @@ const CROP_SEASONAL_CURVES: Record<string, number[]> = {
   Sugarcane: [1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00],
   Pomegranate: [1.05, 1.08, 1.12, 1.15, 1.00, 0.90, 0.95, 1.02, 1.10, 1.20, 1.15, 1.08],
   Wheat: [0.90, 0.88, 0.82, 0.80, 0.85, 0.92, 1.00, 1.04, 1.08, 1.12, 1.15, 1.05],
-  Tomato: [0.85, 0.80, 0.90, 1.10, 1.30, 1.65, 1.80, 1.40, 1.10, 0.95, 0.90, 0.85]
+  Tomato: [0.85, 0.80, 0.90, 1.10, 1.30, 1.65, 1.80, 1.40, 1.10, 0.95, 0.90, 0.85],
+  Maize: [0.92, 0.94, 0.96, 0.98, 1.00, 1.05, 1.08, 1.02, 0.95, 0.90, 0.91, 0.93],
+  Gram: [0.95, 0.90, 0.88, 0.92, 0.96, 1.00, 1.05, 1.08, 1.10, 1.12, 1.08, 1.02],
+  Bajra: [0.94, 0.92, 0.95, 0.98, 1.02, 1.06, 1.05, 1.00, 0.92, 0.90, 0.93, 0.95]
 };
 
 const CROP_BASE_PRICES: Record<string, number> = {
-  Onion: 3950,
-  Soybean: 4620,
-  Cotton: 7240,
-  Sugarcane: 3150,
-  Pomegranate: 8450,
-  Wheat: 2480,
-  Tomato: 1420
+  Onion: 4050,
+  Soybean: 5850,
+  Cotton: 7350,
+  Sugarcane: 3140,
+  Pomegranate: 8500,
+  Wheat: 2650,
+  Tomato: 1560,
+  Maize: 2350,
+  Gram: 6180,
+  Bajra: 2410
 };
 
 const MANDI_OFFSETS: Record<string, number> = {
@@ -53,10 +59,12 @@ const MANDI_OFFSETS: Record<string, number> = {
   Ahilyanagar: 750
 };
 
+import { REAL_DASHBOARD_CARDS } from './realData';
+
 // Generate 365 days of realistic historical daily dataset
 export const generate365DaysTrendsData = (): DailyTrendItem[] => {
   const records: DailyTrendItem[] = [];
-  const today = new Date('2026-07-26');
+  const today = new Date();
 
   for (let i = 364; i >= 0; i--) {
     const d = new Date(today);
@@ -72,16 +80,20 @@ export const generate365DaysTrendsData = (): DailyTrendItem[] => {
     const monthName = d.toLocaleDateString('en-GB', { month: 'short' });
 
     CROPS.forEach((crop) => {
-      const base = CROP_BASE_PRICES[crop] || 1800;
+      const defaultBase = CROP_BASE_PRICES[crop] || 1800;
       const seasonalCurve = CROP_SEASONAL_CURVES[crop] || CROP_SEASONAL_CURVES['Onion'];
       const multiplier = seasonalCurve[monthIndex] || 1.0;
 
       MANDIS.forEach((mandiName) => {
-        const offset = MANDI_OFFSETS[mandiName] || 0;
-        const dailyNoise = Math.sin((i + 1) * 0.4 + crop.length) * 35;
+        const liveCard = REAL_DASHBOARD_CARDS.find(
+          (c) => c.crop === crop && c.mandiName.toLowerCase() === mandiName.toLowerCase()
+        );
+        const base = liveCard ? liveCard.modalPrice : defaultBase;
+        const offset = liveCard ? 0 : (MANDI_OFFSETS[mandiName] || 0);
+        const dailyNoise = i === 0 ? 0 : Math.sin((i + 1) * 0.4 + crop.length) * 25;
 
-        const modalPrice = Math.round((base + offset + dailyNoise) * multiplier);
-        const arrivalsQuantity = Math.round(500 + Math.abs(Math.cos(i * 0.3) * 1500) / multiplier);
+        const modalPrice = i === 0 && liveCard ? liveCard.modalPrice : Math.round(base + offset + dailyNoise);
+        const arrivalsQuantity = Math.round(500 + Math.abs(Math.cos(i * 0.3) * 1500) / (multiplier || 1));
 
         records.push({
           date: dateStr,
