@@ -3,60 +3,35 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 
-// Static import of serverless handlers for instant zero-latency dev execution
-// @ts-ignore
-import signupHandler from './api/auth/signup.js';
-// @ts-ignore
-import loginHandler from './api/auth/login.js';
-// @ts-ignore
-import meHandler from './api/auth/me.js';
-// @ts-ignore
-import logoutHandler from './api/auth/logout.js';
-// @ts-ignore
-import profileHandler from './api/auth/profile.js';
-// @ts-ignore
-import changePasswordHandler from './api/auth/change-password.js';
-// @ts-ignore
-import cedaHandler from './api/ceda.js';
-// @ts-ignore
-import trainHandler from './api/forecast/train.js';
-// @ts-ignore
-import recommendationsIndexHandler from './api/recommendations/index.js';
-// @ts-ignore
-import recommendationsFeedbackHandler from './api/recommendations/feedback.js';
-// @ts-ignore
-import recommendationsStatsHandler from './api/recommendations/stats.js';
-// @ts-ignore
-import sendEmailAlertHandler from './api/alerts/send-email.js';
-// @ts-ignore
-import assistantAskHandler from './api/assistant/ask.js';
-
-const serverlessRoutes: Record<string, any> = {
-  '/api/auth/signup': signupHandler,
-  '/api/auth/login': loginHandler,
-  '/api/auth/me': meHandler,
-  '/api/auth/logout': logoutHandler,
-  '/api/auth/profile': profileHandler,
-  '/api/auth/change-password': changePasswordHandler,
-  '/api/ceda': cedaHandler,
-  '/api/forecast/train': trainHandler,
-  '/api/recommendations': recommendationsIndexHandler,
-  '/api/recommendations/feedback': recommendationsFeedbackHandler,
-  '/api/recommendations/stats': recommendationsStatsHandler,
-  '/api/alerts/send-email': sendEmailAlertHandler,
-  '/api/assistant/ask': assistantAskHandler,
-};
-
 /**
- * Robust Vite Dev Server middleware plugin to execute Vercel Serverless Functions locally
+ * Robust Vite Dev Server middleware plugin to execute Vercel Serverless Functions locally via dynamic imports
  */
 function vercelApiDevPlugin() {
   return {
     name: 'vercel-api-dev-plugin',
     configureServer(server: any) {
-      server.middlewares.use((req: any, res: any, next: any) => {
+      server.middlewares.use(async (req: any, res: any, next: any) => {
         const urlPath = req.url ? req.url.split('?')[0].replace(/\/$/, '') : '';
-        const handler = serverlessRoutes[urlPath];
+        if (!urlPath.startsWith('/api/')) return next();
+
+        let handler: any = null;
+        try {
+          if (urlPath === '/api/auth/signup') handler = (await import('./api/auth/signup.js')).default;
+          else if (urlPath === '/api/auth/login') handler = (await import('./api/auth/login.js')).default;
+          else if (urlPath === '/api/auth/me') handler = (await import('./api/auth/me.js')).default;
+          else if (urlPath === '/api/auth/logout') handler = (await import('./api/auth/logout.js')).default;
+          else if (urlPath === '/api/auth/profile') handler = (await import('./api/auth/profile.js')).default;
+          else if (urlPath === '/api/auth/change-password') handler = (await import('./api/auth/change-password.js')).default;
+          else if (urlPath === '/api/ceda') handler = (await import('./api/ceda.js')).default;
+          else if (urlPath === '/api/forecast/train') handler = (await import('./api/forecast/train.js')).default;
+          else if (urlPath === '/api/recommendations') handler = (await import('./api/recommendations/index.js')).default;
+          else if (urlPath === '/api/recommendations/feedback') handler = (await import('./api/recommendations/feedback.js')).default;
+          else if (urlPath === '/api/recommendations/stats') handler = (await import('./api/recommendations/stats.js')).default;
+          else if (urlPath === '/api/alerts/send-email') handler = (await import('./api/alerts/send-email.js')).default;
+          else if (urlPath === '/api/assistant/ask') handler = (await import('./api/assistant/ask.js')).default;
+        } catch (e) {
+          console.warn(`[Vercel Dev API Plugin] Dynamic handler import warning for ${urlPath}:`, e);
+        }
 
         if (!handler) {
           return next();
@@ -129,13 +104,18 @@ function vercelApiDevPlugin() {
 }
 
 // https://vite.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   // Populate process.env for serverless functions running in dev
   Object.assign(process.env, env);
 
+  const plugins: any[] = [react(), tailwindcss()];
+  if (command === 'serve') {
+    plugins.push(vercelApiDevPlugin());
+  }
+
   return {
-    plugins: [react(), tailwindcss(), vercelApiDevPlugin()],
+    plugins,
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),

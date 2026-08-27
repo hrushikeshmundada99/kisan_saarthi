@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Bell,
-  MapPin,
   LogIn,
   Sprout,
   Menu
@@ -19,7 +18,7 @@ interface HeaderNavProps {
   onStartTour?: () => void;
 }
 
-export const HeaderNav: React.FC<HeaderNavProps> = ({ onOpenAuthModal, onStartTour }) => {
+export const HeaderNav: React.FC<HeaderNavProps> = ({ onOpenAuthModal, onStartTour: _onStartTour }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();

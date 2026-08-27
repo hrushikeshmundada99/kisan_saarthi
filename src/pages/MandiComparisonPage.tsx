@@ -39,6 +39,7 @@ export const MandiComparisonPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { showToast } = useToast();
 
   const initialCrop = searchParams.get('crop') || 'Onion';
   const TODAY_DATE = getTodayDateStr();

@@ -1,38 +1,7 @@
-// Reusable Backend Email Service (SMTP Transport via Nodemailer + Provider Fallback)
-import nodemailer from 'nodemailer';
-import fs from 'fs';
-import path from 'path';
-
-/**
- * Dynamically resolves environment variables from process.env or .env file
- */
-function getEnvValue(key) {
-  if (process.env[key] && !process.env[key].includes('placeholder')) {
-    return process.env[key].trim();
-  }
-  try {
-    const envPath = path.resolve(process.cwd(), '.env');
-    if (fs.existsSync(envPath)) {
-      const envContent = fs.readFileSync(envPath, 'utf8');
-      const regex = new RegExp(`${key}\\s*=\\s*(.+)`);
-      const match = envContent.match(regex);
-      if (match && match[1]) {
-        const val = match[1].trim().replace(/^["']|["']$/g, '');
-        if (val && !val.includes('placeholder')) {
-          return val;
-        }
-      }
-    }
-  } catch (err) {
-    console.warn(`[Env Read Warning for ${key}]:`, err.message);
-  }
-  return process.env[key] || null;
-}
-
 /**
  * Creates Nodemailer Transporter if SMTP credentials exist
  */
-function createSmtpTransporter() {
+async function createSmtpTransporter() {
   const host = getEnvValue('SMTP_HOST');
   const port = parseInt(getEnvValue('SMTP_PORT') || '587', 10);
   const secure = getEnvValue('SMTP_SECURE') === 'true' || port === 465;
@@ -43,6 +12,15 @@ function createSmtpTransporter() {
     return null;
   }
 
+  let nodemailerModule;
+  try {
+    nodemailerModule = await import('nodemailer');
+  } catch (err) {
+    console.warn('[SMTP Config]: Nodemailer module not available, falling back to API/Sandbox transport.');
+    return null;
+  }
+
+  const nodemailer = nodemailerModule.default || nodemailerModule;
   console.log(`[SMTP Config]: Initializing Nodemailer transport for ${host}:${port} (user: ${user})`);
 
   return nodemailer.createTransport({
@@ -83,7 +61,7 @@ export async function sendEmail({ to, subject, html, text, from }) {
   const textBody = text || html.replace(/<[^>]+>/g, ' ').trim();
 
   // 1. Try Nodemailer SMTP Transport first
-  const transporter = createSmtpTransporter();
+  const transporter = await createSmtpTransporter();
 
   if (transporter) {
     try {

@@ -17,7 +17,6 @@ import {
 } from '../services/dailyModelUpdater';
 import { ForecastChart } from '../components/ForecastChart';
 import { SellTimingCard } from '../components/SellTimingCard';
-import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { useToast } from '../components/Toast';
 import {
@@ -447,7 +446,7 @@ export const PriceForecastPage: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={handleRetrainModel}
               disabled={isRetraining}

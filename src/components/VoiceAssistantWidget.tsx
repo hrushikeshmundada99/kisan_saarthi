@@ -9,10 +9,7 @@ import {
   Volume2,
   VolumeX,
   Loader2,
-  Sparkles,
-  RefreshCw,
-  MessageSquare,
-  ChevronDown
+  Sparkles
 } from 'lucide-react';
 
 interface ChatMessage {

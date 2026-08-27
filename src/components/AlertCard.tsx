@@ -63,7 +63,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onToggleStatus, onD
 
   const cachedEmail = typeof window !== 'undefined' ? localStorage.getItem('KISAN_SAARTHI_USER_EMAIL') : null;
   const initialEmail = (alert.farmerEmail || user?.email || cachedEmail || 'farmer@gmail.com').replace('example.com', 'gmail.com');
-  const [customEmail, setCustomEmail] = useState<string>(initialEmail);
+  const customEmail = initialEmail;
   const farmerEmail = customEmail || initialEmail;
 
   const emailSubject = encodeURIComponent(`Price Alert Triggered: ${cropName} at ${mandiName}`);
