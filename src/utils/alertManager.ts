@@ -7,10 +7,12 @@ export interface PriceAlertItem {
   condition: 'ABOVE' | 'BELOW';
   targetPrice: number;
   farmerPhone?: string;
-  notificationMethods: Array<'SMS' | 'In-App'>;
+  farmerEmail?: string;
+  notificationMethods: Array<'SMS' | 'Email' | 'In-App'>;
   status: 'ACTIVE' | 'TRIGGERED' | 'DISABLED';
   createdAt: string;
   lastSmsSentAt?: string;
+  lastEmailSentAt?: string;
 }
 
 export interface SmsDispatchResult {

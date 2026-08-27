@@ -5,6 +5,7 @@ import { REAL_MANDI_RATES, MANDI_LOCATIONS } from '../data/realData';
 import { CropSelector } from '../components/CropSelector';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import { useToast } from '../components/Toast';
 import {
   ResponsiveContainer,
   BarChart,
@@ -55,6 +56,7 @@ interface MandiProfitResult {
 export const ProfitabilityCalculatorPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams();
+  const { showToast } = useToast();
 
   const initialCrop = searchParams.get('crop') || 'Onion';
 
@@ -158,6 +160,12 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
     });
 
     setCalculatedResults(results);
+    showToast(
+      isMr
+        ? `📊 नफा-तोटा गणित पूर्ण झाले! सर्वाधिक नफा देणारी मंडी तयार आहे.`
+        : `📊 Profitability calculation complete! Mandi comparison updated.`,
+      'success'
+    );
   };
 
   // Find most profitable mandi

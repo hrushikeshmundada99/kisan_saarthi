@@ -266,7 +266,7 @@ export const FarmerProfilePage: React.FC = () => {
             </span>
             <span className="px-3 py-1 bg-[#FFFFFF] border border-[#D8E6D8] rounded-xl font-black text-[#0F291E] flex items-center gap-1.5 shadow-xs">
               <Phone className="w-3.5 h-3.5 text-[#1B5E20]" />
-              +91 {user ? (user.phone || user.mobile) : '98XXXXXXXX'}
+              +91 {user ? (user.phone || user.mobile) : '98220 *****'}
             </span>
             <span className="px-3 py-1 bg-emerald-100 text-emerald-950 border border-emerald-300 rounded-xl font-black flex items-center gap-1.5 shadow-xs">
               <ShieldCheck className="w-4 h-4 text-[#1B5E20]" />

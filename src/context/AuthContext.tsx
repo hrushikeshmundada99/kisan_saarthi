@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 export interface UserProfile {
   id?: string;
   name: string;
+  email?: string;
   phone: string;
   mobile?: string;
   location: string;
@@ -30,7 +31,8 @@ interface AuthContextType {
     primaryCrop: string,
     password: string,
     landSize?: string,
-    preferredMandis?: string[]
+    preferredMandis?: string[],
+    email?: string
   ) => Promise<AuthResult>;
   logout: () => Promise<void>;
   updateProfile: (updated: Partial<UserProfile>) => Promise<AuthResult>;
@@ -173,7 +175,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     primaryCrop: string,
     password: string,
     landSize: string = '५ एकर (5 Acres)',
-    preferredMandis: string[] = ['Kopargaon', 'Rahata', 'Yeola']
+    preferredMandis: string[] = ['Kopargaon', 'Rahata', 'Yeola'],
+    email?: string
   ): Promise<AuthResult> => {
     try {
       setIsLoading(true);
@@ -186,6 +189,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({
           name,
           mobile: phone,
+          email,
           location,
           primaryCrop,
           password,

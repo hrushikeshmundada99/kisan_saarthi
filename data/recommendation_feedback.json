@@ -9,5 +9,16 @@
     "actual_sell_date": null,
     "feedback_note": null,
     "submitted_at": "2026-08-19T12:01:21.968Z"
+  },
+  {
+    "id": "0054758f-3970-4cc6-8204-9c9b70503aae",
+    "recommendation_id": "0e3f5668-38c5-42e4-a488-5baf61f6e6c7",
+    "farmer_id": null,
+    "was_helpful": true,
+    "followed_advice": false,
+    "actual_sell_price": null,
+    "actual_sell_date": null,
+    "feedback_note": null,
+    "submitted_at": "2026-08-27T11:10:09.198Z"
   }
 ]

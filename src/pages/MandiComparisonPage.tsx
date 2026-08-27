@@ -11,6 +11,7 @@ import { MandiDateMatrixTable } from '../components/MandiDateMatrixTable';
 import { CropSelector } from '../components/CropSelector';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import { useToast } from '../components/Toast';
 import {
   Scale,
   Truck,
@@ -421,7 +422,10 @@ export const MandiComparisonPage: React.FC = () => {
                   rate={rate}
                   isBestOption={rate.id === bestMandiId}
                   quantityQuintals={quantity}
-                  onSelect={() => navigate(`/forecast?crop=${crop}&mandi=${rate.mandi}`)}
+                  onSelect={() => {
+                    showToast(`🌾 ${t(`mandis.${rate.mandi}`, rate.mandi)} मंडी निवडली! विक्रीचा अंदाज व दर नकाशा लोड झाला.`, 'success');
+                    navigate(`/forecast?crop=${crop}&mandi=${rate.mandi}`);
+                  }}
                 />
               ))}
             </div>

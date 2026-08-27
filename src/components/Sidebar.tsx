@@ -12,7 +12,6 @@ import {
   User,
   X,
   ChevronRight,
-  Sparkles,
   Compass
 } from 'lucide-react';
 import { LanguageToggle } from './LanguageToggle';
@@ -90,8 +89,10 @@ export const Sidebar: React.FC<SidebarProps> = () => {
 
       {/* Modern Vertical Sidebar (Desktop Sticky + Mobile Drawer) */}
       <aside
-        className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-64 xl:w-72 bg-[#FFFFFF]/98 backdrop-blur-2xl border-r border-[#D8E6D8] flex flex-col justify-between p-4 sm:p-5 transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-64 xl:w-72 bg-[#FFFFFF]/98 backdrop-blur-2xl border-r border-[#D8E6D8] flex flex-col justify-between p-4 sm:p-5 transition-all duration-300 ease-in-out shadow-2xl lg:shadow-none ${
+          mobileOpen
+            ? 'translate-x-0 visible pointer-events-auto'
+            : '-translate-x-full invisible pointer-events-none lg:translate-x-0 lg:visible lg:pointer-events-auto'
         }`}
       >
         <div className="flex-1 overflow-y-auto space-y-4 pr-1">
@@ -112,7 +113,6 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                   </span>
                 </div>
                 <span className="text-[10px] font-bold text-[#526058] flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-[#FFB300]" />
                   कोपरगाव APMC Intelligence
                 </span>
               </div>
@@ -164,24 +164,6 @@ export const Sidebar: React.FC<SidebarProps> = () => {
 
         {/* Sidebar Footer Widget: Clean, Balanced, Proportional */}
         <div className="space-y-2.5 pt-3 border-t border-[#D8E6D8]">
-          
-          {/* Start Guided Tour Button */}
-          <button
-            onClick={() => {
-              try {
-                localStorage.removeItem('KISAN_SAARTHI_ONBOARDING_COMPLETED');
-              } catch {}
-              setMobileOpen(false);
-              window.dispatchEvent(new CustomEvent('START_KISAN_TOUR'));
-            }}
-            className="w-full p-2.5 rounded-2xl text-xs font-black flex items-center justify-between border bg-amber-50/90 hover:bg-amber-100 text-amber-950 border-amber-300 transition-all min-h-[40px] cursor-pointer shadow-2xs"
-          >
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#FFB300] shrink-0" />
-              <span>मार्गदर्शन (Take Tour)</span>
-            </div>
-            <ChevronRight className="w-3.5 h-3.5 text-[#526058]" />
-          </button>
 
 
 

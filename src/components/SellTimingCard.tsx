@@ -65,8 +65,16 @@ export const SellTimingCard: React.FC<SellTimingCardProps> = ({
   // Recommendation DB Log ID
   const [recDbId, setRecDbId] = useState<string | null>(null);
 
-  // Feedback States
-  const [immediateVoted, setImmediateVoted] = useState<boolean | null>(null);
+  // Feedback States (Driven consistently per crop and mandi)
+  const feedbackStorageKey = `KISAN_SAARTHI_FEEDBACK_${rec.crop}_${rec.mandi}`;
+  const [immediateVoted, setImmediateVoted] = useState<boolean | null>(() => {
+    try {
+      const stored = localStorage.getItem(feedbackStorageKey);
+      return stored !== null ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
   const [isSubmittingImmediate, setIsSubmittingImmediate] = useState<boolean>(false);
 
   // Delayed Follow-Up Prompt State
@@ -76,10 +84,15 @@ export const SellTimingCard: React.FC<SellTimingCardProps> = ({
   const [isSubmittingFollowUp, setIsSubmittingFollowUp] = useState<boolean>(false);
   const [followUpDismissed, setFollowUpDismissed] = useState<boolean>(false);
 
-  // 1. Log recommendation to backend API on mount or crop/mandi change
+  // 1. Sync immediateVoted state from localStorage on crop/mandi change & log recommendation
   useEffect(() => {
     let isMounted = true;
-    setImmediateVoted(null);
+    try {
+      const stored = localStorage.getItem(feedbackStorageKey);
+      setImmediateVoted(stored !== null ? JSON.parse(stored) : null);
+    } catch {
+      setImmediateVoted(null);
+    }
 
     const logRecommendation = async () => {
       try {
@@ -186,20 +199,24 @@ export const SellTimingCard: React.FC<SellTimingCardProps> = ({
 
   // Submit Immediate Feedback (Thumbs Up / Down)
   const handleImmediateFeedback = async (wasHelpful: boolean) => {
-    if (!recDbId) return;
     setIsSubmittingImmediate(true);
     setImmediateVoted(wasHelpful);
+    try {
+      localStorage.setItem(feedbackStorageKey, JSON.stringify(wasHelpful));
+    } catch {}
 
     try {
-      await fetch('/api/recommendations/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          recommendation_id: recDbId,
-          was_helpful: wasHelpful
-        })
-      });
+      if (recDbId) {
+        await fetch('/api/recommendations/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            recommendation_id: recDbId,
+            was_helpful: wasHelpful
+          })
+        });
+      }
 
       showToast(
         isMr
