@@ -138,8 +138,13 @@ export const PriceForecastPage: React.FC = () => {
   const pctChangeNum = parseFloat((((endPrice - startPrice) / (startPrice || 1)) * 100).toFixed(1));
   const isRising = pctChangeNum >= 0;
 
-  // Processing linkage advice
-  const processingLinkage = PROCESSING_LINKAGES[crop] || PROCESSING_LINKAGES['Onion'];
+  // Processing linkage advice with case-insensitive crop lookup & live modal price
+  const linkageKey = Object.keys(PROCESSING_LINKAGES).find((k) => k.toLowerCase() === (crop || '').toLowerCase()) || 'Tomato';
+  const rawLinkage = PROCESSING_LINKAGES[linkageKey] || PROCESSING_LINKAGES['Tomato'];
+  const processingLinkage = {
+    ...rawLinkage,
+    rawMandiPrice: currentPrice || rawLinkage.rawMandiPrice
+  };
 
   return (
     <div className="space-y-4 sm:space-y-5 pb-6 max-w-7xl mx-auto animate-in fade-in duration-200">
@@ -434,23 +439,27 @@ export const PriceForecastPage: React.FC = () => {
           </div>
 
           <div className="p-4 bg-[#FFFFFF] border border-[#D8E6D8] rounded-2xl space-y-1">
-            <span className="text-[#1B5E20] font-black">प्रक्रिया / चॅनेल नाव:</span>
+            <span className="text-[#1B5E20] font-black">
+              {i18n.language === 'mr' ? 'प्रक्रिया / चॅनेल नाव:' : 'Processing / Channel:'}
+            </span>
             <div className="text-sm font-black text-[#1B5E20]">
-              {processingLinkage.channelNameMr}
+              {i18n.language === 'mr' ? processingLinkage.channelNameMr : processingLinkage.channelNameEn}
             </div>
           </div>
 
           <div className="p-4 bg-emerald-100 border border-emerald-300 rounded-2xl space-y-1">
-            <span className="text-emerald-950 font-black">मिळणारा निव्वळ जादा भाव:</span>
+            <span className="text-emerald-950 font-black">
+              {i18n.language === 'mr' ? 'मिळणारा निव्वळ जादा भाव:' : 'Net Extra Realization:'}
+            </span>
             <div className="text-xl font-black text-[#1B5E20]">
-              +₹{processingLinkage.netExtraProfitPerQ} / क्विंटल
+              +₹{processingLinkage.netExtraProfitPerQ} / {i18n.language === 'mr' ? 'क्विंटल' : 'Quintal'}
             </div>
           </div>
         </div>
 
         <div className="p-4 bg-[#FFFFFF] border-l-4 border-[#FFB300] rounded-r-2xl border border-[#D8E6D8]">
           <p className="text-sm font-black text-[#0F291E] leading-relaxed">
-            👉 {processingLinkage.recommendedActionMr}
+            👉 {i18n.language === 'mr' ? processingLinkage.recommendedActionMr : processingLinkage.recommendedActionEn}
           </p>
         </div>
       </Card>

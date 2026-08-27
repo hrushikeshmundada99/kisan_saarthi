@@ -274,11 +274,16 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({
 
         {/* Dynamic Reasons Grid */}
         {(() => {
-          const driverInfo = CROP_PRICE_DRIVERS[crop] || CROP_PRICE_DRIVERS['Onion'];
+          const matchKey = Object.keys(CROP_PRICE_DRIVERS).find((k) => k.toLowerCase() === (crop || '').toLowerCase()) || 'Onion';
+          const driverInfo = CROP_PRICE_DRIVERS[matchKey] || CROP_PRICE_DRIVERS['Onion'];
           const isMr = i18n.language === 'mr';
-          const reasonsList = isRising
+          const rawReasons = isRising
             ? (isMr ? driverInfo.risingReasonsMr : driverInfo.risingReasonsEn)
             : (isMr ? driverInfo.fallingReasonsMr : driverInfo.fallingReasonsEn);
+
+          const reasonsList = Array.isArray(rawReasons) && rawReasons.length > 0
+            ? rawReasons
+            : (isMr ? driverInfo.risingReasonsMr : driverInfo.risingReasonsEn);
 
           return (
             <div className="space-y-3">
