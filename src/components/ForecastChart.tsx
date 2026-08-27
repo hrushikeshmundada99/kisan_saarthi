@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { type ForecastPointItem } from '../data/forecastData';
+import { type ForecastPointItem, CROP_PRICE_DRIVERS } from '../data/forecastData';
 import { Card } from './Card';
 import {
   ResponsiveContainer,
@@ -13,7 +13,7 @@ import {
   CartesianGrid,
   Legend
 } from 'recharts';
-import { Calendar, Sparkles, TrendingUp, TrendingDown } from 'lucide-react';
+import { Calendar, TrendingUp, TrendingDown, CheckCircle2, AlertTriangle, Lightbulb } from 'lucide-react';
 
 interface ForecastChartProps {
   crop: string;
@@ -30,7 +30,7 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({
   horizonDays,
   onHorizonChange
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Slice data: past 30 days + horizon future points
   const filteredData = data.slice(0, 31 + horizonDays);
@@ -244,14 +244,74 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({
         </ResponsiveContainer>
       </div>
 
-      {/* Explanatory Footer note */}
-      <div className="flex items-center gap-2 p-3 bg-[#F4F9F4] rounded-2xl border border-[#D8E6D8] text-xs text-[#526058] font-bold">
-        <Sparkles className="w-4 h-4 text-[#FFB300] shrink-0" />
-        <span>
-          {isRising
-            ? '✅ भावात वाढ अपेक्षित असल्यामुळे माल योग्य वेळेत चांगल्या भावात विकता येईल.'
-            : '⚠️ भावात घट होण्याची शक्यता असल्याने लवकरात लवकर विक्री करणे फायदेशीर ठरेल.'}
-        </span>
+      {/* Explanatory Footer note & Key Factors Breakdown */}
+      <div className="pt-3 border-t border-[#E1EBE1] space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-white shrink-0 shadow-xs ${
+              isRising ? 'bg-[#16A34A]' : 'bg-[#DC2626]'
+            }`}>
+              {isRising ? <TrendingUp className="w-4.5 h-4.5" /> : <TrendingDown className="w-4.5 h-4.5" />}
+            </div>
+            <div>
+              <h4 className="text-sm sm:text-base font-black text-[#0F291E]">
+                {i18n.language === 'mr'
+                  ? `${t(`crops.${crop}`, crop)} भावात ${isRising ? 'वाढ (तेजी)' : 'घट (मंदी)'} होण्याची मुख्य कारणे`
+                  : `Key Factors Driving ${crop} Price ${isRising ? 'Increase' : 'Decrease'}`}
+              </h4>
+              <p className="text-[11px] font-bold text-[#526058]">
+                {i18n.language === 'mr' ? 'बाजार आवक, मागणी व शासकीय धोरणांवर आधारित AI कारणमीमांसा' : 'Fundamental drivers behind projected market trend'}
+              </p>
+            </div>
+          </div>
+
+          <span className={`px-3 py-1 rounded-full text-xs font-black border shrink-0 self-start sm:self-auto ${
+            isRising ? 'bg-emerald-100 text-emerald-950 border-emerald-300' : 'bg-rose-100 text-rose-950 border-rose-300'
+          }`}>
+            {isRising ? '🚀 तेजीचे प्रमुख घटक (Bullish Drivers)' : '⚠️ मंदीचे घटक (Bearish Drivers)'}
+          </span>
+        </div>
+
+        {/* Dynamic Reasons Grid */}
+        {(() => {
+          const driverInfo = CROP_PRICE_DRIVERS[crop] || CROP_PRICE_DRIVERS['Onion'];
+          const isMr = i18n.language === 'mr';
+          const reasonsList = isRising
+            ? (isMr ? driverInfo.risingReasonsMr : driverInfo.risingReasonsEn)
+            : (isMr ? driverInfo.fallingReasonsMr : driverInfo.fallingReasonsEn);
+
+          return (
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                {reasonsList.map((reason, rIdx) => (
+                  <div key={rIdx} className="flex items-start gap-2.5 p-3 bg-[#F4F9F4] rounded-2xl border border-[#D8E6D8] shadow-2xs">
+                    {isRising ? (
+                      <CheckCircle2 className="w-4 h-4 text-[#16A34A] shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4 text-[#DC2626] shrink-0 mt-0.5" />
+                    )}
+                    <span className="font-bold text-[#0F291E] leading-relaxed">{reason}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Agronomist Advice Box */}
+              <div className="p-3.5 bg-gradient-to-r from-amber-50 via-emerald-50 to-teal-50 rounded-2xl border border-amber-300/80 text-xs flex items-center gap-3 shadow-2xs">
+                <div className="w-8 h-8 rounded-xl bg-[#FFB300] text-[#0F291E] flex items-center justify-center shrink-0 shadow-2xs font-black">
+                  <Lightbulb className="w-4.5 h-4.5" />
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-[10px] font-black text-[#D97706] uppercase tracking-wider block">
+                    {isMr ? 'सल्ला व शिफारस (AI Advisory Note)' : 'AI Advisory Note'}
+                  </span>
+                  <span className="font-black text-[#0F291E] leading-snug block">
+                    {isMr ? driverInfo.keyMarketInsightMr : driverInfo.keyMarketInsightEn}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </Card>
   );
