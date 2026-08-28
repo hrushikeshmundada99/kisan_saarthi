@@ -225,8 +225,8 @@ export const PriceForecastPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 📊 2. Clean 3-Stat Metric Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* 📊 2. Clean 4-Stat Metric Grid with MAPE & RMSE Error Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Metric 1: Current Price */}
         <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-2 hover:border-slate-300 transition-all">
@@ -241,10 +241,15 @@ export const PriceForecastPage: React.FC = () => {
               ₹{currentPrice.toLocaleString('en-IN')}{' '}
               <span className="text-xs font-normal text-slate-500">/ क्विंटल</span>
             </div>
-            <p className="text-xs text-emerald-700 font-medium flex items-center gap-1 mt-1">
-              <ArrowUpRight className="w-3.5 h-3.5" />
-              <span>{t(`mandis.${mandi}`, mandi)} बाजार समिती</span>
-            </p>
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-xs">
+              <span className="text-emerald-700 font-medium flex items-center gap-1">
+                <ArrowUpRight className="w-3.5 h-3.5" />
+                <span>{t(`mandis.${mandi}`, mandi)}</span>
+              </span>
+              <span className="inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100" title="Mean Absolute Percentage Error">
+                MAPE: {modelState.metrics.mapePct}%
+              </span>
+            </div>
           </div>
         </div>
 
@@ -261,10 +266,15 @@ export const PriceForecastPage: React.FC = () => {
               ₹{peakPrice.toLocaleString('en-IN')}{' '}
               <span className="text-xs font-normal text-slate-500">/ क्विंटल</span>
             </div>
-            <p className={`text-xs font-semibold flex items-center gap-1 mt-1 ${isRising ? 'text-emerald-700' : 'text-rose-700'}`}>
-              {isRising ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
-              <span>{pctChangeNum >= 0 ? `+${pctChangeNum}% अंदाजित वाढ` : `${pctChangeNum}% घसरण`}</span>
-            </p>
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-xs">
+              <span className={`font-semibold flex items-center gap-1 ${isRising ? 'text-emerald-700' : 'text-rose-700'}`}>
+                {isRising ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+                <span>{pctChangeNum >= 0 ? `+${pctChangeNum}% वाढ` : `${pctChangeNum}% घसरण`}</span>
+              </span>
+              <span className="inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-100" title="Root Mean Square Error">
+                RMSE: ±₹{modelState.metrics.rmse}/Q
+              </span>
+            </div>
           </div>
         </div>
 
@@ -285,6 +295,28 @@ export const PriceForecastPage: React.FC = () => {
                 ? `अतिरिक्त फायदा: +₹${Math.round(peakPrice - currentPrice)} / क्विंटल`
                 : 'दर घटण्यापूर्वी माल विक्रीचा विचार करा'}
             </p>
+          </div>
+        </div>
+
+        {/* Metric 4: AI Model Accuracy & Error Metrics */}
+        <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-2 hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <span>{isMr ? 'अंदाजाची अचूकता व त्रुटी' : 'Model Accuracy & Error'}</span>
+            <div className="p-2 rounded-lg bg-indigo-50 text-indigo-700">
+              <Cpu className="w-4 h-4" />
+            </div>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-indigo-950 tracking-tight flex items-baseline justify-between">
+              <span>{modelState.metrics.accuracyScorePct}%</span>
+              <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                R² {modelState.metrics.r2Score}
+              </span>
+            </div>
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-[11px] font-semibold text-slate-600">
+              <span className="text-blue-700">MAPE: {modelState.metrics.mapePct}%</span>
+              <span className="text-purple-700">RMSE: ±₹{modelState.metrics.rmse}/Q</span>
+            </div>
           </div>
         </div>
 
