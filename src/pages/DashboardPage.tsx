@@ -67,14 +67,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     return getStoredAlerts();
   }, []);
 
-  // Automatically check & dispatch Twilio SMS for triggered price alerts
-  useEffect(() => {
-    checkAndDispatchTriggeredAlerts(user?.name || 'शेतकरी').then((count) => {
-      if (count > 0) {
-        showToast(`📱 ${count} भाव अलर्ट जुळले! Twilio SMS द्वारे शेतकरी मोबाईलवर मेसेज पाठवला.`, 'success');
-      }
-    });
-  }, [user]);
+
 
   const evaluatedAlerts = useMemo(() => {
     return storedAlerts

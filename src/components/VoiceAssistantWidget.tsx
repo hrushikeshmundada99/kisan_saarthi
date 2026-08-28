@@ -226,7 +226,6 @@ export const VoiceAssistantWidget: React.FC = () => {
     }
   }, [isMr, t]);
 
-<<<<<<< HEAD
   // Text-To-Speech Output with strict Marathi voice engine locale alignment
   const speakText = (text: string) => {
     if (isMuted || !('speechSynthesis' in window)) return;
@@ -243,14 +242,17 @@ export const VoiceAssistantWidget: React.FC = () => {
     const matchingVoice = voices.find((v) => v.lang.includes('mr') || v.lang.includes('hi'));
     if (matchingVoice) {
       utterance.voice = matchingVoice;
-=======
+    }
+
+    window.speechSynthesis.speak(utterance);
+  };
+
   // Speak message helper using Gemini Text-to-Speech Engine
   const playAudioForMessage = (msgId: string, text: string, lang = 'mr') => {
     if (speakingMessageId === msgId) {
       stopGeminiAudio();
       setSpeakingMessageId(null);
       return;
->>>>>>> 02af818 (feat: migrate price alerts to email-only and cleanup SMS/Twilio integrations)
     }
 
     playGeminiMarathiAudio({
@@ -575,7 +577,6 @@ export const VoiceAssistantWidget: React.FC = () => {
                       </button>
                     )}
                   </div>
->>>>>>> 02af818 (feat: migrate price alerts to email-only and cleanup SMS/Twilio integrations)
                 </div>
               );
             })}
