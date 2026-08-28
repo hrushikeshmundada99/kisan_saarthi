@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from './Card';
 import { Button } from './Button';
-import { getFast2SmsKey, setFast2SmsKey, sendRealSmsToIndianMobile } from '../services/smsService';
+import { isSmsGatewayConfigured, sendRealSmsToIndianMobile } from '../services/smsService';
 import {
   Smartphone,
   Key,
   Send,
   X,
-  ExternalLink,
   CheckCircle2,
   AlertCircle,
   MessageSquare
@@ -24,28 +23,34 @@ export const SmsGatewayModal: React.FC<SmsGatewayModalProps> = ({ isOpen, onClos
   const { i18n } = useTranslation();
   const { showToast } = useToast();
 
-  const [apiKey, setApiKey] = useState<string>('');
-  const [testPhone, setTestPhone] = useState<string>('9822154321');
+  const [testPhone, setTestPhone] = useState<string>('');
   const [isSendingTest, setIsSendingTest] = useState<boolean>(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [statusType, setStatusType] = useState<'success' | 'error' | null>(null);
+  // null = still checking, true/false = server answered the /api/fast2sms probe
+  const [gatewayConfigured, setGatewayConfigured] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (isOpen) {
-      setApiKey(getFast2SmsKey());
-      setStatusMessage(null);
-    }
+    if (!isOpen) return;
+
+    let cancelled = false;
+    setStatusMessage(null);
+    setGatewayConfigured(null);
+
+    isSmsGatewayConfigured().then((configured) => {
+      if (!cancelled) setGatewayConfigured(configured);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
 
+  const isMr = i18n.language === 'mr';
   const testMsg = `रामराम शेतकरी दादा! किसान सारथी भाव अलर्ट SMS यशस्वी. - किसान सारथी कोपरगाव`;
   const nativeSmsUrl = `sms:${testPhone.replace(/\D/g, '').slice(-10)}?body=${encodeURIComponent(testMsg)}`;
-
-  const handleSaveKey = () => {
-    setFast2SmsKey(apiKey);
-    showToast('Fast2SMS गेटवे की सेव्ह झाली!', 'success');
-  };
 
   const handleSendTestSms = async () => {
     if (!testPhone || testPhone.length < 10) {
@@ -57,18 +62,16 @@ export const SmsGatewayModal: React.FC<SmsGatewayModalProps> = ({ isOpen, onClos
     setIsSendingTest(true);
     setStatusMessage(null);
 
-    const res = await sendRealSmsToIndianMobile(testPhone, testMsg, apiKey);
+    const res = await sendRealSmsToIndianMobile(testPhone, testMsg);
 
     setIsSendingTest(false);
-    if (res.success) {
-      setStatusType('success');
-      setStatusMessage(res.message);
-      showToast(res.message, 'success');
-    } else {
-      setStatusType('error');
-      setStatusMessage(res.message);
-      showToast(res.message, 'error');
+    if (typeof res.configured === 'boolean') {
+      setGatewayConfigured(res.configured);
     }
+
+    setStatusType(res.success ? 'success' : 'error');
+    setStatusMessage(res.message);
+    showToast(res.message, res.success ? 'success' : 'error');
   };
 
   return (
@@ -92,12 +95,27 @@ export const SmsGatewayModal: React.FC<SmsGatewayModalProps> = ({ isOpen, onClos
           </div>
           <div>
             <h2 className="text-xl font-black text-[#0F291E]">
-              {i18n.language === 'mr' ? 'प्रत्यक्ष मोबाईल SMS प्रणाली' : 'Real Mobile SMS Gateway'}
+              {isMr ? 'प्रत्यक्ष मोबाईल SMS प्रणाली' : 'Real Mobile SMS Gateway'}
             </h2>
             <p className="text-xs text-[#526058] font-bold">
-              {i18n.language === 'mr' ? 'Fast2SMS क्लाउड गेटवे व थेट SIM पर्याय' : 'Fast2SMS Cloud Gateway & Native SIM Options'}
+              {isMr ? 'Fast2SMS क्लाउड गेटवे व थेट SIM पर्याय' : 'Fast2SMS Cloud Gateway & Native SIM Options'}
             </p>
           </div>
+        </div>
+
+        {/* Recipient number (shared by both options) */}
+        <div className="space-y-1">
+          <label className="block text-[11px] font-bold text-[#526058]">
+            {isMr ? 'शेतकऱ्याचा १०-अंकी मोबाईल नंबर:' : 'Farmer 10-digit mobile number:'}
+          </label>
+          <input
+            type="tel"
+            maxLength={10}
+            value={testPhone}
+            onChange={(e) => setTestPhone(e.target.value.replace(/\D/g, ''))}
+            placeholder="१०-अंकी मोबाईल नंबर"
+            className="w-full px-3 py-2 bg-[#FFFFFF] border border-[#D8E6D8] rounded-xl text-xs font-black text-[#0F291E] focus:ring-2 focus:ring-[#1B5E20]/20"
+          />
         </div>
 
         {/* Option 1: Native SIM (100% Guaranteed on Mobile) */}
@@ -121,58 +139,52 @@ export const SmsGatewayModal: React.FC<SmsGatewayModalProps> = ({ isOpen, onClos
           </a>
         </div>
 
-        {/* Option 2: Cloud Gateway via Fast2SMS */}
+        {/* Option 2: Cloud Gateway via Fast2SMS (key held server-side) */}
         <div className="p-3.5 bg-[#F4F9F4] rounded-2xl border border-[#D8E6D8] space-y-2.5">
           <div className="text-xs font-black text-[#0F291E] flex items-center justify-between">
             <span className="flex items-center gap-1">
               <Key className="w-3.5 h-3.5 text-[#1B5E20]" />
               २. क्लाउड Fast2SMS API गेटवे
             </span>
-            <a
-              href="https://www.fast2sms.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[11px] text-[#1B5E20] underline font-bold flex items-center gap-0.5"
-            >
-              <span>Fast2SMS खाते</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
+            {gatewayConfigured === null ? (
+              <span className="text-[10px] font-bold text-[#526058]">तपासत आहे...</span>
+            ) : gatewayConfigured ? (
+              <span className="bg-emerald-100 text-emerald-950 px-2 py-0.5 rounded text-[10px] font-black flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-[#2E7D32]" />
+                सक्रिय
+              </span>
+            ) : (
+              <span className="bg-amber-100 text-amber-950 px-2 py-0.5 rounded text-[10px] font-black flex items-center gap-1">
+                <AlertCircle className="w-3 h-3 text-[#FFB300]" />
+                कॉन्फिगर नाही
+              </span>
+            )}
           </div>
 
-          <div className="space-y-1">
-            <label className="block text-[11px] font-bold text-[#526058]">
-              Fast2SMS Authorization API Key:
-            </label>
-            <input
-              type="text"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Fast2SMS API Key"
-              className="w-full px-3 py-2 bg-[#FFFFFF] border border-[#D8E6D8] rounded-xl text-xs font-mono text-[#0F291E] focus:ring-2 focus:ring-[#1B5E20]/20"
-            />
-          </div>
+          {gatewayConfigured === false ? (
+            <p className="text-[11px] text-[#526058] font-semibold leading-snug">
+              {isMr
+                ? 'क्लाउड SMS गेटवे सर्व्हरवर सुरू नाही. सुरू करण्यासाठी सर्व्हरच्या environment मध्ये FAST2SMS_API_KEY सेट करा. तोपर्यंत वरील "फोनच्या SIM मधून" पर्याय वापरा.'
+                : 'The cloud SMS gateway is not enabled. Set FAST2SMS_API_KEY in the server environment to turn it on. Until then, use the native SIM option above.'}
+            </p>
+          ) : (
+            <p className="text-[11px] text-[#526058] font-semibold leading-snug">
+              {isMr
+                ? 'गेटवे की सर्व्हरवर सुरक्षित ठेवली आहे - ती ब्राउझरला कधीही पाठवली जात नाही.'
+                : 'The gateway key is held securely on the server and is never sent to the browser.'}
+            </p>
+          )}
 
-          {/* Test Phone Input */}
-          <div className="flex gap-2">
-            <input
-              type="tel"
-              maxLength={10}
-              value={testPhone}
-              onChange={(e) => setTestPhone(e.target.value.replace(/\D/g, ''))}
-              placeholder="१०-अंकी मोबाईल नंबर"
-              className="flex-1 px-3 py-2 bg-[#FFFFFF] border border-[#D8E6D8] rounded-xl text-xs font-black text-[#0F291E] focus:ring-2 focus:ring-[#1B5E20]/20"
-            />
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleSendTestSms}
-              disabled={isSendingTest}
-              className="shrink-0 text-xs font-black"
-            >
-              <Send className="w-3.5 h-3.5 text-[#FFB300]" />
-              <span>{isSendingTest ? 'पाठवत आहे...' : 'क्लाउड SMS पाठवा'}</span>
-            </Button>
-          </div>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleSendTestSms}
+            disabled={isSendingTest || gatewayConfigured === false}
+            className="w-full text-xs font-black"
+          >
+            <Send className="w-3.5 h-3.5 text-[#FFB300]" />
+            <span>{isSendingTest ? 'पाठवत आहे...' : 'क्लाउड SMS पाठवा'}</span>
+          </Button>
 
           {/* Status Message */}
           {statusMessage && (
@@ -195,23 +207,8 @@ export const SmsGatewayModal: React.FC<SmsGatewayModalProps> = ({ isOpen, onClos
 
         {/* Footer Actions */}
         <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#D8E6D8]">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-xs font-black text-[#526058] hover:text-[#0F291E] cursor-pointer"
-          >
-            बंद करा
-          </button>
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => {
-              handleSaveKey();
-              onClose();
-            }}
-            className="text-xs font-black"
-          >
-            <span>की सेव्ह करा (Save Key)</span>
+          <Button variant="primary" size="md" onClick={onClose} className="text-xs font-black">
+            <span>बंद करा</span>
           </Button>
         </div>
       </Card>

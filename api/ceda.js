@@ -1,6 +1,8 @@
 // Serverless API Proxy for CEDA Agmarknet API (Centre for Economic Data and Analysis - Ashoka University)
 // Base URL: https://api.ceda.ashoka.edu.in/v1
 
+import { applyCors } from './lib/cors.js';
+
 const CEDA_BASE_URL = 'https://api.ceda.ashoka.edu.in/v1';
 
 // Known CEDA Commodity IDs for Maharashtra Agri Markets
@@ -26,13 +28,7 @@ export const CEDA_GEOGRAPHY_MAP = {
 
 export default async function handler(req, res) {
   // CORS Headers
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
-  );
+  applyCors(req, res, { allowAnyOrigin: true, methods: 'GET,POST,OPTIONS' });
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();

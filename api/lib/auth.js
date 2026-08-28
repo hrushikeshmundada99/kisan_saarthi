@@ -1,10 +1,63 @@
 // Authentication & Security Utilities for Kisan Saarthi
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { stringifySetCookie, parseCookie } from 'cookie';
+import { applyCors } from './cors.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'kisan_saarthi_jwt_default_secret_dev_2026_smart_kopargaon';
 export const AUTH_COOKIE_NAME = 'kisan_auth_token';
+
+const MIN_JWT_SECRET_LENGTH = 32;
+let cachedJwtSecret = null;
+
+function isProductionRuntime() {
+  return process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
+}
+
+/**
+ * Resolves the JWT signing secret.
+ *
+ * There is deliberately NO hardcoded fallback: a checked-in default secret lets
+ * anyone who can read this repository mint valid session cookies for any farmer.
+ *
+ * - Production (Vercel / NODE_ENV=production): JWT_SECRET is mandatory. A missing
+ *   or too-short value throws so the deployment fails loudly instead of signing
+ *   tokens with a publicly known key.
+ * - Development: a random secret is generated once per process so `npm run dev`
+ *   still works with zero config. Sessions do not survive a dev-server restart,
+ *   which is the intended trade-off - set JWT_SECRET in .env for stable logins.
+ */
+function getJwtSecret() {
+  if (cachedJwtSecret) return cachedJwtSecret;
+
+  const configured = (process.env.JWT_SECRET || '').trim();
+
+  if (configured) {
+    if (configured.length < MIN_JWT_SECRET_LENGTH) {
+      throw new Error(
+        `JWT_SECRET must be at least ${MIN_JWT_SECRET_LENGTH} characters long (got ${configured.length}). ` +
+          'Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
+      );
+    }
+    cachedJwtSecret = configured;
+    return cachedJwtSecret;
+  }
+
+  if (isProductionRuntime()) {
+    throw new Error(
+      'JWT_SECRET environment variable is required in production. ' +
+        'Set it in your Vercel project settings (Settings -> Environment Variables). ' +
+        'Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
+    );
+  }
+
+  cachedJwtSecret = crypto.randomBytes(32).toString('hex');
+  console.warn(
+    '[Auth] JWT_SECRET is not set - generated a random development secret. ' +
+      'Existing sessions are invalidated on every restart. Set JWT_SECRET in .env for stable local logins.'
+  );
+  return cachedJwtSecret;
+}
 
 /**
  * Normalizes and strictly validates an Indian 10-digit mobile number.
@@ -55,7 +108,7 @@ export async function verifyPassword(plainPassword, passwordHash) {
  * Generates signed JWT token valid for 30 days
  */
 export function signToken(payload) {
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign(payload, getJwtSecret(), {
     expiresIn: '30d',
     issuer: 'kisan-saarthi-auth'
   });
@@ -66,7 +119,7 @@ export function signToken(payload) {
  */
 export function verifyToken(token) {
   try {
-    return jwt.verify(token, JWT_SECRET, { issuer: 'kisan-saarthi-auth' });
+    return jwt.verify(token, getJwtSecret(), { issuer: 'kisan-saarthi-auth' });
   } catch (err) {
     return null;
   }
@@ -165,11 +218,11 @@ export function sanitizeFarmer(row) {
  * Helper to set CORS and security headers for API responses
  */
 export function applyCorsHeaders(req, res) {
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
-  );
+  // Credentialed: the auth cookie rides along, so the origin must be same-origin
+  // or explicitly allowlisted. Reflecting an arbitrary Origin here would let any
+  // site on the internet make authenticated calls on a farmer's behalf.
+  applyCors(req, res, {
+    credentials: true,
+    methods: 'GET,POST,PATCH,DELETE,OPTIONS'
+  });
 }

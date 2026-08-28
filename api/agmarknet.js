@@ -1,24 +1,35 @@
 // Vercel Serverless Function Proxy for Agmarknet (data.gov.in)
 // Bypasses browser CORS restrictions on mobile and desktop
+
+import { applyCors } from './lib/cors.js';
 export default async function handler(req, res) {
   // Enable CORS
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
+  applyCors(req, res, { allowAnyOrigin: true, methods: 'GET,OPTIONS' });
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
 
-  const apiKey = req.query['api-key'] || process.env.DATA_GOV_IN_API_KEY || '579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b';
+  // Key resolution order: the farmer's own key (entered in the API Key modal),
+  // then the server's key. There is deliberately no hardcoded fallback - a key
+  // committed to the repository is public the moment the repo is cloned.
+  const callerKey = typeof req.query['api-key'] === 'string' ? req.query['api-key'].trim() : '';
+  const apiKey = callerKey || (process.env.DATA_GOV_IN_API_KEY || '').trim();
   const resourceId = '9ef84268-d588-465a-a308-a864a43d0070';
   const state = req.query['filters[state]'] || 'Maharashtra';
   const limit = req.query['limit'] || '1000';
+
+  if (!apiKey) {
+    // Degrade gracefully: the client falls back to its own dataset when records
+    // are empty, so an unconfigured deployment still renders instead of erroring.
+    return res.status(200).json({
+      records: [],
+      configured: false,
+      error:
+        'No data.gov.in API key available. Set DATA_GOV_IN_API_KEY on the server, or add your own key in the app.'
+    });
+  }
 
   const targetUrl = `https://api.data.gov.in/resource/${resourceId}?api-key=${encodeURIComponent(apiKey)}&format=json&limit=${limit}&filters[state]=${encodeURIComponent(state)}`;
 

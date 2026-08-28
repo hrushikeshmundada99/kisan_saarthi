@@ -1,38 +1,47 @@
-// Real SMS Delivery Service for Indian Mobile Numbers via Fast2SMS & Twilio Gateways
-
-const FAST2SMS_STORAGE_KEY = 'KISAN_SAARTHI_FAST2SMS_KEY';
-export const DEFAULT_FAST2SMS_KEY = 'kBe7PjfdGw5si89uMnyWq4LCAcFKlm0pYRX2hSvaOHoUJZVQtbsV8xvhO3o2a6fHizR497PEXBFWbAkU';
+// SMS Delivery Service for Indian Mobile Numbers.
+//
+// The Fast2SMS gateway key is held server-side only (FAST2SMS_API_KEY) and is
+// used by the /api/fast2sms serverless proxy. The browser never receives, stores
+// or transmits a gateway key - anything shipped to the client can be read out of
+// the bundle by any visitor and used to spend the account's SMS credits.
 
 export interface SmsSendResponse {
   success: boolean;
   message: string;
   requestId?: string;
-  gateway: 'Fast2SMS' | 'Twilio' | 'Native';
+  gateway: 'Fast2SMS' | 'Native';
+  /** False when the server has no FAST2SMS_API_KEY configured. */
+  configured?: boolean;
   errorDetails?: string;
 }
 
-// Get stored Fast2SMS API key or default key provided by user
-export const getFast2SmsKey = (): string => {
-  return (
-    localStorage.getItem(FAST2SMS_STORAGE_KEY) ||
-    import.meta.env.VITE_FAST2SMS_API_KEY ||
-    DEFAULT_FAST2SMS_KEY
-  );
+/**
+ * Asks the server whether the cloud SMS gateway is usable.
+ * Returns false when FAST2SMS_API_KEY is unset, so the UI can steer the farmer
+ * towards the native SIM option instead of showing a confusing send failure.
+ */
+export const isSmsGatewayConfigured = async (): Promise<boolean> => {
+  try {
+    const res = await fetch('/api/fast2sms', { method: 'GET' });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return data?.configured === true;
+  } catch {
+    return false;
+  }
 };
 
-export const setFast2SmsKey = (key: string): void => {
-  localStorage.setItem(FAST2SMS_STORAGE_KEY, key.trim());
-};
-
-// Send real SMS to Indian mobile numbers using Fast2SMS Quick Route (Bypassing CORS via proxy/serverless)
+/**
+ * Sends an SMS through the server-side Fast2SMS proxy.
+ * Only the recipient number and the message text leave the browser.
+ */
 export const sendRealSmsToIndianMobile = async (
   mobileNumber: string,
-  messageText: string,
-  customApiKey?: string
+  messageText: string
 ): Promise<SmsSendResponse> => {
   const cleanNumber = mobileNumber.replace(/\D/g, '').slice(-10);
 
-  if (cleanNumber.length !== 10) {
+  if (!/^[6-9]\d{9}$/.test(cleanNumber)) {
     return {
       success: false,
       message: 'कृपया १०-अंकी वैध मोबाईल नंबर प्रविष्ट करा',
@@ -40,83 +49,65 @@ export const sendRealSmsToIndianMobile = async (
     };
   }
 
-  const apiKey = customApiKey || getFast2SmsKey();
-
-  // 1. Try Proxied Endpoint (/api/fast2sms) with route=v3 / route=q
   try {
-    const proxyUrl = `/api/fast2sms?authorization=${encodeURIComponent(apiKey)}&route=v3&sender_id=TXTIND&message=${encodeURIComponent(
-      messageText
-    )}&numbers=${cleanNumber}`;
-
-    const response = await fetch(proxyUrl, {
-      method: 'GET',
+    const response = await fetch('/api/fast2sms', {
+      method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         'cache-control': 'no-cache'
-      }
+      },
+      body: JSON.stringify({
+        numbers: cleanNumber,
+        message: messageText,
+        route: 'v3',
+        language: 'unicode'
+      })
     });
 
-    if (response.ok) {
-      const result = await response.json();
-      if (result && result.return === true) {
-        return {
-          success: true,
-          message: `+91 ${cleanNumber} वर प्रत्यक्ष SMS यशस्वीरीत्या पाठवला! (Delivered via Fast2SMS)`,
-          requestId: result.request_id || `req-${Date.now()}`,
-          gateway: 'Fast2SMS'
-        };
-      } else {
-        const errMsg = Array.isArray(result?.message) ? result.message.join(', ') : result?.message || 'SMS Gateway Error';
-        return {
-          success: false,
-          message: `Fast2SMS गेटवे प्रतिसाद: ${errMsg}`,
-          gateway: 'Fast2SMS',
-          errorDetails: errMsg
-        };
-      }
+    const result = await response.json().catch(() => null);
+
+    if (response.status === 503) {
+      return {
+        success: false,
+        configured: false,
+        message:
+          'क्लाउड SMS गेटवे सर्व्हरवर कॉन्फिगर केलेले नाही. कृपया "फोनच्या SIM मधून पाठवा" पर्याय वापरा.',
+        gateway: 'Fast2SMS',
+        errorDetails: result?.message || 'FAST2SMS_API_KEY is not set on the server'
+      };
     }
-  } catch (proxyErr) {
-    console.warn('Proxy route attempt warning, trying direct route...', proxyErr);
-  }
 
-  // 2. Direct Fallback
-  try {
-    const directUrl = `https://www.fast2sms.com/dev/bulkV2?authorization=${encodeURIComponent(
-      apiKey
-    )}&route=v3&sender_id=TXTIND&message=${encodeURIComponent(messageText)}&numbers=${cleanNumber}`;
-
-    const response = await fetch(directUrl, {
-      method: 'GET',
-      headers: {
-        'cache-control': 'no-cache'
-      }
-    });
-
-    const result = await response.json();
-
-    if (result && result.return === true) {
+    if (response.ok && result && result.return === true) {
       return {
         success: true,
+        configured: true,
         message: `+91 ${cleanNumber} वर प्रत्यक्ष SMS यशस्वीरीत्या पाठवला! (Delivered via Fast2SMS)`,
         requestId: result.request_id || `req-${Date.now()}`,
         gateway: 'Fast2SMS'
       };
-    } else {
-      const errMsg = Array.isArray(result?.message) ? result.message.join(', ') : result?.message || 'Gateway Error';
-      return {
-        success: false,
-        message: `Fast2SMS गेटवे प्रतिसाद: ${errMsg}`,
-        gateway: 'Fast2SMS',
-        errorDetails: errMsg
-      };
     }
-  } catch (directErr: any) {
-    console.warn('Direct Fast2SMS fetch note:', directErr);
+
+    const errMsg = Array.isArray(result?.message)
+      ? result.message.join(', ')
+      : result?.message || 'SMS Gateway Error';
 
     return {
       success: false,
-      message: 'Fast2SMS सर्व्हरशी संपर्क झाला नाही. मोबाईलवर थेट SIM मधून SMS पाठवण्यासाठी "SIM द्वारे पाठवा" बटण वापरा.',
+      configured: true,
+      message: `Fast2SMS गेटवे प्रतिसाद: ${errMsg}`,
       gateway: 'Fast2SMS',
-      errorDetails: directErr?.message || 'CORS / Network Error'
+      errorDetails: errMsg
+    };
+  } catch (err: unknown) {
+    const detail = err instanceof Error ? err.message : 'Network Error';
+    console.warn('Fast2SMS proxy request failed:', detail);
+
+    return {
+      success: false,
+      message:
+        'SMS सर्व्हरशी संपर्क झाला नाही. मोबाईलवर थेट SIM मधून SMS पाठवण्यासाठी "SIM द्वारे पाठवा" बटण वापरा.',
+      gateway: 'Fast2SMS',
+      errorDetails: detail
     };
   }
 };

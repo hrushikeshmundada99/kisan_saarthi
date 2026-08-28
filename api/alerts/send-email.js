@@ -1,15 +1,12 @@
 // Vercel Serverless Function to send Price Alert Emails via reusable SMTP/Provider email service
 import { sendEmail } from '../services/emailService.js';
+import { applyCors } from '../lib/cors.js';
 
 export default async function handler(req, res) {
   // Set CORS headers
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, authorization'
-  );
+  // Allowlist only: this endpoint sends real email, so another site must not be
+  // able to trigger it from a visitor's browser.
+  applyCors(req, res, { methods: 'POST,OPTIONS' });
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
