@@ -1,5 +1,5 @@
 // Vercel Serverless Function to send Price Alert Emails via reusable SMTP/Provider email service
-import { sendEmail } from '../services/emailService.js';
+import { sendEmail } from '../_services/emailService.js';
 
 export default async function handler(req, res) {
   // Set CORS headers

@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { FULL_WEBSITE_KNOWLEDGE_INDEX, getSystemPromptContext } from './knowledgeBase.js';
-import serverI18n, { toMarathiNumerals } from './i18n.js';
-import { analyzeMessage, generateGroundedAnswer } from './intentDetector.js';
+import { FULL_WEBSITE_KNOWLEDGE_INDEX, getSystemPromptContext } from '../_assistant/knowledgeBase.js';
+import serverI18n, { toMarathiNumerals } from '../_assistant/i18n.js';
+import { analyzeMessage, generateGroundedAnswer } from '../_assistant/intentDetector.js';
 
 function getRuntimeGeminiApiKey() {
   if (process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.includes('placeholder')) {
