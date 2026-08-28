@@ -94,6 +94,11 @@ function searchWebsiteKnowledge(message = '', lang = 'mr') {
   const detectedCrop = detectedCropObj ? detectedCropObj.key : null;
   const detectedMandi = detectedMandiObj ? detectedMandiObj.key : null;
 
+  // Ensure serverI18n language matches active lang
+  if (serverI18n.language !== lang) {
+    serverI18n.changeLanguage(lang);
+  }
+
   // SCENARIO 1: SPECIFIC MANDI + SPECIFIC CROP (Exact single answer)
   if (detectedCrop && detectedMandi) {
     const exactMatch = FULL_WEBSITE_KNOWLEDGE_INDEX.liveMandiRates.find(
@@ -101,11 +106,13 @@ function searchWebsiteKnowledge(message = '', lang = 'mr') {
     );
 
     if (exactMatch) {
-      if (isMr) {
-        return `रामराम! ${exactMatch.mandi} बाजारात आज ${exactMatch.crop} चा चालू भाव ₹${exactMatch.modalPrice}/क्विंटल आहे (किमान ₹${exactMatch.minPrice} ते कमाल ₹${exactMatch.maxPrice}).`;
-      } else {
-        return `Hello! Today's ${exactMatch.crop} modal price at ${exactMatch.mandi} mandi is ₹${exactMatch.modalPrice}/quintal (Min: ₹${exactMatch.minPrice} - Max: ₹${exactMatch.maxPrice}).`;
-      }
+      return serverI18n.t('mandiPriceSingle', {
+        mandi: exactMatch.mandi,
+        crop: exactMatch.crop,
+        modalPrice: exactMatch.modalPrice,
+        minPrice: exactMatch.minPrice,
+        maxPrice: exactMatch.maxPrice
+      });
     }
   }
 
@@ -116,13 +123,11 @@ function searchWebsiteKnowledge(message = '', lang = 'mr') {
     );
 
     if (cropMatches.length > 0) {
-      if (isMr) {
-        const ratesText = cropMatches.map(m => `${m.mandi}: ₹${m.modalPrice}/क्विंटल`).join(', ');
-        return `रामराम! वेबसाईटवरील विविध बाजारांतील आजचे ${cropMatches[0].crop} भाव: ${ratesText}.`;
-      } else {
-        const ratesText = cropMatches.map(m => `${m.mandi}: ₹${m.modalPrice}/q`).join(', ');
-        return `Hello! Today's ${cropMatches[0].crop} prices across all mandis on our website: ${ratesText}.`;
-      }
+      const ratesText = cropMatches.map(m => `${m.mandi}: ₹${m.modalPrice}/${lang === 'mr' ? 'क्विंटल' : 'q'}`).join(', ');
+      return serverI18n.t('mandiPriceCropAll', {
+        crop: cropMatches[0].crop,
+        rates: ratesText
+      });
     }
   }
 
@@ -133,13 +138,11 @@ function searchWebsiteKnowledge(message = '', lang = 'mr') {
     );
 
     if (mandiMatches.length > 0) {
-      if (isMr) {
-        const cropsText = mandiMatches.map(m => `${m.crop}: ₹${m.modalPrice}/क्विंटल`).join(', ');
-        return `रामराम! आज ${mandiMatches[0].mandi} बाजारातील चालू भाव: ${cropsText}.`;
-      } else {
-        const cropsText = mandiMatches.map(m => `${m.crop}: ₹${m.modalPrice}/q`).join(', ');
-        return `Hello! Today's crop prices at ${mandiMatches[0].mandi} mandi: ${cropsText}.`;
-      }
+      const cropsText = mandiMatches.map(m => `${m.crop}: ₹${m.modalPrice}/${lang === 'mr' ? 'क्विंटल' : 'q'}`).join(', ');
+      return serverI18n.t('mandiPriceMandiAll', {
+        mandi: mandiMatches[0].mandi,
+        crops: cropsText
+      });
     }
   }
 
@@ -156,49 +159,34 @@ function searchWebsiteKnowledge(message = '', lang = 'mr') {
       return false;
     }) || FULL_WEBSITE_KNOWLEDGE_INDEX.soilTypes[0];
 
-    if (isMr) {
-      return `रामराम! वेबसाईटवरील माती माहितीनुसार: ${matchedSoil.name} ही ${matchedSoil.location} योग्य पिके: ${matchedSoil.crops}. सल्ला: ${matchedSoil.tip}`;
-    } else {
-      return `Hello! According to our website soil guide: ${matchedSoil.name} is ${matchedSoil.location} Recommended crops: ${matchedSoil.crops}. Agronomy advice: ${matchedSoil.tip}`;
-    }
+    return serverI18n.t('soilGuidance', {
+      name: matchedSoil.name,
+      location: matchedSoil.location,
+      crops: matchedSoil.crops,
+      tip: matchedSoil.tip
+    });
   }
 
-  // 3. Post-Harvest Value Addition & Storage Search
+  // 5. Post-Harvest Value Addition & Storage Search
   if (query.includes('चाळ') || query.includes('साठवणूक') || query.includes('storage') || query.includes('dehydration') || query.includes('निर्जलीकरण') || query.includes('प्रक्रिया') || query.includes('fpo')) {
     if (query.includes('सोयाबीन') || query.includes('soybean')) {
-      return isMr
-        ? `रामराम! वेबसाईटवरील प्रक्रियेनुसार: ${FULL_WEBSITE_KNOWLEDGE_INDEX.postHarvestLinkages.soybean}`
-        : `Hello! According to our website: ${FULL_WEBSITE_KNOWLEDGE_INDEX.postHarvestLinkages.soybean}`;
+      return serverI18n.t('postHarvestSoybean');
     }
-    return isMr
-      ? `रामराम! वेबसाईटवरील प्रक्रियेनुसार: ${FULL_WEBSITE_KNOWLEDGE_INDEX.postHarvestLinkages.onion}`
-      : `Hello! According to our website: ${FULL_WEBSITE_KNOWLEDGE_INDEX.postHarvestLinkages.onion}`;
+    return serverI18n.t('postHarvestOnion');
   }
 
-  // 4. Profit Calculator & Cultivation Cost Search
+  // 6. Profit Calculator & Cultivation Cost Search
   if (query.includes('कॅल्क्युलेटर') || query.includes('calculator') || query.includes('नफा') || query.includes('profit') || query.includes('खर्च') || query.includes('cost')) {
-    if (isMr) {
-      return `वेबसाईटवरील "Profit Calculator" मध्ये तुम्ही मातीचा प्रकार, जमीन क्षेत्र (एकरी/गुंठे) आणि बियाणे-खत-मजुरी खर्च टाकून विविध मंडयांमधील निव्वळ नफा (Net Payout) तुलना करू शकता.`;
-    } else {
-      return `On our website's "Profit Calculator", you can select soil type, land area, cultivation costs, and compare net profit payouts across nearby mandis.`;
-    }
+    return serverI18n.t('profitCalculatorHelp');
   }
 
-  // 5. Price Alerts Search
+  // 7. Price Alerts Search
   if (query.includes('अलर्ट') || query.includes('alert') || query.includes('sms') || query.includes('email') || query.includes('इमेल')) {
-    if (isMr) {
-      return `वेबसाईटवरील "Price Alerts" पृष्ठावर जाऊन तुम्ही ठरवलेला भाव बाजारात येताच मोबाईलवर थेट SIM SMS आणि Email अलर्ट मिळवू शकता.`;
-    } else {
-      return `Our website's "Price Alerts" page lets you set target crop prices to receive instant SMS & Email notifications directly on your phone.`;
-    }
+    return serverI18n.t('priceAlertsHelp');
   }
 
-  // 6. Generic Website Search Fallback Response
-  if (isMr) {
-    return `रामराम शेतकरी मित्र! मी किसान सारथी वेबसाईटवरील माहिती शोधून उत्तर देतो. तुम्ही मला कोपरगाव, लासलगाव, अहिल्यानगर इत्यादी मंड्यांतील चालू भाव, मातीचे प्रकार किंवा नफा कॅल्क्युलेटरबद्दल प्रश्न विचारू शकता.`;
-  } else {
-    return `Hello! I am Kisan Mitra AI. I search our current website data to answer your questions about live APMC rates, regional soil types, price forecasts, or profit calculators.`;
-  }
+  // 8. Generic Website Search Fallback Response
+  return serverI18n.t('generalWebsiteHelp');
 }
 
 export default async function handler(req, res) {

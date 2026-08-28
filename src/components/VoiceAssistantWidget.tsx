@@ -23,8 +23,15 @@ interface ChatMessage {
   lang?: string;
 }
 
+import i18n from '../i18n';
+
 function searchWebsiteContentLocally(query: string, isMr: boolean): string {
   const q = query.toLowerCase().trim();
+  const lang = isMr ? 'mr' : 'en';
+
+  if (i18n.language !== lang) {
+    i18n.changeLanguage(lang);
+  }
 
   // Entity Mapping Arrays for Strict Query Scoping
   const cropMap = [
