@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { FULL_WEBSITE_KNOWLEDGE_INDEX, getSystemPromptContext } from './knowledgeBase.js';
-import serverI18n from './i18n.js';
+import serverI18n, { toMarathiNumerals } from './i18n.js';
 
 function getRuntimeGeminiApiKey() {
   if (process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.includes('placeholder')) {
@@ -94,10 +94,9 @@ function searchWebsiteKnowledge(message = '', lang = 'mr') {
   const detectedCrop = detectedCropObj ? detectedCropObj.key : null;
   const detectedMandi = detectedMandiObj ? detectedMandiObj.key : null;
 
-  // Ensure serverI18n language matches active lang
-  if (serverI18n.language !== lang) {
-    serverI18n.changeLanguage(lang);
-  }
+  // Force Marathi language ALWAYS
+  const effectiveLang = 'mr';
+  serverI18n.changeLanguage('mr');
 
   // SCENARIO 1: SPECIFIC MANDI + SPECIFIC CROP (Exact single answer)
   if (detectedCrop && detectedMandi) {
@@ -109,9 +108,9 @@ function searchWebsiteKnowledge(message = '', lang = 'mr') {
       return serverI18n.t('mandiPriceSingle', {
         mandi: exactMatch.mandi,
         crop: exactMatch.crop,
-        modalPrice: exactMatch.modalPrice,
-        minPrice: exactMatch.minPrice,
-        maxPrice: exactMatch.maxPrice
+        modalPrice: toMarathiNumerals(exactMatch.modalPrice),
+        minPrice: toMarathiNumerals(exactMatch.minPrice),
+        maxPrice: toMarathiNumerals(exactMatch.maxPrice)
       });
     }
   }
@@ -123,7 +122,7 @@ function searchWebsiteKnowledge(message = '', lang = 'mr') {
     );
 
     if (cropMatches.length > 0) {
-      const ratesText = cropMatches.map(m => `${m.mandi}: ₹${m.modalPrice}/${lang === 'mr' ? 'क्विंटल' : 'q'}`).join(', ');
+      const ratesText = cropMatches.map(m => `${m.mandi}: ₹${toMarathiNumerals(m.modalPrice)}/क्विंटल`).join(', ');
       return serverI18n.t('mandiPriceCropAll', {
         crop: cropMatches[0].crop,
         rates: ratesText
@@ -138,7 +137,7 @@ function searchWebsiteKnowledge(message = '', lang = 'mr') {
     );
 
     if (mandiMatches.length > 0) {
-      const cropsText = mandiMatches.map(m => `${m.crop}: ₹${m.modalPrice}/${lang === 'mr' ? 'क्विंटल' : 'q'}`).join(', ');
+      const cropsText = mandiMatches.map(m => `${m.crop}: ₹${toMarathiNumerals(m.modalPrice)}/क्विंटल`).join(', ');
       return serverI18n.t('mandiPriceMandiAll', {
         mandi: mandiMatches[0].mandi,
         crops: cropsText
@@ -211,7 +210,7 @@ export default async function handler(req, res) {
     });
   }
 
-  const { message = '', detectedLanguage } = req.body || {};
+  const { message = '' } = req.body || {};
 
   if (!message || typeof message !== 'string' || !message.trim()) {
     return res.status(400).json({
@@ -220,24 +219,25 @@ export default async function handler(req, res) {
     });
   }
 
-  const lang = detectedLanguage || detectLanguageHeuristic(message);
-  serverI18n.changeLanguage(lang);
+  // Always force Marathi language ('mr')
+  const lang = 'mr';
+  serverI18n.changeLanguage('mr');
   const apiKey = getRuntimeGeminiApiKey();
 
   // If Gemini API Key is missing or placeholder, perform Dynamic Website Search
   if (!apiKey || apiKey.includes('placeholder')) {
-    const websiteSearchResult = searchWebsiteKnowledge(message, lang);
+    const websiteSearchResult = searchWebsiteKnowledge(message, 'mr');
     return res.status(200).json({
       success: true,
       replyText: websiteSearchResult,
-      replyLanguage: lang,
+      replyLanguage: 'mr',
       isFallback: true
     });
   }
 
   try {
-    const systemPrompt = getSystemPromptContext(lang);
-    const systemInstructionText = `${systemPrompt}\n\nSTRICT OUTPUT LANGUAGE MANDATE: The required response language is ${lang === 'mr' ? 'MARATHI (मराठी/देवनागरी script)' : 'ENGLISH'}. You MUST reply ONLY in ${lang === 'mr' ? 'clear, respectful Marathi (मराठी) script' : 'English'}. NEVER output English when the user asks in Marathi.`;
+    const systemPrompt = getSystemPromptContext('mr');
+    const systemInstructionText = `${systemPrompt}\n\nCRITICAL MANDATE (STRICTEST HIGHEST PRIORITY): You MUST answer EVERY question strictly and exclusively in MARATHI (मराठी/देवनागरी script). ALL numbers, prices, mandi names, crop names, and explanations MUST be written in 100% MARATHI (Devanagari script like ₹३,९५०/क्विंटल). DO NOT OUTPUT ANY ENGLISH WORDS OR ENGLISH NUMBERS UNDER ANY CIRCUMSTANCES.`;
 
     const geminiPayload = {
       systemInstruction: {

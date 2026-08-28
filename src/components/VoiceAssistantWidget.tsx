@@ -25,12 +25,16 @@ interface ChatMessage {
 
 import i18n from '../i18n';
 
-function searchWebsiteContentLocally(query: string, isMr: boolean): string {
-  const q = query.toLowerCase().trim();
-  const lang = isMr ? 'mr' : 'en';
+function toMarathiNumerals(num: any): string {
+  if (num === null || num === undefined) return '';
+  const devanagariDigits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+  return String(num).replace(/[0-9]/g, (w) => devanagariDigits[+w]);
+}
 
-  if (i18n.language !== lang) {
-    i18n.changeLanguage(lang);
+function searchWebsiteContentLocally(query: string): string {
+  const q = query.toLowerCase().trim();
+  if (i18n.language !== 'mr') {
+    i18n.changeLanguage('mr');
   }
 
   // Entity Mapping Arrays for Strict Query Scoping
@@ -71,11 +75,7 @@ function searchWebsiteContentLocally(query: string, isMr: boolean): string {
     );
 
     if (exact) {
-      if (isMr) {
-        return `रामराम! ${exact.mandiName} बाजारात आज ${exact.crop} चा चालू भाव ₹${exact.modalPrice}/क्विंटल आहे (किमान ₹${exact.minPrice} ते कमाल ₹${exact.maxPrice}).`;
-      } else {
-        return `Hello! Today's ${exact.crop} modal price at ${exact.mandiName} mandi is ₹${exact.modalPrice}/quintal (Min: ₹${exact.minPrice} - Max: ₹${exact.maxPrice}).`;
-      }
+      return `रामराम! ${exact.mandiName} बाजारात आज ${exact.crop} चा चालू भाव ₹${toMarathiNumerals(exact.modalPrice)}/क्विंटल आहे (किमान ₹${toMarathiNumerals(exact.minPrice)} ते कमाल ₹${toMarathiNumerals(exact.maxPrice)}).`;
     }
   }
 
@@ -86,13 +86,8 @@ function searchWebsiteContentLocally(query: string, isMr: boolean): string {
     );
 
     if (cropMatches.length > 0) {
-      if (isMr) {
-        const text = cropMatches.map(c => `${c.mandiName}: ₹${c.modalPrice}/क्विंटल`).join(', ');
-        return `रामराम! वेबसाईटवरील विविध बाजारांतील आजचे ${cropMatches[0].crop} भाव: ${text}.`;
-      } else {
-        const text = cropMatches.map(c => `${c.mandiName}: ₹${c.modalPrice}/q`).join(', ');
-        return `Hello! Today's ${cropMatches[0].crop} prices across all mandis on our website: ${text}.`;
-      }
+      const text = cropMatches.map(c => `${c.mandiName}: ₹${toMarathiNumerals(c.modalPrice)}/क्विंटल`).join(', ');
+      return `रामराम! वेबसाईटवरील विविध बाजारांतील आजचे ${cropMatches[0].crop} भाव: ${text}.`;
     }
   }
 
@@ -103,13 +98,8 @@ function searchWebsiteContentLocally(query: string, isMr: boolean): string {
     );
 
     if (mandiMatches.length > 0) {
-      if (isMr) {
-        const text = mandiMatches.map(c => `${c.crop}: ₹${c.modalPrice}/क्विंटल`).join(', ');
-        return `रामराम! आज ${mandiMatches[0].mandiName} बाजारातील चालू भाव: ${text}.`;
-      } else {
-        const text = mandiMatches.map(c => `${c.crop}: ₹${c.modalPrice}/q`).join(', ');
-        return `Hello! Today's crop prices at ${mandiMatches[0].mandiName} mandi: ${text}.`;
-      }
+      const text = mandiMatches.map(c => `${c.crop}: ₹${toMarathiNumerals(c.modalPrice)}/क्विंटल`).join(', ');
+      return `रामराम! आज ${mandiMatches[0].mandiName} बाजारातील चालू भाव: ${text}.`;
     }
   }
 
@@ -125,22 +115,16 @@ function searchWebsiteContentLocally(query: string, isMr: boolean): string {
       return false;
     }) || REGIONAL_SOIL_TYPES[0];
 
-    return isMr
-      ? `रामराम! वेबसाईटवरील माती माहितीनुसार: ${soil.nameMr} ही ${soil.locationInfoMr} योग्य पिके: ${soil.suitableCrops.join(', ')}. सल्ला: ${soil.careTipMr}`
-      : `Hello! According to our website: ${soil.nameEn} is ${soil.locationInfoEn} Optimal crops: ${soil.suitableCrops.join(', ')}. Agronomy advice: ${soil.careTipEn}`;
+    return `रामराम! वेबसाईटवरील माती माहितीनुसार: ${soil.nameMr} ही ${soil.locationInfoMr} योग्य पिके: ${soil.suitableCrops.join(', ')}. सल्ला: ${soil.careTipMr}`;
   }
 
   // 3. Profit Calculator Query
   if (q.includes('कॅल्क्युलेटर') || q.includes('calculator') || q.includes('नफा') || q.includes('profit')) {
-    return isMr
-      ? `वेबसाईटवरील "Profit Calculator" पृष्ठावर जाऊन तुम्ही मातीचा प्रकार, एकरी जमीन क्षेत्र आणि लागवड खर्च टाकून मंडयांमधील निव्वळ नफा मोजू शकता.`
-      : `On our website's "Profit Calculator", you can enter soil type, land area, cultivation costs, and compare net payouts across nearby mandis.`;
+    return `वेबसाईटवरील "Profit Calculator" पृष्ठावर जाऊन तुम्ही मातीचा प्रकार, एकरी जमीन क्षेत्र आणि लागवड खर्च टाकून मंडयांमधील निव्वळ नफा मोजू शकता.`;
   }
 
   // 4. Default Website Search
-  return isMr
-    ? `रामराम शेतकरी मित्र! मी किसान सारथी वेबसाईटवरील ताज्या माहितीवरून उत्तर देतो. तुम्ही मला चालू बाजार भाव, मातीचे प्रकार किंवा नफा कॅल्क्युलेटरबद्दल विचारू शकता.`
-    : `Hello! I am Kisan Mitra AI. I search our current website data to answer questions about live mandi rates, soil types, price forecasts, or profit calculators.`;
+  return `रामराम शेतकरी मित्र! मी किसान सारथी वेबसाईटवरील ताज्या माहितीवरून केवळ मराठीत उत्तर देतो. तुम्ही मला चालू बाजार भाव, मातीचे प्रकार किंवा नफा कॅल्क्युलेटरबद्दल विचारू शकता.`;
 }
 
 export const VoiceAssistantWidget: React.FC = () => {
@@ -225,26 +209,20 @@ export const VoiceAssistantWidget: React.FC = () => {
     }
   }, [isMr, t]);
 
-  // Text-To-Speech Output with strict voice engine locale alignment
-  const speakText = (text: string, langHint = 'mr') => {
+  // Text-To-Speech Output with strict Marathi voice engine locale alignment
+  const speakText = (text: string) => {
     if (isMuted || !('speechSynthesis' in window)) return;
 
     window.speechSynthesis.cancel(); // Stop any ongoing speech
     const utterance = new SpeechSynthesisUtterance(text);
     
-    // Determine language locale
-    const isDevanagari = /[\u0900-\u097F]/.test(text);
-    const targetLocale = isDevanagari ? 'mr-IN' : (langHint === 'mr' ? 'mr-IN' : 'en-IN');
-    utterance.lang = targetLocale;
+    // Always enforce Marathi language locale
+    utterance.lang = 'mr-IN';
     utterance.rate = 0.95;
 
-    // Pick matching localized voice engine
+    // Pick matching localized Marathi/Hindi voice engine
     const voices = window.speechSynthesis.getVoices();
-    const matchingVoice = voices.find((v) => 
-      targetLocale.startsWith('mr') 
-        ? (v.lang.includes('mr') || v.lang.includes('hi'))
-        : (v.lang.includes('en-IN') || v.lang.includes('en'))
-    );
+    const matchingVoice = voices.find((v) => v.lang.includes('mr') || v.lang.includes('hi'));
     if (matchingVoice) {
       utterance.voice = matchingVoice;
     }
@@ -264,7 +242,7 @@ export const VoiceAssistantWidget: React.FC = () => {
     } else {
       setSpeechError(null);
       try {
-        recognitionRef.current.lang = i18n.language === 'mr' ? 'mr-IN' : 'en-IN';
+        recognitionRef.current.lang = 'mr-IN';
         recognitionRef.current.start();
       } catch (err) {
         console.warn('[Mic Start Note]:', err);
@@ -272,22 +250,14 @@ export const VoiceAssistantWidget: React.FC = () => {
     }
   };
 
-  // Send Message Handler with zero-lag i18n language switching
+  // Send Message Handler - Always Enforce Marathi
   const handleSendMessage = async (textToSend?: string) => {
     const messageContent = (textToSend || inputText).trim();
     if (!messageContent || isLoading) return;
 
-    // 1. Language Detection & Instant Zero-Lag i18n Switch
-    const isDevanagari = /[\u0900-\u097F]/.test(messageContent);
-    const targetLang: 'mr' | 'en' = isDevanagari 
-      ? 'mr' 
-      : (/kanda|bhav|sanga|ahe|kay|kiti|aajcha|karava|vikava|kapus|gahat|daalimb|mati|jamin/i.test(messageContent)
-          ? 'mr'
-          : (/what|price|rate|show|tell|how|where|which|forecast/i.test(messageContent) ? 'en' : (isMr ? 'mr' : 'en')));
-
-    // Synchronize i18n active language instantly
-    if (i18n.language !== targetLang) {
-      i18n.changeLanguage(targetLang);
+    // Force Marathi language ALWAYS
+    if (i18n.language !== 'mr') {
+      i18n.changeLanguage('mr');
     }
 
     const userMessage: ChatMessage = {
@@ -295,7 +265,7 @@ export const VoiceAssistantWidget: React.FC = () => {
       sender: 'user',
       text: messageContent,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      lang: targetLang
+      lang: 'mr'
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -309,38 +279,37 @@ export const VoiceAssistantWidget: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: messageContent,
-          detectedLanguage: targetLang,
+          detectedLanguage: 'mr',
           conversationHistory: messages.slice(-4)
         })
       });
 
       const data = await res.json();
-      const replyText = data.replyText || (targetLang === 'mr' ? 'क्षमस्व, प्रतिसाद तयार करता आला नाही.' : 'Sorry, could not process request.');
-      const replyLang = data.replyLanguage || targetLang;
+      const replyText = data.replyText || 'क्षमस्व, प्रतिसाद तयार करता आला नाही.';
 
       const assistantMessage: ChatMessage = {
         id: `assistant-${Date.now()}`,
         sender: 'assistant',
         text: replyText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        lang: replyLang
+        lang: 'mr'
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-      speakText(replyText, replyLang);
+      speakText(replyText);
     } catch (err) {
       console.warn('[Assistant Fetch Error]:', err);
-      const fallbackText = searchWebsiteContentLocally(messageContent, targetLang === 'mr');
+      const fallbackText = searchWebsiteContentLocally(messageContent);
 
       const fallbackMsg: ChatMessage = {
         id: `assistant-fallback-${Date.now()}`,
         sender: 'assistant',
         text: fallbackText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        lang: targetLang
+        lang: 'mr'
       };
       setMessages((prev) => [...prev, fallbackMsg]);
-      speakText(fallbackText, targetLang);
+      speakText(fallbackText);
     } finally {
       setIsLoading(false);
     }
@@ -453,7 +422,7 @@ export const VoiceAssistantWidget: React.FC = () => {
                   {msg.sender === 'assistant' && (
                     <button
                       type="button"
-                      onClick={() => speakText(msg.text, msg.lang)}
+                      onClick={() => speakText(msg.text)}
                       className="p-0.5 text-[#1B5E20] hover:text-[#0F291E] cursor-pointer"
                       title="पुन्हा ऐका (Replay Voice)"
                     >
