@@ -2,7 +2,6 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
-
 /**
  * Robust Vite Dev Server middleware plugin to execute Vercel Serverless Functions locally via dynamic imports
  */
@@ -42,6 +41,9 @@ function vercelApiDevPlugin() {
           else if (urlPath === '/api/alerts/send-email') handler = (await import('./api/alerts/send-email.js')).default;
           // @ts-ignore
           else if (urlPath === '/api/assistant/ask') handler = (await import('./api/assistant/ask.js')).default;
+          // @ts-ignore
+          else if (urlPath === '/api/tts') handler = (await import('./api/tts.js')).default;
+
         } catch (e) {
           console.warn(`[Vercel Dev API Plugin] Dynamic handler import warning for ${urlPath}:`, e);
         }
@@ -139,12 +141,6 @@ export default defineConfig(({ command, mode }) => {
         ignored: ['**/data/**', '**/supabase/**', '**/*.json'],
       },
       proxy: {
-        '/api/fast2sms': {
-          target: 'https://www.fast2sms.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/fast2sms/, '/dev/bulkV2'),
-          secure: false,
-        },
         '/api/agmarknet': {
           target: 'https://api.data.gov.in',
           changeOrigin: true,

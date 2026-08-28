@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { FULL_WEBSITE_KNOWLEDGE_INDEX, getSystemPromptContext } from './knowledgeBase.js';
 import serverI18n, { toMarathiNumerals } from './i18n.js';
+import { analyzeMessage, generateGroundedAnswer } from './intentDetector.js';
 
 function getRuntimeGeminiApiKey() {
   if (process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.includes('placeholder')) {
@@ -24,7 +25,6 @@ function getRuntimeGeminiApiKey() {
   }
   return process.env.GEMINI_API_KEY || null;
 }
-
 function detectLanguageHeuristic(text = '') {
   if (!text) return 'mr';
   // Devanagari script regex range: \u0900-\u097F
@@ -219,25 +219,27 @@ export default async function handler(req, res) {
     });
   }
 
-  // Always force Marathi language ('mr')
-  const lang = 'mr';
-  serverI18n.changeLanguage('mr');
+  const analysis = analyzeMessage(message);
+  const lang = analysis.language || 'mr';
+  serverI18n.changeLanguage(lang);
   const apiKey = getRuntimeGeminiApiKey();
 
-  // If Gemini API Key is missing or placeholder, perform Dynamic Website Search
-  if (!apiKey || apiKey.includes('placeholder')) {
-    const websiteSearchResult = searchWebsiteKnowledge(message, 'mr');
+  // If Gemini API Key is missing or invalid, generate exact grounded answer
+  if (!apiKey || apiKey.includes('placeholder') || apiKey.startsWith('AQ.')) {
+    const groundedAnswer = generateGroundedAnswer ? generateGroundedAnswer(message, lang) : searchWebsiteKnowledge(message, lang);
     return res.status(200).json({
       success: true,
-      replyText: websiteSearchResult,
-      replyLanguage: 'mr',
-      isFallback: true
+      replyText: groundedAnswer,
+      replyLanguage: lang,
+      intent: analysis.intent,
+      entities: analysis.entities,
+      isGrounded: true
     });
   }
 
   try {
-    const systemPrompt = getSystemPromptContext('mr');
-    const systemInstructionText = `${systemPrompt}\n\nCRITICAL MANDATE (STRICTEST HIGHEST PRIORITY): You MUST answer EVERY question strictly and exclusively in MARATHI (मराठी/देवनागरी script). ALL numbers, prices, mandi names, crop names, and explanations MUST be written in 100% MARATHI (Devanagari script like ₹३,९५०/क्विंटल). DO NOT OUTPUT ANY ENGLISH WORDS OR ENGLISH NUMBERS UNDER ANY CIRCUMSTANCES.`;
+    const systemPrompt = getSystemPromptContext(lang);
+    const systemInstructionText = `${systemPrompt}\n\nCRITICAL MANDATE: You MUST answer every question in clear, respectful MARATHI (मराठी/देवनागरी script). ALL numbers, prices, mandi names, and explanations should be presented clearly.\n\n[Intent Analysis]\nDetected Intent: ${analysis.intent}\nExtracted Commodity: ${analysis.entities.commodity || 'None'}\nExtracted Market: ${analysis.entities.market || 'None'}`;
 
     const geminiPayload = {
       systemInstruction: {
@@ -279,22 +281,26 @@ export default async function handler(req, res) {
     }
 
     if (!replyText || !replyText.trim()) {
-      replyText = searchWebsiteKnowledge(message, lang);
+      replyText = generateGroundedAnswer ? generateGroundedAnswer(message, lang) : searchWebsiteKnowledge(message, lang);
     }
 
     return res.status(200).json({
       success: true,
       replyText: replyText.trim(),
-      replyLanguage: lang
+      replyLanguage: lang,
+      intent: analysis.intent,
+      entities: analysis.entities
     });
   } catch (error) {
-    console.error('[Kisan Mitra AI API Exception]:', error?.message || error);
-    const websiteSearchResult = searchWebsiteKnowledge(message, lang);
+    console.error('[Kisan Mitra AI Exception]:', error?.message || error);
+    const fallbackAnswer = generateGroundedAnswer ? generateGroundedAnswer(message, lang) : searchWebsiteKnowledge(message, lang);
     return res.status(200).json({
       success: true,
-      replyText: websiteSearchResult,
+      replyText: fallbackAnswer,
       replyLanguage: lang,
-      isFallback: true
+      intent: analysis.intent,
+      entities: analysis.entities,
+      isGrounded: true
     });
   }
 }

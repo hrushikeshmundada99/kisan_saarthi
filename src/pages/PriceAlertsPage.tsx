@@ -13,18 +13,15 @@ import { EmptyState } from '../components/EmptyState';
 import { CropSelector } from '../components/CropSelector';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
-import { SmsGatewayModal } from '../components/SmsGatewayModal';
 import {
   Bell,
   Plus,
   Sparkles,
   ArrowUpDown,
   Store,
-  Smartphone,
   CheckCircle2,
   TrendingUp,
   TrendingDown,
-  Key,
   Mail
 } from 'lucide-react';
 
@@ -46,13 +43,10 @@ export const PriceAlertsPage: React.FC = () => {
   const [condition, setCondition] = useState<'ABOVE' | 'BELOW'>('ABOVE');
   const [targetPrice, setTargetPrice] = useState<number>(2200);
   const cachedEmail = typeof window !== 'undefined' ? localStorage.getItem('KISAN_SAARTHI_USER_EMAIL') || 'farmer@gmail.com' : 'farmer@gmail.com';
-  const [farmerPhone, setFarmerPhone] = useState<string>(user?.phone || '9822154321');
   const [farmerEmail, setFarmerEmail] = useState<string>((user?.email || cachedEmail).replace('example.com', 'gmail.com'));
-  const [gatewayModalOpen, setGatewayModalOpen] = useState<boolean>(false);
 
-  // Sync logged in user details
+  // Sync logged in user email
   useEffect(() => {
-    if (user?.phone) setFarmerPhone(user.phone);
     if (user?.email) setFarmerEmail(user.email);
     else {
       const cached = localStorage.getItem('KISAN_SAARTHI_USER_EMAIL');
@@ -69,9 +63,9 @@ export const PriceAlertsPage: React.FC = () => {
     saveStoredAlerts(alerts);
   }, [alerts]);
 
-  // Target price and phone validation
+  // Target price validation
   const isTargetPriceValid = targetPrice > 0;
-  const isPhoneValid = farmerPhone.replace(/\D/g, '').length === 10;
+  const isEmailValid = farmerEmail.includes('@') && farmerEmail.includes('.');
 
   // Add New Alert
   const handleAddAlert = (e: React.FormEvent) => {
@@ -80,8 +74,8 @@ export const PriceAlertsPage: React.FC = () => {
       showToast('कृपया योग्य लक्ष्य भाव प्रविष्ट करा', 'error');
       return;
     }
-    if (!isPhoneValid) {
-      showToast('कृपया १०-अंकी मोबाईल नंबर प्रविष्ट करा', 'error');
+    if (!isEmailValid) {
+      showToast('कृपया योग्य ई-मेल पत्ता प्रविष्ट करा', 'error');
       return;
     }
 
@@ -91,16 +85,15 @@ export const PriceAlertsPage: React.FC = () => {
       mandi,
       condition,
       targetPrice,
-      farmerPhone,
       farmerEmail,
-      notificationMethods: ['SMS', 'Email', 'In-App'],
+      notificationMethods: ['Email', 'In-App'],
       status: 'ACTIVE',
       createdAt: new Date().toISOString().split('T')[0]
     };
 
     setAlerts([newAlert, ...alerts]);
     setShowAddForm(false);
-    showToast(`मोबाईल SMS व ई-मेल अलर्ट सेट झाला! (+91 ${farmerPhone} / ${farmerEmail})`, 'success');
+    showToast(`ई-मेल अलर्ट सेट झाला! (${farmerEmail})`, 'success');
   };
 
   // Toggle Alert Status (Enable / Pause)
@@ -165,36 +158,27 @@ export const PriceAlertsPage: React.FC = () => {
   return (
     <div className="space-y-4 sm:space-y-5 pb-6 max-w-7xl mx-auto animate-in fade-in duration-200">
       
-      {/* 1. Header Card with Simple SIM SMS Concept Explanation */}
+      {/* 1. Header Card */}
       <Card hoverable={false} className="p-4 sm:p-6 bg-gradient-to-br from-[#FFFFFF] via-[#F7FBF7] to-[#E8F5E9] border-2 border-[#81C784]/60 rounded-2xl shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2E7D32]/10 text-[#2E7D32] text-xs font-black">
-              <Smartphone className="w-4 h-4 text-[#FFC107]" />
-              <span>{i18n.language === 'mr' ? 'थेट मोबाईल SMS अलर्ट प्रणाली' : 'Direct Mobile SIM SMS Alert'}</span>
+              <Mail className="w-4 h-4 text-[#FFC107]" />
+              <span>{i18n.language === 'mr' ? 'ई-मेल भाव अलर्ट प्रणाली' : 'Email Price Alert System'}</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1B4332] tracking-tight">
-              {i18n.language === 'mr' ? 'मोबाईल भाव अलर्ट (SMS Alert)' : 'Mobile Price Alerts (SMS)'}
+              {i18n.language === 'mr' ? 'ई-मेल भाव अलर्ट' : 'Email Price Alerts'}
             </h1>
             
             <p className="text-xs sm:text-sm font-semibold text-[#6B7280]">
               {i18n.language === 'mr'
-                ? 'तुमचा अपेक्षित भाव बाजारात येताच थेट तुमच्या मोबाईल नंबरवर SMS मेसेज येईल.'
-                : 'Get direct SMS message on your mobile number when market price hits your target.'}
+                ? 'तुमचा अपेक्षित भाव बाजारात येताच थेट तुमच्या ई-मेलवर अलर्ट येईल.'
+                : 'Get an email alert directly when the market price hits your target.'}
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 w-full sm:w-auto shrink-0">
-            <button
-              type="button"
-              onClick={() => setGatewayModalOpen(true)}
-              className="px-3.5 py-2.5 rounded-2xl bg-[#FFFFFF] border-2 border-[#1B5E20] text-[#1B5E20] text-xs font-black hover:bg-[#E8F5E9] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs min-h-[44px]"
-            >
-              <Key className="w-4 h-4 text-[#FFB300]" />
-              <span>SMS गेटवे (खरा SMS)</span>
-            </button>
-
             <Button
               variant="primary"
               size="md"
@@ -207,7 +191,7 @@ export const PriceAlertsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 3-Step Simple How It Works Strip for Farmers */}
+        {/* 3-Step How It Works Strip for Farmers */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-[#E1EBE1] text-xs">
           <div className="p-3 bg-[#FFFFFF] rounded-xl border border-[#E1EBE1] flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-[#E8F5E9] text-[#2E7D32] flex items-center justify-center font-black shrink-0">
@@ -234,8 +218,8 @@ export const PriceAlertsPage: React.FC = () => {
               ३
             </div>
             <div>
-              <span className="font-extrabold text-[#1B4332] block">मोबाईलवर SMS मिळवा</span>
-              <span className="text-[#6B7280] font-medium">भाव येताच थेट SIM वर संदेश</span>
+              <span className="font-extrabold text-[#1B4332] block">ई-मेल अलर्ट मिळवा</span>
+              <span className="text-[#6B7280] font-medium">भाव येताच थेट ई-मेलवर सूचना</span>
             </div>
           </div>
         </div>
@@ -292,8 +276,8 @@ export const PriceAlertsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Condition, Target Price, Mobile Number & Email */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-3 border-t border-[#E1EBE1]">
+              {/* Condition, Target Price, Email */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-3 border-t border-[#E1EBE1]">
                 
                 {/* Condition Radio Toggle */}
                 <div>
@@ -346,31 +330,11 @@ export const PriceAlertsPage: React.FC = () => {
                   />
                 </div>
 
-                {/* Farmer Mobile Number for SIM SMS */}
-                <div>
-                  <label className="block text-xs font-black text-[#1B4332] uppercase tracking-wider mb-2 flex items-center justify-between">
-                    <span>५. मोबाईल (SMS):</span>
-                    <span className="text-[10px] text-[#2E7D32] font-black">१० अंक</span>
-                  </label>
-                  <div className="relative flex items-center">
-                    <Smartphone className="absolute left-3.5 w-4.5 h-4.5 text-[#2E7D32]" />
-                    <input
-                      type="tel"
-                      maxLength={10}
-                      value={farmerPhone}
-                      onChange={(e) => setFarmerPhone(e.target.value.replace(/\D/g, ''))}
-                      placeholder="उदा. 9822154321"
-                      className="w-full pl-10 pr-4 py-2.5 bg-[#FFFFFF] border-2 border-[#E1EBE1] rounded-2xl text-sm font-black text-[#1B4332] focus:ring-4 focus:ring-[#2E7D32]/20 min-h-[48px] shadow-xs"
-                      required
-                    />
-                  </div>
-                </div>
-
                 {/* Farmer Email Address for Email Alert */}
                 <div>
                   <label className="block text-xs font-black text-[#1B4332] uppercase tracking-wider mb-2 flex items-center justify-between">
-                    <span>६. ई-मेल पत्ता (Email):</span>
-                    <span className="text-[10px] text-[#2E7D32] font-black">ऐच्छिक</span>
+                    <span>५. ई-मेल पत्ता:</span>
+                    <span className="text-[10px] text-[#2E7D32] font-black">अनिवार्य</span>
                   </label>
                   <div className="relative flex items-center">
                     <Mail className="absolute left-3.5 w-4.5 h-4.5 text-[#2E7D32]" />
@@ -380,16 +344,17 @@ export const PriceAlertsPage: React.FC = () => {
                       onChange={(e) => setFarmerEmail(e.target.value)}
                       placeholder="farmer@example.com"
                       className="w-full pl-10 pr-4 py-2.5 bg-[#FFFFFF] border-2 border-[#E1EBE1] rounded-2xl text-sm font-black text-[#1B4332] focus:ring-4 focus:ring-[#2E7D32]/20 min-h-[48px] shadow-xs"
+                      required
                     />
                   </div>
                 </div>
 
               </div>
 
-              {/* SMS & Email Guarantee Info Strip */}
+              {/* Email Guarantee Info Strip */}
               <div className="p-3 bg-[#F7FBF7] rounded-xl border border-[#E1EBE1] flex items-center gap-2 text-xs font-bold text-[#2E7D32]">
                 <CheckCircle2 className="w-4 h-4 text-[#43A047] shrink-0" />
-                <span>हा भाव बाजारात येताच +91 {farmerPhone || '9822154321'} वर SMS व {farmerEmail || 'ई-मेल'} वर नोटिफिकेशन पाठवले जाईल.</span>
+                <span>हा भाव बाजारात येताच {farmerEmail || 'तुमच्या ई-मेलवर'} अलर्ट नोटिफिकेशन पाठवले जाईल.</span>
               </div>
 
               {/* Submit Button */}
@@ -398,10 +363,10 @@ export const PriceAlertsPage: React.FC = () => {
                   type="submit"
                   variant="primary"
                   size="md"
-                  disabled={!isTargetPriceValid || !isPhoneValid}
+                  disabled={!isTargetPriceValid || !isEmailValid}
                 >
                   <Bell className="w-4 h-4 text-[#FFC107]" />
-                  <span>{i18n.language === 'mr' ? 'मोबाईल SMS अलर्ट सुरू करा' : 'Activate SMS Alert'}</span>
+                  <span>{i18n.language === 'mr' ? 'ई-मेल अलर्ट सुरू करा' : 'Activate Email Alert'}</span>
                 </Button>
               </div>
             </Card>
@@ -468,17 +433,11 @@ export const PriceAlertsPage: React.FC = () => {
         /* Empty State */
         <EmptyState
           title={i18n.language === 'mr' ? 'कोणतेही भाव अलर्ट्स सेट केलेले नाहीत' : 'No Price Alerts Set Yet'}
-          description={i18n.language === 'mr' ? 'कांदा, सोयाबीन किंवा कापसाचा अपेक्षित भाव बाजारात येताच थेट मोबाईलवर SMS मिळवण्यासाठी नवीन अलर्ट जोडा.' : 'Set an alert to get direct SMS message on your mobile phone when crop price hits your target.'}
+          description={i18n.language === 'mr' ? 'कांदा, सोयाबीन किंवा कापसाचा अपेक्षित भाव बाजारात येताच ई-मेलवर सूचना मिळवण्यासाठी नवीन अलर्ट जोडा.' : 'Set an alert to get an email notification when crop price hits your target.'}
           actionLabel={i18n.language === 'mr' ? 'नवीन भाव अलर्ट सेट करा' : 'Set New Price Alert'}
           onAction={handleFocusForm}
         />
       )}
-
-      {/* Global SMS Gateway Modal */}
-      <SmsGatewayModal
-        isOpen={gatewayModalOpen}
-        onClose={() => setGatewayModalOpen(false)}
-      />
 
     </div>
   );

@@ -85,9 +85,55 @@ export const FULL_WEBSITE_KNOWLEDGE_INDEX = {
 - बाजार तुलना (Mandi Compare): वाहतूक खर्च (Freight) वजा करून निव्वळ नफा (Net Payout) तुलना.
 - नफा कॅल्क्युलेटर (Profit Calculator): एकरी/गुंठे जमीन, मातीचा प्रकार, बियाणे-खत-मजुरी खर्च टाकून मंडयांमधील निव्वळ नफा मोजणी.
 - भाव अलर्ट (Price Alerts): ठरवलेला भाव आल्यावर थेट मोबाईल SMS व Email अलर्ट.
-- शेतकरी प्रोफाईल (Farmer Profile): गाव, तालुका, पिक पसंती व खाते माहिती.
 `
 };
+
+export const APP_FEATURES_KNOWLEDGE_BASE = FULL_WEBSITE_KNOWLEDGE_INDEX.appModules;
+
+export const AGRICULTURAL_KNOWLEDGE_BASE = `
+Kisan Saarthi Comprehensive Farmer Agricultural Advisory Knowledge Base:
+
+1. CROP CULTIVATION & SOWING (पिक लागवड व पेरणी):
+   - Onion (कांदा): Best grown in Kharif (June-July), Late Kharif (Aug-Sept), and Rabi (Oct-Nov). Requires well-drained medium-black to sandy loam soil. Planting spacing: 15cm x 10cm. Seed rate: 3-4 kg/acre.
+   - Tomato (टोमॅटो): Raised beds with drip & mulching paper. Seedlings transplanted at 4-5 weeks. Spacing: 90cm x 45cm.
+   - Soybean (सोयाबीन): Sow after receiving 75-100mm rainfall (late June to early July). Spacing: 30cm x 10cm. Seed rate: 30-35 kg/acre.
+   - Cotton (कापूस): Bt cotton sowing in May-June with irrigation, or June-July under rainfed conditions. Spacing: 90cm x 60cm or 120cm x 45cm.
+   - Sugarcane (ऊस): Adsali (July-Aug), Pre-seasonal (Oct-Nov), Suru (Jan-Feb). Furrow spacing: 4 to 5 feet.
+
+2. FERTILIZER & SOIL NUTRITION (खत व्यवस्थापन व माती आरोग्य):
+   - Onion Basal Dose: 20-25 tonnes FYM/compost + NPK 40:20:20 kg/acre (1 bag NPK 10:26:26 + 1 bag Single Super Phosphate + 25kg Urea). Top dressing of Urea (25kg/acre) at 30 & 45 days after planting. Add Sulphur (10kg/acre) for high pungency & storage life.
+   - Soybean Fertilizer: 10kg Nitrogen, 20kg Phosphorus, 10kg Potash, 10kg Sulphur per acre at sowing time.
+   - Cotton Fertilizer: Split dose of Nitrogen (Urea) at 30, 60, and 90 days along with Potassium and Zinc Sulphate.
+   - Soil Testing (माती परीक्षण): Collect soil samples from 5-6 spots in Z-pattern from 15-20cm depth. Test before monsoon for NPK, Organic Carbon, pH, and Micronutrients to reduce unnecessary fertilizer costs by 20-30%.
+
+3. PEST & DISEASE CONTROL (कीड व रोग व्यवस्थापन):
+   - Onion Thrips & Purple Blotch (थ्रिप्स व करपा रोग): Spray Neem Oil (5ml/L) or Fipronil 5% SC (2ml/L) for thrips. For Purple Blotch/Downy Mildew, spray Mancozeb 75% WP (2.5g/L) or Tebuconazole + Trifloxystrobin (0.7g/L).
+   - Tomato Leaf Curl & Fruit Borer: Control whiteflies using yellow sticky traps and Spray Acetamiprid 20% SP (0.5g/L). For fruit borer, use Pheromone traps (4/acre) and spray Chlorantraniliprole 18.5% SC (0.4ml/L).
+   - Cotton Pink Bollworm (गुलाबी बोंड अळी): Install Pheromone traps (8/acre). Spray Emamectin Benzoate 5% SG (4g/10L) at flowering & boll formation stage.
+   - Organic Pest Control (सेंद्रिय कीटक नियंत्रण): Use Dashparni Ark (5L/100L water), Neem Seed Kernel Extract (NSKE 5%), Yellow/Blue sticky traps (15/acre), and Trichoderma viride for soil fungal control.
+
+4. IRRIGATION & WATER MANAGEMENT (पाणी व्यवस्थापन):
+   - Drip Irrigation (ठिबक सिंचन): Saves 40-50% water and increases crop yield by 25-30%. For Onion, run drip for 1.5-2 hours daily depending on evapotranspiration. Stop irrigation 10-15 days before onion harvesting for better bulb hardening and storage shelf life.
+
+5. SOIL TESTING & ORGANIC FARMING (सेंद्रिय शेती व माती परीक्षण):
+   - Organic Farming: Incorporate FYM, Vermicompost (2 tonnes/acre), Jeevamrut (200L/acre every 15 days), and Bio-fertilizers (Azotobacter, PSB, KSB).
+`;
+
+export const CURRENT_LIVE_MARKET_DATA = [
+  { crop: 'Onion (कांदा)', mandi: 'Kopargaon (कोपरगाव)', modalPrice: 3950, minPrice: 3500, maxPrice: 4380, date: 'आज' },
+  { crop: 'Onion (कांदा)', mandi: 'Lasalgaon (लासलगाव)', modalPrice: 4250, minPrice: 3800, maxPrice: 4720, date: 'आज' },
+  { crop: 'Onion (कांदा)', mandi: 'Rahata (राहाता)', modalPrice: 3800, minPrice: 3400, maxPrice: 4200, date: 'आज' },
+  { crop: 'Onion (कांदा)', mandi: 'Yeola (येवला)', modalPrice: 4000, minPrice: 3600, maxPrice: 4450, date: 'आज' },
+  { crop: 'Onion (कांदा)', mandi: 'Sangamner (संगमनेर)', modalPrice: 3800, minPrice: 3400, maxPrice: 4180, date: 'आज' },
+  { crop: 'Onion (कांदा)', mandi: 'Nashik (नाशिक)', modalPrice: 4000, minPrice: 3550, maxPrice: 4400, date: 'आज' },
+  { crop: 'Soybean (सोयाबीन)', mandi: 'Kopargaon (कोपरगाव)', modalPrice: 4620, minPrice: 4200, maxPrice: 5050, date: 'आज' },
+  { crop: 'Soybean (सोयाबीन)', mandi: 'Rahata (राहाता)', modalPrice: 4580, minPrice: 4150, maxPrice: 4980, date: 'आज' },
+  { crop: 'Cotton (कापूस)', mandi: 'Kopargaon (कोपरगाव)', modalPrice: 7240, minPrice: 6800, maxPrice: 7700, date: 'आज' },
+  { crop: 'Sugarcane (ऊस)', mandi: 'Kopargaon (कोपरगाव)', modalPrice: 3150, minPrice: 2900, maxPrice: 3400, date: 'आज' },
+  { crop: 'Pomegranate (डाळिंब)', mandi: 'Kopargaon (कोपरगाव)', modalPrice: 8450, minPrice: 7500, maxPrice: 9600, date: 'आज' },
+  { crop: 'Wheat (गहू)', mandi: 'Kopargaon (कोपरगाव)', modalPrice: 2480, minPrice: 2200, maxPrice: 2750, date: 'आज' },
+  { crop: 'Tomato (टोमॅटो)', mandi: 'Kopargaon (कोपरगाव)', modalPrice: 1420, minPrice: 1100, maxPrice: 1750, date: 'आज' }
+];
 
 export function getSystemPromptContext(userLangHint = 'mr') {
   const formattedRates = FULL_WEBSITE_KNOWLEDGE_INDEX.liveMandiRates
@@ -102,8 +148,8 @@ export function getSystemPromptContext(userLangHint = 'mr') {
 You are "Kisan Mitra AI" (किसान मित्र), an expert, friendly bilingual AI voice & text assistant for the Kisan Saarthi (किसान सारथी) APMC market-intelligence website.
 
 CRITICAL INSTRUCTIONS:
-1. DYNAMIC WEBSITE CONTENT GROUNDING:
-Whenever a user asks any question, ALWAYS search and use the current website knowledge provided below:
+1. DYNAMIC WEBSITE CONTENT GROUNDING & FARMING ADVISORY:
+Whenever a user asks any question, use the current website knowledge provided below:
 
 --- LIVE APMC MANDI RATES ON WEBSITE ---
 ${formattedRates}
@@ -114,6 +160,9 @@ ${formattedSoils}
 --- POST-HARVEST & STORAGE VALUE ADDITION ---
 - Onion (कांदा): ${FULL_WEBSITE_KNOWLEDGE_INDEX.postHarvestLinkages.onion}
 - Soybean (सोयाबीन): ${FULL_WEBSITE_KNOWLEDGE_INDEX.postHarvestLinkages.soybean}
+
+--- AGRICULTURAL ADVISORY KNOWLEDGE BASE ---
+${AGRICULTURAL_KNOWLEDGE_BASE}
 
 --- WEBSITE MODULES & FEATURES ---
 ${FULL_WEBSITE_KNOWLEDGE_INDEX.appModules}
@@ -128,9 +177,8 @@ ${FULL_WEBSITE_KNOWLEDGE_INDEX.appModules}
 
 3. CRITICAL LANGUAGE MATCHING MANDATE (HIGHEST PRIORITY):
 - You MUST reply in the EXACT SAME LANGUAGE as the user's question!
-- If the question is in Marathi (e.g., "लासलगाव कांदा भाव", "nashik kanda bhav sanga", "कांदा दर काय आहे?"), you MUST reply STRICTLY in Marathi (मराठी/देवनागरी) script.
-- If the question is in English (e.g., "What is the price of onion in Nashik?", "Show onion rates"), you MUST reply STRICTLY in English.
-- NEVER reply in English when asked a question in Marathi!
+- If the question is in Marathi (e.g., "लासलगाव कांदा भाव", "nashik kanda bhav sanga", "कांदा दर काय आहे?"), reply STRICTLY in Marathi (मराठी/देवनागरी) script.
+- If the question is in English (e.g., "What is the price of onion in Nashik?", "Show onion rates"), reply STRICTLY in English.
 `;
 }
 
