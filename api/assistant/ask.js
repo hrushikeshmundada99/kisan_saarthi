@@ -249,19 +249,28 @@ export default async function handler(req, res) {
 
   try {
     const systemPrompt = getSystemPromptContext(lang);
-    const fullPrompt = `${systemPrompt}\n\nUser Question (Language Hint: ${lang}): ${message.trim()}`;
+    const systemInstructionText = `${systemPrompt}\n\nSTRICT OUTPUT LANGUAGE MANDATE: The required response language is ${lang === 'mr' ? 'MARATHI (मराठी/देवनागरी script)' : 'ENGLISH'}. You MUST reply ONLY in ${lang === 'mr' ? 'clear, respectful Marathi (मराठी) script' : 'English'}. NEVER output English when the user asks in Marathi.`;
 
-    // 1. Try Gemini 1.5 Flash via REST API with Search Grounding
+    const geminiPayload = {
+      systemInstruction: {
+        parts: [{ text: systemInstructionText }]
+      },
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: message.trim() }]
+        }
+      ]
+    };
+
+    // 1. Try Gemini 1.5 Flash via REST API with Search Grounding & systemInstruction
     let replyText = '';
     const geminiUrl15 = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
 
     const geminiRes = await fetch(geminiUrl15, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: fullPrompt }] }],
-        tools: [{ googleSearch: {} }]
-      })
+      body: JSON.stringify(geminiPayload)
     });
 
     if (geminiRes.ok) {
@@ -273,10 +282,7 @@ export default async function handler(req, res) {
       const fallbackRes = await fetch(geminiUrl20, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: fullPrompt }] }],
-          tools: [{ googleSearch: {} }]
-        })
+        body: JSON.stringify(geminiPayload)
       });
       if (fallbackRes.ok) {
         const data20 = await fallbackRes.json();
