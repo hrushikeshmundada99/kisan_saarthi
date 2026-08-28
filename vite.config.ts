@@ -42,6 +42,12 @@ function vercelApiDevPlugin() {
           else if (urlPath === '/api/alerts/send-email') handler = (await import('./api/alerts/send-email.js')).default;
           // @ts-ignore
           else if (urlPath === '/api/assistant/ask') handler = (await import('./api/assistant/ask.js')).default;
+          // @ts-ignore
+          else if (urlPath === '/api/crop-prices') handler = (await import('./api/crop-prices.js')).default;
+          // @ts-ignore
+          else if (urlPath === '/api/agmarknet') handler = (await import('./api/agmarknet.js')).default;
+          // @ts-ignore
+          else if (urlPath === '/api/fast2sms') handler = (await import('./api/fast2sms.js')).default;
         } catch (e) {
           console.warn(`[Vercel Dev API Plugin] Dynamic handler import warning for ${urlPath}:`, e);
         }
@@ -137,20 +143,6 @@ export default defineConfig(({ command, mode }) => {
     server: {
       watch: {
         ignored: ['**/data/**', '**/supabase/**', '**/*.json'],
-      },
-      proxy: {
-        '/api/fast2sms': {
-          target: 'https://www.fast2sms.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/fast2sms/, '/dev/bulkV2'),
-          secure: false,
-        },
-        '/api/agmarknet': {
-          target: 'https://api.data.gov.in',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/agmarknet/, '/resource/9ef84268-d588-465a-a308-a864a43d0070'),
-          secure: false,
-        },
       },
     },
   };

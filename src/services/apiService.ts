@@ -186,8 +186,11 @@ export const fetchLiveMandiRates = async (
     return result;
   }
 
-  // Default public Agmarknet key
-  const effectiveKey = key || '579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b';
+  // Only the farmer's own key (entered in the API Key modal) is ever held in the
+  // browser. When there is none, the request goes to /api/agmarknet with no key
+  // and the server supplies its own DATA_GOV_IN_API_KEY. No key is hardcoded here:
+  // anything in this file ships in the client bundle and is readable by any visitor.
+  const userKey = (key || '').trim();
 
   try {
     // Fast Timeout Abort Controller (2.5 seconds max) to prevent mobile hanging on 502/ETIMEDOUT
@@ -196,11 +199,23 @@ export const fetchLiveMandiRates = async (
 
     let response: Response;
     try {
-      response = await fetch(`/api/agmarknet?api-key=${encodeURIComponent(effectiveKey)}&format=json&filters[state]=Maharashtra&limit=1000`, {
+      const proxyQuery = new URLSearchParams({
+        format: 'json',
+        'filters[state]': 'Maharashtra',
+        limit: '1000'
+      });
+      if (userKey) proxyQuery.set('api-key', userKey);
+
+      response = await fetch(`/api/agmarknet?${proxyQuery.toString()}`, {
         signal: controller.signal
       });
-    } catch {
-      const directUrl = `${API_BASE_URL}/${AGMARKNET_RESOURCE_ID}?api-key=${encodeURIComponent(effectiveKey)}&format=json&limit=1000&filters[state]=Maharashtra`;
+    } catch (proxyErr) {
+      // Direct-to-data.gov.in is only possible when the farmer supplied their own
+      // key; without one there is nothing to authenticate with, so fall through
+      // to the offline dataset instead.
+      if (!userKey) throw proxyErr;
+
+      const directUrl = `${API_BASE_URL}/${AGMARKNET_RESOURCE_ID}?api-key=${encodeURIComponent(userKey)}&format=json&limit=1000&filters[state]=Maharashtra`;
       response = await fetch(directUrl, { signal: controller.signal });
     } finally {
       clearTimeout(timeoutId);

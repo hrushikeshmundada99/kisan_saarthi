@@ -84,7 +84,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onKey
               type="text"
               value={apiKeyInput}
               onChange={(e) => setApiKeyInput(e.target.value)}
-              placeholder="e.g. 579b464db66ec23bdd000001..."
+              placeholder="तुमची data.gov.in API Key येथे टाका"
               className="w-full px-4 py-3 bg-[#F7FBF7] border-2 border-[#E1EBE1] rounded-2xl text-xs sm:text-sm font-mono text-[#1B4332] placeholder:text-[#9CA3AF] min-h-[50px] focus:outline-none focus:ring-4 focus:ring-[#2E7D32]/20 focus:border-[#2E7D32] transition-all duration-300 shadow-xs"
               required
             />

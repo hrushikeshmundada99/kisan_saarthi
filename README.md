@@ -55,9 +55,11 @@ In your **Vercel Project Dashboard** -> **Settings** -> **Environment Variables*
 | Variable Name | Description | Example Value |
 | :--- | :--- | :--- |
 | `DATABASE_URL` | Supabase / Postgres connection URI | `postgresql://postgres:[PASSWORD]@db.[REF].supabase.co:5432/postgres?sslmode=require` |
-| `JWT_SECRET` | Strong random secret key for JWT session cookies | `your_super_secret_jwt_key_32_characters_long` |
-| `FAST2SMS_API_KEY` | Fast2SMS authorization key for SMS gateway | *(optional, for real SMS alerts)* |
-| `VITE_DATA_GOV_API_KEY` | Data.gov.in Agmarknet API Key | `579b464db66ec23bdd0000013b9ed8ac1ba748f069c4ff76e57ab86f` |
+| `JWT_SECRET` | **Required.** Random secret (min 32 chars) for JWT session cookies. Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` | *(generated per deployment)* |
+| `FAST2SMS_API_KEY` | Fast2SMS authorization key for the SMS gateway | *(optional, for real SMS alerts)* |
+| `DATA_GOV_IN_API_KEY` | Data.gov.in Agmarknet API Key (free registration) | *(optional, enables live mandi rates)* |
+
+> **Never prefix these with `VITE_`.** Vite inlines `VITE_*` variables into the browser bundle, making them readable by anyone who loads the site. All secrets above are read server-side by the functions in `api/`.
 
 ---
 
