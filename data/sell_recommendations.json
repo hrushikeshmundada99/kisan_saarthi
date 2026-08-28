@@ -3209,5 +3209,83 @@
     "predicted_price": 4150,
     "current_price": 4150,
     "shown_at": "2026-08-27T18:44:18.253Z"
+  },
+  {
+    "id": "a8f48333-8355-45b0-a870-58b68ed560e6",
+    "farmer_id": "1b6e116a-9729-49d8-9fa6-6cc6e12dfbdc",
+    "crop": "Onion",
+    "mandi": "Kopargaon",
+    "action": "SELL_NOW",
+    "wait_days": null,
+    "expected_gain_pct": 0,
+    "confidence": "High",
+    "predicted_price": 4150,
+    "current_price": 4150,
+    "shown_at": "2026-08-28T03:14:17.105Z"
+  },
+  {
+    "id": "278d3a2a-2d9a-4d7f-be92-21d8164a113e",
+    "farmer_id": "1b6e116a-9729-49d8-9fa6-6cc6e12dfbdc",
+    "crop": "Onion",
+    "mandi": "Kopargaon",
+    "action": "SELL_NOW",
+    "wait_days": null,
+    "expected_gain_pct": 0,
+    "confidence": "High",
+    "predicted_price": 4150,
+    "current_price": 4150,
+    "shown_at": "2026-08-28T03:14:17.299Z"
+  },
+  {
+    "id": "52e35f0a-0937-457e-a1a3-51b9263a8dd5",
+    "farmer_id": "1b6e116a-9729-49d8-9fa6-6cc6e12dfbdc",
+    "crop": "Onion",
+    "mandi": "Kopargaon",
+    "action": "SELL_NOW",
+    "wait_days": null,
+    "expected_gain_pct": 0,
+    "confidence": "High",
+    "predicted_price": 4150,
+    "current_price": 4150,
+    "shown_at": "2026-08-28T03:14:48.192Z"
+  },
+  {
+    "id": "e4408fd4-c106-4434-b1bd-32c404cddfa4",
+    "farmer_id": "1b6e116a-9729-49d8-9fa6-6cc6e12dfbdc",
+    "crop": "Onion",
+    "mandi": "Kopargaon",
+    "action": "SELL_NOW",
+    "wait_days": null,
+    "expected_gain_pct": 0,
+    "confidence": "High",
+    "predicted_price": 4150,
+    "current_price": 4150,
+    "shown_at": "2026-08-28T03:14:48.256Z"
+  },
+  {
+    "id": "c28a052a-162e-45eb-9816-8d6bf3227cc8",
+    "farmer_id": "4e37aae7-5df7-4763-b379-df84d5fd07a5",
+    "crop": "Onion",
+    "mandi": "Kopargaon",
+    "action": "SELL_NOW",
+    "wait_days": null,
+    "expected_gain_pct": 0,
+    "confidence": "High",
+    "predicted_price": 4150,
+    "current_price": 4150,
+    "shown_at": "2026-08-28T03:31:13.455Z"
+  },
+  {
+    "id": "d0abe55f-5268-4202-90e3-627ac9da88bf",
+    "farmer_id": "4e37aae7-5df7-4763-b379-df84d5fd07a5",
+    "crop": "Onion",
+    "mandi": "Kopargaon",
+    "action": "SELL_NOW",
+    "wait_days": null,
+    "expected_gain_pct": 0,
+    "confidence": "High",
+    "predicted_price": 4150,
+    "current_price": 4150,
+    "shown_at": "2026-08-28T03:31:13.622Z"
   }
 ]

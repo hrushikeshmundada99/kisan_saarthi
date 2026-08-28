@@ -16,18 +16,31 @@ function vercelApiDevPlugin() {
 
         let handler: any = null;
         try {
+          // @ts-ignore
           if (urlPath === '/api/auth/signup') handler = (await import('./api/auth/signup.js')).default;
+          // @ts-ignore
           else if (urlPath === '/api/auth/login') handler = (await import('./api/auth/login.js')).default;
+          // @ts-ignore
           else if (urlPath === '/api/auth/me') handler = (await import('./api/auth/me.js')).default;
+          // @ts-ignore
           else if (urlPath === '/api/auth/logout') handler = (await import('./api/auth/logout.js')).default;
+          // @ts-ignore
           else if (urlPath === '/api/auth/profile') handler = (await import('./api/auth/profile.js')).default;
+          // @ts-ignore
           else if (urlPath === '/api/auth/change-password') handler = (await import('./api/auth/change-password.js')).default;
+          // @ts-ignore
           else if (urlPath === '/api/ceda') handler = (await import('./api/ceda.js')).default;
+          // @ts-ignore
           else if (urlPath === '/api/forecast/train') handler = (await import('./api/forecast/train.js')).default;
+          // @ts-ignore
           else if (urlPath === '/api/recommendations') handler = (await import('./api/recommendations/index.js')).default;
+          // @ts-ignore
           else if (urlPath === '/api/recommendations/feedback') handler = (await import('./api/recommendations/feedback.js')).default;
+          // @ts-ignore
           else if (urlPath === '/api/recommendations/stats') handler = (await import('./api/recommendations/stats.js')).default;
+          // @ts-ignore
           else if (urlPath === '/api/alerts/send-email') handler = (await import('./api/alerts/send-email.js')).default;
+          // @ts-ignore
           else if (urlPath === '/api/assistant/ask') handler = (await import('./api/assistant/ask.js')).default;
         } catch (e) {
           console.warn(`[Vercel Dev API Plugin] Dynamic handler import warning for ${urlPath}:`, e);
