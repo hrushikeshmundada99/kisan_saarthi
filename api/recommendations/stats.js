@@ -2,7 +2,7 @@
 // Method: GET /api/recommendations/stats
 
 import { query } from '../lib/db.js';
-import { applyCorsHeaders } from '../lib/auth.js';
+import { applyCors } from '../lib/cors.js';
 
 /**
  * @typedef {Object} HorizonStats
@@ -14,7 +14,7 @@ import { applyCorsHeaders } from '../lib/auth.js';
  */
 
 export default async function handler(req, res) {
-  applyCorsHeaders(req, res);
+  applyCors(req, res, { allowAnyOrigin: true, methods: 'GET,OPTIONS' });
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();

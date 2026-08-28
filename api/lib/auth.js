@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { stringifySetCookie, parseCookie } from 'cookie';
+import { applyCors } from './cors.js';
 
 export const AUTH_COOKIE_NAME = 'kisan_auth_token';
 
@@ -217,11 +218,11 @@ export function sanitizeFarmer(row) {
  * Helper to set CORS and security headers for API responses
  */
 export function applyCorsHeaders(req, res) {
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
-  );
+  // Credentialed: the auth cookie rides along, so the origin must be same-origin
+  // or explicitly allowlisted. Reflecting an arbitrary Origin here would let any
+  // site on the internet make authenticated calls on a farmer's behalf.
+  applyCors(req, res, {
+    credentials: true,
+    methods: 'GET,POST,PATCH,DELETE,OPTIONS'
+  });
 }

@@ -5,16 +5,15 @@
 // the client bundle can be extracted by any visitor and used to drain the SMS
 // credits on this account.
 
+import { applyCors } from './lib/cors.js';
+
 const ALLOWED_ROUTES = ['q', 'v3', 'dlt'];
 const MAX_MESSAGE_LENGTH = 918; // Fast2SMS caps unicode messages at 6 segments
 
-function applyCors(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
+// Allowlist only: this endpoint spends real SMS credits, so another site must
+// not be able to trigger it from a visitor's browser.
+function applyCorsPolicy(req, res) {
+  applyCors(req, res, { methods: 'GET,POST,OPTIONS' });
 }
 
 function getGatewayApiKey() {
@@ -42,7 +41,7 @@ function normalizeNumbers(raw) {
 }
 
 export default async function handler(req, res) {
-  applyCors(res);
+  applyCorsPolicy(req, res);
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();

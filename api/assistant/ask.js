@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { FULL_WEBSITE_KNOWLEDGE_INDEX, getSystemPromptContext } from './knowledgeBase.js';
 import serverI18n, { toMarathiNumerals } from './i18n.js';
+import { applyCors } from '../lib/cors.js';
 
 function getRuntimeGeminiApiKey() {
   if (process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.includes('placeholder')) {
@@ -190,13 +191,7 @@ function searchWebsiteKnowledge(message = '', lang = 'mr') {
 
 export default async function handler(req, res) {
   // Set CORS headers
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, authorization'
-  );
+  applyCors(req, res, { allowAnyOrigin: true, methods: 'POST,OPTIONS' });
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
