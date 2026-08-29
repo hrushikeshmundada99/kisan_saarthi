@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { saveProfileToShadowVault, runSelfHealingEngine } from '../utils/selfHealingVault';
+import { saveProfileToShadowVault, runSelfHealingEngine, healFarmerOnLogin } from '../utils/selfHealingVault';
 
 export interface UserProfile {
   id?: string;
@@ -139,7 +139,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         })
       });
 
-      const { ok, status, data } = await parseSafeJson(res);
+      let { ok, status, data } = await parseSafeJson(res);
+
+      if (!ok || !data.success) {
+        // Attempt self-healing in case the farmer row was deleted from Supabase SQL Editor
+        const healed = await healFarmerOnLogin(phone, password);
+        if (healed) {
+          // Retry login against restored row in Supabase
+          const retryRes = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ mobile: phone, password })
+          });
+          const retryParsed = await parseSafeJson(retryRes);
+          if (retryParsed.ok && retryParsed.data.success) {
+            ok = true;
+            data = retryParsed.data;
+          }
+        }
+      }
 
       if (!ok || !data.success) {
         const errorMessage =

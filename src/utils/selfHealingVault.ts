@@ -3,6 +3,7 @@
 // and automatically re-hydrating (restoring) Supabase cloud tables if they are wiped or corrupted mid-operation.
 
 import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'bcryptjs';
 
 const SUPABASE_URL = 'https://mlthjtespbgnfxxtyfpl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sdGhqdGVzcGJnbmZ4eHR5ZnBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMDY2MjcsImV4cCI6MjEwMzU4MjYyN30.cXAFfj4cGbMat-ZXHo8vDfs2SwO90NgMDbW1mPrub0g';
@@ -197,6 +198,57 @@ export async function runSelfHealingEngine(): Promise<{ healed: boolean; log: Re
   }
 
   return { healed: false, log: null };
+}
+
+/**
+ * Self-Healing Trigger for Login
+ * If a farmer's credentials were wiped from Supabase, re-hash password and re-insert into Supabase
+ */
+export async function healFarmerOnLogin(phoneInput: string, passwordInput: string): Promise<boolean> {
+  const shadowProfile = getProfileFromShadowVault();
+  const digits = phoneInput.replace(/\D/g, '').slice(-10);
+
+  if (!digits || digits.length !== 10) return false;
+
+  try {
+    // 1. Check if row exists in Supabase
+    const { data } = await supabase.from('farmers').select('id').eq('mobile', digits);
+    if (data && data.length > 0) {
+      return false; // Row already exists in DB
+    }
+
+    console.warn(`[Self-Healing Login Engine]: Mobile ${digits} was deleted from Supabase! Auto-recreating account from Shadow Vault...`);
+
+    // 2. Hash password with bcrypt so login authentication succeeds
+    const salt = bcrypt.genSaltSync(10);
+    const passwordHash = bcrypt.hashSync(passwordInput, salt);
+
+    const newFarmerRecord = {
+      mobile: digits,
+      password_hash: passwordHash,
+      name: shadowProfile?.name || 'बळीराजा शेतकरी',
+      email: shadowProfile?.email || null,
+      location: shadowProfile?.location || 'कोपरगाव, अहिल्यानगर',
+      land_size: shadowProfile?.landSize || '5 एकर',
+      primary_crop: shadowProfile?.primaryCrop || 'Onion',
+      preferred_mandis: Array.isArray(shadowProfile?.preferredMandis) ? shadowProfile.preferredMandis : ['Kopargaon', 'Rahata', 'Yeola']
+    };
+
+    const { error } = await supabase.from('farmers').insert([newFarmerRecord]);
+    if (!error) {
+      recordRecoveryLog({
+        type: 'PROFILE_RESTORED',
+        message: `खाते रीकव्हरी: मोबाईल ${digits} साठी डेटाबेस खाते स्वयंचलित री-हायड्रेट करण्यात आले!`,
+        itemCount: 1
+      });
+      return true;
+    } else {
+      console.error('[Self-Healing Insert Error]:', error.message);
+    }
+  } catch (err: any) {
+    console.error('[Self-Healing Login Exception]:', err.message);
+  }
+  return false;
 }
 
 /**

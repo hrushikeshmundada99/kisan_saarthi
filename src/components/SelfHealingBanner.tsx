@@ -2,19 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
   getLatestRecoveryLog,
   runSelfHealingEngine,
-  simulateBlackoutAndHeal,
   type RecoveryLogItem
 } from '../utils/selfHealingVault';
-import { useAuth } from '../context/AuthContext';
-import { useToast } from './Toast';
-import { ShieldAlert, Zap, CheckCircle2, Loader2 } from 'lucide-react';
+import { ShieldAlert, CheckCircle2 } from 'lucide-react';
 
 export const SelfHealingBanner: React.FC = () => {
-  const { user } = useAuth();
-  const { showToast } = useToast();
-
   const [latestLog, setLatestLog] = useState<RecoveryLogItem | null>(getLatestRecoveryLog());
-  const [isSimulating, setIsSimulating] = useState<boolean>(false);
   const [showDetails, setShowDetails] = useState<boolean>(false);
 
   useEffect(() => {
@@ -36,25 +29,6 @@ export const SelfHealingBanner: React.FC = () => {
     window.addEventListener('ks-self-healing-event', handleRecoveryEvent);
     return () => window.removeEventListener('ks-self-healing-event', handleRecoveryEvent);
   }, []);
-
-  const handleRunSimulatedBlackout = async () => {
-    const mobile = user?.mobile || user?.phone || '9822154321';
-    const email = user?.email || 'farmer@gmail.com';
-
-    setIsSimulating(true);
-    showToast('🧪 [Blackout Demo]: Primary Supabase Database is being wiped mid-operation...', 'info');
-
-    const res = await simulateBlackoutAndHeal(mobile, email);
-    setIsSimulating(false);
-
-    if (res.success && res.healResult.healed) {
-      setLatestLog(res.healResult.log);
-      setShowDetails(true);
-      showToast('⚡ [Self-Healing Vault]: Supabase database loss detected & 100% recovered from Shadow Vault!', 'success');
-    } else {
-      showToast('डेटाबेस स्वयंचलित रीकव्हरी पूर्ण झाली!', 'success');
-    }
-  };
 
   return (
     <div className="my-3 space-y-2 animate-in fade-in duration-300">
@@ -92,20 +66,6 @@ export const SelfHealingBanner: React.FC = () => {
               <span>रीकव्हरी तपशील ({latestLog.timestamp})</span>
             </button>
           )}
-
-          <button
-            type="button"
-            onClick={handleRunSimulatedBlackout}
-            disabled={isSimulating}
-            className="px-3 py-1.5 rounded-xl bg-[#FFB300] text-[#0F291E] text-xs font-black hover:bg-amber-400 transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer disabled:opacity-50 min-h-[36px]"
-          >
-            {isSimulating ? (
-              <Loader2 className="w-4 h-4 animate-spin text-[#0F291E]" />
-            ) : (
-              <Zap className="w-4 h-4 text-[#0F291E]" />
-            )}
-            <span>{isSimulating ? 'डेटाबेस क्रॅश करत आहे...' : '🧪 Simulate DB Blackout'}</span>
-          </button>
         </div>
 
       </div>
