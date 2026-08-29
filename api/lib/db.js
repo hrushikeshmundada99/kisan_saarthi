@@ -20,30 +20,40 @@ let pool = null;
 let isPostgresAvailable = null; // null = untried, true = connected, false = fallback
 let isTableInitialized = false;
 
-// Local JSON files for development fallback
-const LOCAL_DB_DIR = path.resolve(process.cwd(), 'data');
+// Resilient storage path (uses /tmp on Vercel Serverless read-only environment)
+const IS_SERVERLESS = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const LOCAL_DB_DIR = IS_SERVERLESS ? path.join('/tmp', 'kisan_saarthi_data') : path.resolve(process.cwd(), 'data');
+const SEED_DB_DIR = path.resolve(process.cwd(), 'data');
+
 const FARMERS_FILE = path.join(LOCAL_DB_DIR, 'farmers.json');
 const SELL_RECS_FILE = path.join(LOCAL_DB_DIR, 'sell_recommendations.json');
 const REC_FEEDBACK_FILE = path.join(LOCAL_DB_DIR, 'recommendation_feedback.json');
 const CROP_PRICES_FILE = path.join(LOCAL_DB_DIR, 'crop_prices.json');
+
+function copySeedFileIfMissing(fileName, targetPath) {
+  if (fs.existsSync(targetPath)) return;
+  const seedPath = path.join(SEED_DB_DIR, fileName);
+  if (fs.existsSync(seedPath)) {
+    try {
+      const content = fs.readFileSync(seedPath, 'utf8');
+      fs.writeFileSync(targetPath, content, 'utf8');
+      return;
+    } catch {
+      // Fall through to empty array
+    }
+  }
+  fs.writeFileSync(targetPath, JSON.stringify([], null, 2), 'utf8');
+}
 
 function ensureLocalFiles() {
   try {
     if (!fs.existsSync(LOCAL_DB_DIR)) {
       fs.mkdirSync(LOCAL_DB_DIR, { recursive: true });
     }
-    if (!fs.existsSync(FARMERS_FILE)) {
-      fs.writeFileSync(FARMERS_FILE, JSON.stringify([], null, 2), 'utf8');
-    }
-    if (!fs.existsSync(SELL_RECS_FILE)) {
-      fs.writeFileSync(SELL_RECS_FILE, JSON.stringify([], null, 2), 'utf8');
-    }
-    if (!fs.existsSync(REC_FEEDBACK_FILE)) {
-      fs.writeFileSync(REC_FEEDBACK_FILE, JSON.stringify([], null, 2), 'utf8');
-    }
-    if (!fs.existsSync(CROP_PRICES_FILE)) {
-      fs.writeFileSync(CROP_PRICES_FILE, JSON.stringify([], null, 2), 'utf8');
-    }
+    copySeedFileIfMissing('farmers.json', FARMERS_FILE);
+    copySeedFileIfMissing('sell_recommendations.json', SELL_RECS_FILE);
+    copySeedFileIfMissing('recommendation_feedback.json', REC_FEEDBACK_FILE);
+    copySeedFileIfMissing('crop_prices.json', CROP_PRICES_FILE);
   } catch (err) {
     console.warn('[Local DB Init Note]:', err.message);
   }
