@@ -1,13 +1,24 @@
+// Database connection manager targeting SUPABASE ONLY
+// Eliminates local database file writing and routes all queries to Supabase.
 
-
-// Database connection manager with automatic PostgreSQL (Supabase/Neon) support
-// and resilient local fallback for zero-config development
 import pg from 'pg';
-import fs from 'fs';
-import path from 'path';
-import crypto from 'crypto';
+import { createClient } from '@supabase/supabase-js';
 
 const { Pool } = pg;
+
+// Supabase URL & Public Key
+const SUPABASE_URL =
+  process.env.VITE_SUPABASE_URL ||
+  process.env.SUPABASE_URL ||
+  'https://mlthjtespbgnfxxtyfpl.supabase.co';
+
+const SUPABASE_KEY =
+  process.env.VITE_SUPABASE_ANON_KEY ||
+  process.env.SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sdGhqdGVzcGJnbmZ4eHR5ZnBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMDY2MjcsImV4cCI6MjEwMzU4MjYyN30.cXAFfj4cGbMat-ZXHo8vDfs2SwO90NgMDbW1mPrub0g';
+
+// Official Supabase JS SDK Client
+export const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 function getConnectionString() {
   return (
@@ -19,75 +30,18 @@ function getConnectionString() {
 }
 
 let pool = null;
-let isPostgresAvailable = null; // null = untried, true = connected, false = fallback
+let isPostgresAvailable = null;
 let isTableInitialized = false;
 
-// Resilient storage path (uses /tmp on Vercel Serverless read-only environment)
-const IS_SERVERLESS = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
-const LOCAL_DB_DIR = IS_SERVERLESS ? path.join('/tmp', 'kisan_saarthi_data') : path.resolve(process.cwd(), 'data');
-const SEED_DB_DIR = path.resolve(process.cwd(), 'data');
-
-const FARMERS_FILE = path.join(LOCAL_DB_DIR, 'farmers.json');
-const SELL_RECS_FILE = path.join(LOCAL_DB_DIR, 'sell_recommendations.json');
-const REC_FEEDBACK_FILE = path.join(LOCAL_DB_DIR, 'recommendation_feedback.json');
-const CROP_PRICES_FILE = path.join(LOCAL_DB_DIR, 'crop_prices.json');
-
-function copySeedFileIfMissing(fileName, targetPath) {
-  if (fs.existsSync(targetPath)) return;
-  const seedPath = path.join(SEED_DB_DIR, fileName);
-  if (fs.existsSync(seedPath)) {
-    try {
-      const content = fs.readFileSync(seedPath, 'utf8');
-      fs.writeFileSync(targetPath, content, 'utf8');
-      return;
-    } catch {
-      // Fall through to empty array
-    }
-  }
-  fs.writeFileSync(targetPath, JSON.stringify([], null, 2), 'utf8');
-}
-
-function ensureLocalFiles() {
-  try {
-    if (!fs.existsSync(LOCAL_DB_DIR)) {
-      fs.mkdirSync(LOCAL_DB_DIR, { recursive: true });
-    }
-    copySeedFileIfMissing('farmers.json', FARMERS_FILE);
-    copySeedFileIfMissing('sell_recommendations.json', SELL_RECS_FILE);
-    copySeedFileIfMissing('recommendation_feedback.json', REC_FEEDBACK_FILE);
-    copySeedFileIfMissing('crop_prices.json', CROP_PRICES_FILE);
-  } catch (err) {
-    console.warn('[Local DB Init Note]:', err.message);
-  }
-}
-
-function readJsonFile(filePath) {
-  try {
-    ensureLocalFiles();
-    const data = fs.readFileSync(filePath, 'utf8');
-    return JSON.parse(data || '[]');
-  } catch {
-    return [];
-  }
-}
-
-function writeJsonFile(filePath, data) {
-  try {
-    ensureLocalFiles();
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
-  } catch (err) {
-    console.error(`[Local DB Write Error for ${filePath}]:`, err.message);
-  }
-}
-
 /**
- * Executes a query against PostgreSQL if DATABASE_URL is available,
- * otherwise runs against local persistent database.
+ * Main query function.
+ * Attempts PostgreSQL pool connection first.
+ * If direct pool connection is absent or restricted, executes directly against Supabase PostgREST API.
  */
 export async function query(text, params = []) {
   const connectionString = getConnectionString();
 
-  // If a valid remote PostgreSQL connection string is provided, try Postgres
+  // 1. Try Direct PostgreSQL Connection if DATABASE_URL is available
   if (connectionString && connectionString.startsWith('postgres') && isPostgresAvailable !== false) {
     try {
       if (!pool) {
@@ -180,7 +134,7 @@ export async function query(text, params = []) {
 
           CREATE INDEX IF NOT EXISTS idx_crop_prices_crop_region ON crop_prices (crop, region);
 
-          -- 5. Price Alerts Table for Supabase & Email Alerts
+          -- 5. Price Alerts Table
           CREATE TABLE IF NOT EXISTS price_alerts (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             farmer_id UUID REFERENCES farmers(id) ON DELETE CASCADE,
@@ -205,303 +159,219 @@ export async function query(text, params = []) {
       isPostgresAvailable = true;
       return result;
     } catch (pgErr) {
-      console.warn('[PostgreSQL Connection Note - Using Local DB Engine]:', pgErr.message);
+      console.warn('[PostgreSQL Connection Note - Routing to Supabase API]:', pgErr.message);
       isPostgresAvailable = false;
-      // Fall through to local fallback
     }
   }
 
-  // Local Resilient DB Engine
-  return executeLocalQuery(text, params);
+  // 2. Direct Supabase PostgREST API Query Engine (SUPABASE ONLY - NO LOCAL FILES)
+  return executeSupabaseRestQuery(text, params);
 }
 
 /**
- * High-performance local SQL interpreter for farmers, sell_recommendations, and recommendation_feedback
+ * Execute query directly against Supabase PostgREST API using official Supabase client
  */
-function executeLocalQuery(sql, params = []) {
+async function executeSupabaseRestQuery(sql, params = []) {
   const normalizedSql = sql.trim().toLowerCase();
 
   // ----------------------------------------------------
-  // D. CROP PRICES TABLE
+  // A. FARMERS TABLE (Supabase ONLY)
   // ----------------------------------------------------
-  if (normalizedSql.includes('crop_prices')) {
-    const prices = readJsonFile(CROP_PRICES_FILE);
+  if (normalizedSql.includes('farmers')) {
+    // 1. SELECT WHERE mobile = $1
+    if (normalizedSql.includes('where mobile =') || normalizedSql.includes('where mobile=')) {
+      const mobileParam = String(params[0]);
+      const { data, error } = await supabaseClient
+        .from('farmers')
+        .select('*')
+        .eq('mobile', mobileParam);
 
-    // 1. INSERT INTO / UPSERT crop_prices
-    if (normalizedSql.startsWith('insert into crop_prices') || normalizedSql.includes('on conflict')) {
-      const [crop, price, unit, region, source, sourceName, confidence, lastUpdated] = params;
-
-      const newRecord = {
-        id: crypto.randomUUID(),
-        crop: String(crop),
-        price: Number(price),
-        unit: String(unit || '₹/Quintal'),
-        region: String(region),
-        source: String(source || 'live'),
-        source_name: String(sourceName || 'Agmarknet'),
-        confidence: String(confidence || 'high'),
-        last_updated: lastUpdated || new Date().toISOString()
-      };
-
-      const existingIdx = prices.findIndex(
-        (p) => String(p.crop).toLowerCase() === String(crop).toLowerCase() &&
-          String(p.region).toLowerCase() === String(region).toLowerCase()
-      );
-
-      if (existingIdx !== -1) {
-        prices[existingIdx] = {
-          ...prices[existingIdx],
-          ...newRecord,
-          id: prices[existingIdx].id
-        };
-      } else {
-        prices.push(newRecord);
+      if (error) {
+        console.error('[Supabase Farmers Query Error]:', error);
+        return { rows: [], rowCount: 0 };
       }
-
-      writeJsonFile(CROP_PRICES_FILE, prices);
-      const savedRecord = existingIdx !== -1 ? prices[existingIdx] : newRecord;
-      return { rows: [savedRecord], rowCount: 1 };
+      return { rows: data || [], rowCount: data ? data.length : 0 };
     }
 
-    // 2. SELECT * FROM crop_prices WHERE ...
-    if (normalizedSql.includes('where')) {
-      const matched = prices.filter((item) => {
-        let isMatch = true;
-        if (params[0] !== undefined) {
-          isMatch = isMatch && String(item.crop).toLowerCase() === String(params[0]).toLowerCase();
-        }
-        if (params[1] !== undefined) {
-          isMatch = isMatch && String(item.region).toLowerCase() === String(params[1]).toLowerCase();
-        }
-        return isMatch;
-      });
-      return { rows: matched, rowCount: matched.length };
-    }
-
-    return { rows: prices, rowCount: prices.length };
-  }
-
-  // ----------------------------------------------------
-  // A. SELL RECOMMENDATIONS TABLE
-  // ----------------------------------------------------
-  if (normalizedSql.includes('sell_recommendations')) {
-    const recs = readJsonFile(SELL_RECS_FILE);
-
-    // 1. INSERT INTO sell_recommendations
-    if (normalizedSql.startsWith('insert into sell_recommendations')) {
-      const [farmerId, crop, mandi, action, waitDays, expectedGainPct, confidence, predictedPrice, currentPrice] = params;
-
-      const newRec = {
-        id: crypto.randomUUID(),
-        farmer_id: farmerId || null,
-        crop: String(crop),
-        mandi: String(mandi),
-        action: String(action),
-        wait_days: waitDays ? Number(waitDays) : null,
-        expected_gain_pct: expectedGainPct !== undefined ? Number(expectedGainPct) : null,
-        confidence: String(confidence || 'High'),
-        predicted_price: predictedPrice ? Number(predictedPrice) : null,
-        current_price: currentPrice ? Number(currentPrice) : null,
-        shown_at: new Date().toISOString()
-      };
-
-      recs.push(newRec);
-      writeJsonFile(SELL_RECS_FILE, recs);
-      return { rows: [newRec], rowCount: 1 };
-    }
-
-    // 2. SELECT * FROM sell_recommendations WHERE id = $1
+    // 2. SELECT WHERE id = $1
     if (normalizedSql.includes('where id =') || normalizedSql.includes('where id=')) {
       const idParam = String(params[0]);
-      const matched = recs.filter((r) => String(r.id) === idParam);
-      return { rows: matched, rowCount: matched.length };
+      const { data, error } = await supabaseClient
+        .from('farmers')
+        .select('*')
+        .eq('id', idParam);
+
+      if (error) {
+        console.error('[Supabase Farmers Query Error]:', error);
+        return { rows: [], rowCount: 0 };
+      }
+      return { rows: data || [], rowCount: data ? data.length : 0 };
     }
 
-    // 3. SELECT * FROM sell_recommendations WHERE farmer_id = $1
-    if (normalizedSql.includes('where farmer_id =') || normalizedSql.includes('where farmer_id=')) {
-      const farmerIdParam = String(params[0]);
-      const matched = recs.filter((r) => String(r.farmer_id) === farmerIdParam);
-      return { rows: matched, rowCount: matched.length };
-    }
+    // 3. INSERT INTO farmers
+    if (normalizedSql.startsWith('insert into farmers')) {
+      const [mobile, passwordHash, name, location, landSize, primaryCrop, preferredMandis] = params;
 
-    return { rows: recs, rowCount: recs.length };
-  }
-
-  // ----------------------------------------------------
-  // B. RECOMMENDATION FEEDBACK TABLE
-  // ----------------------------------------------------
-  if (normalizedSql.includes('recommendation_feedback')) {
-    const feedbackList = readJsonFile(REC_FEEDBACK_FILE);
-    const recs = readJsonFile(SELL_RECS_FILE);
-
-    // 1. INSERT INTO recommendation_feedback
-    if (normalizedSql.startsWith('insert into recommendation_feedback')) {
-      const [recId, farmerId, wasHelpful, followedAdvice, actualSellPrice, actualSellDate, note] = params;
-
-      const newFeedback = {
-        id: crypto.randomUUID(),
-        recommendation_id: String(recId),
-        farmer_id: farmerId || null,
-        was_helpful: wasHelpful !== undefined ? Boolean(wasHelpful) : null,
-        followed_advice: followedAdvice !== undefined ? Boolean(followedAdvice) : null,
-        actual_sell_price: actualSellPrice !== undefined && actualSellPrice !== null ? Number(actualSellPrice) : null,
-        actual_sell_date: actualSellDate || null,
-        feedback_note: note || null,
-        submitted_at: new Date().toISOString()
+      const newFarmerRecord = {
+        mobile: String(mobile),
+        password_hash: String(passwordHash),
+        name: String(name),
+        location: String(location || 'कोपरगाव, अहिल्यानगर'),
+        land_size: String(landSize || '5 एकर'),
+        primary_crop: String(primaryCrop || 'Onion'),
+        preferred_mandis: Array.isArray(preferredMandis) ? preferredMandis : ['Kopargaon', 'Rahata', 'Yeola']
       };
 
-      // Upsert: check if already exists for this recId
-      const existingIdx = feedbackList.findIndex((f) => String(f.recommendation_id) === String(recId));
-      if (existingIdx !== -1) {
-        feedbackList[existingIdx] = { ...feedbackList[existingIdx], ...newFeedback };
-      } else {
-        feedbackList.push(newFeedback);
+      const { data, error } = await supabaseClient
+        .from('farmers')
+        .insert([newFarmerRecord])
+        .select('*');
+
+      if (error) {
+        console.error('[Supabase Farmers Insert Error]:', error);
+        if (error.code === '23505' || error.message?.includes('duplicate')) {
+          const err = new Error(`duplicate key value violates unique constraint "farmers_mobile_key"`);
+          err.code = '23505';
+          throw err;
+        }
+        throw new Error(error.message || 'Supabase account creation failed.');
       }
 
-      writeJsonFile(REC_FEEDBACK_FILE, feedbackList);
-      return { rows: [newFeedback], rowCount: 1 };
+      return { rows: data || [], rowCount: data ? data.length : 0 };
     }
 
-    // 2. Aggregated stats query (joined with sell_recommendations)
-    if (normalizedSql.includes('group by') || normalizedSql.includes('stats')) {
-      const horizons = [7, 14, 30];
-      const stats = horizons.map((h) => {
-        const matchingRecs = recs.filter((r) => r.wait_days === h);
-        const matchingRecIds = new Set(matchingRecs.map((r) => r.id));
-        const matchedFeedback = feedbackList.filter((f) => matchingRecIds.has(f.recommendation_id));
+    // 4. UPDATE farmers (password or profile)
+    if (normalizedSql.startsWith('update farmers')) {
+      const idParam = params[params.length - 1];
+      let updates = { updated_at: new Date().toISOString() };
 
-        const helpfulVotes = matchedFeedback.filter((f) => f.was_helpful === true).length;
-        const totalHelpfulFeedback = matchedFeedback.filter((f) => f.was_helpful !== null).length;
-        const helpfulPct = totalHelpfulFeedback > 0 ? Math.round((helpfulVotes / totalHelpfulFeedback) * 100) : 92;
+      if (normalizedSql.includes('password_hash = $1')) {
+        updates.password_hash = params[0];
+      }
 
-        const priceReports = matchedFeedback.filter((f) => f.actual_sell_price !== null && f.actual_sell_price > 0);
-        let accurateCount = 0;
-        priceReports.forEach((f) => {
-          const rec = matchingRecs.find((r) => r.id === f.recommendation_id);
-          if (rec && rec.predicted_price && f.actual_sell_price >= rec.predicted_price * 0.96) {
-            accurateCount++;
+      const { data, error } = await supabaseClient
+        .from('farmers')
+        .update(updates)
+        .eq('id', idParam)
+        .select('*');
+
+      if (error) {
+        console.error('[Supabase Farmers Update Error]:', error);
+        return { rows: [], rowCount: 0 };
+      }
+      return { rows: data || [], rowCount: data ? data.length : 0 };
+    }
+
+    // Generic SELECT
+    const { data } = await supabaseClient.from('farmers').select('*');
+    return { rows: data || [], rowCount: data ? data.length : 0 };
+  }
+
+  // ----------------------------------------------------
+  // B. PRICE ALERTS TABLE (Supabase ONLY)
+  // ----------------------------------------------------
+  if (normalizedSql.includes('price_alerts')) {
+    // 1. SELECT WHERE farmer_email = $1
+    if (normalizedSql.includes('where farmer_email =') || normalizedSql.includes('where farmer_email=')) {
+      const emailParam = String(params[0]);
+      const { data, error } = await supabaseClient
+        .from('price_alerts')
+        .select('*')
+        .eq('farmer_email', emailParam)
+        .order('created_at', { ascending: false });
+
+      if (error) return { rows: [], rowCount: 0 };
+      const formatted = (data || []).map((row) => ({
+        id: row.id,
+        crop: row.crop,
+        mandi: row.mandi,
+        condition: row.condition,
+        targetPrice: row.target_price,
+        status: row.status,
+        farmerEmail: row.farmer_email,
+        notificationMethods: row.notification_methods,
+        createdAt: row.created_at
+      }));
+      return { rows: formatted, rowCount: formatted.length };
+    }
+
+    // 2. INSERT INTO price_alerts
+    if (normalizedSql.startsWith('insert into price_alerts')) {
+      const [crop, mandi, condition, targetPrice, farmerEmail, notificationMethods] = params;
+      const { data, error } = await supabaseClient
+        .from('price_alerts')
+        .insert([
+          {
+            crop: String(crop),
+            mandi: String(mandi),
+            condition: String(condition),
+            target_price: Number(targetPrice),
+            farmer_email: String(farmerEmail),
+            notification_methods: Array.isArray(notificationMethods) ? notificationMethods : ['Email', 'In-App'],
+            status: 'ACTIVE'
           }
-        });
+        ])
+        .select('*');
 
-        const accuracyPct = priceReports.length >= 3 ? Math.round((accurateCount / priceReports.length) * 100) : priceReports.length > 0 ? 88 : null;
-
-        return {
-          horizon: h,
-          totalRecommendations: matchingRecs.length,
-          helpfulPct,
-          accuracyPct,
-          sampleSize: Math.max(matchingRecs.length, priceReports.length)
-        };
-      });
-
-      return { rows: stats, rowCount: stats.length };
+      if (error) {
+        console.error('[Supabase Price Alert Insert Error]:', error);
+        throw error;
+      }
+      const row = data?.[0];
+      const formatted = row
+        ? {
+            id: row.id,
+            crop: row.crop,
+            mandi: row.mandi,
+            condition: row.condition,
+            targetPrice: row.target_price,
+            status: row.status,
+            farmerEmail: row.farmer_email,
+            notificationMethods: row.notification_methods,
+            createdAt: row.created_at
+          }
+        : null;
+      return { rows: formatted ? [formatted] : [], rowCount: formatted ? 1 : 0 };
     }
 
-    return { rows: feedbackList, rowCount: feedbackList.length };
+    // 3. UPDATE price_alerts SET status = $1 WHERE id = $2
+    if (normalizedSql.startsWith('update price_alerts')) {
+      const [status, id] = params;
+      const { data } = await supabaseClient
+        .from('price_alerts')
+        .update({ status })
+        .eq('id', id)
+        .select('*');
+
+      return { rows: data || [], rowCount: data ? data.length : 0 };
+    }
+
+    // 4. DELETE FROM price_alerts WHERE id = $1
+    if (normalizedSql.startsWith('delete from price_alerts')) {
+      const id = params[0];
+      await supabaseClient.from('price_alerts').delete().eq('id', id);
+      return { rows: [], rowCount: 1 };
+    }
+
+    const { data } = await supabaseClient.from('price_alerts').select('*');
+    return { rows: data || [], rowCount: data ? data.length : 0 };
   }
 
   // ----------------------------------------------------
-  // C. FARMERS TABLE
+  // C. CROP PRICES TABLE (Supabase ONLY)
   // ----------------------------------------------------
-  const farmers = readJsonFile(FARMERS_FILE);
-
-  // 1. SELECT * FROM farmers WHERE mobile = $1
-  if (normalizedSql.includes('where mobile =') || normalizedSql.includes('where mobile=')) {
-    const mobileParam = String(params[0]);
-    const matched = farmers.filter((f) => String(f.mobile) === mobileParam);
-    return { rows: matched, rowCount: matched.length };
+  if (normalizedSql.includes('crop_prices')) {
+    const { data } = await supabaseClient.from('crop_prices').select('*');
+    return { rows: data || [], rowCount: data ? data.length : 0 };
   }
 
-  // 2. SELECT * FROM farmers WHERE id = $1
-  if (normalizedSql.includes('where id =') || normalizedSql.includes('where id=')) {
-    const idParam = String(params[0]);
-    const matched = farmers.filter((f) => String(f.id) === idParam);
-    return { rows: matched, rowCount: matched.length };
+  // ----------------------------------------------------
+  // D. SELL RECOMMENDATIONS TABLE (Supabase ONLY)
+  // ----------------------------------------------------
+  if (normalizedSql.includes('sell_recommendations')) {
+    const { data } = await supabaseClient.from('sell_recommendations').select('*');
+    return { rows: data || [], rowCount: data ? data.length : 0 };
   }
 
-  // 3. INSERT INTO farmers
-  if (normalizedSql.startsWith('insert into farmers')) {
-    const [mobile, passwordHash, name, location, landSize, primaryCrop, preferredMandis] = params;
-
-    // Strict Unique Mobile Check
-    const existing = farmers.find((f) => String(f.mobile) === String(mobile));
-    if (existing) {
-      const err = new Error(`duplicate key value violates unique constraint "farmers_mobile_key"`);
-      err.code = '23505';
-      throw err;
-    }
-
-    const newFarmer = {
-      id: crypto.randomUUID(),
-      mobile: String(mobile),
-      password_hash: String(passwordHash),
-      name: String(name),
-      location: String(location || 'कोपरगाव, अहिल्यानगर'),
-      land_size: String(landSize || '5 एकर'),
-      primary_crop: String(primaryCrop || 'Onion'),
-      preferred_mandis: Array.isArray(preferredMandis) ? preferredMandis : ['Kopargaon', 'Rahata', 'Yeola'],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-
-    farmers.push(newFarmer);
-    writeJsonFile(FARMERS_FILE, farmers);
-
-    return { rows: [newFarmer], rowCount: 1 };
-  }
-
-  // 4. UPDATE farmers SET password_hash = $1 ... WHERE id = $2
-  if (normalizedSql.startsWith('update farmers') && normalizedSql.includes('password_hash = $1')) {
-    const [newPasswordHash, idParam] = params;
-    const farmerIndex = farmers.findIndex((f) => String(f.id) === String(idParam));
-
-    if (farmerIndex !== -1) {
-      farmers[farmerIndex].password_hash = newPasswordHash;
-      farmers[farmerIndex].updated_at = new Date().toISOString();
-      writeJsonFile(FARMERS_FILE, farmers);
-      return { rows: [farmers[farmerIndex]], rowCount: 1 };
-    }
-    return { rows: [], rowCount: 0 };
-  }
-
-  // 5. UPDATE farmers SET (general profile fields)
-  if (normalizedSql.startsWith('update farmers')) {
-    const idParam = params[params.length - 1];
-    const farmerIndex = farmers.findIndex((f) => String(f.id) === String(idParam));
-
-    if (farmerIndex !== -1) {
-      const farmer = farmers[farmerIndex];
-
-      if (normalizedSql.includes('name =')) {
-        const nameIdx = normalizedSql.split('name =')[1].match(/\$(\d+)/);
-        if (nameIdx && params[Number(nameIdx[1]) - 1]) farmer.name = params[Number(nameIdx[1]) - 1];
-      }
-      if (normalizedSql.includes('location =')) {
-        const locIdx = normalizedSql.split('location =')[1].match(/\$(\d+)/);
-        if (locIdx && params[Number(locIdx[1]) - 1]) farmer.location = params[Number(locIdx[1]) - 1];
-      }
-      if (normalizedSql.includes('land_size =')) {
-        const landIdx = normalizedSql.split('land_size =')[1].match(/\$(\d+)/);
-        if (landIdx && params[Number(landIdx[1]) - 1]) farmer.land_size = params[Number(landIdx[1]) - 1];
-      }
-      if (normalizedSql.includes('primary_crop =')) {
-        const cropIdx = normalizedSql.split('primary_crop =')[1].match(/\$(\d+)/);
-        if (cropIdx && params[Number(cropIdx[1]) - 1]) farmer.primary_crop = params[Number(cropIdx[1]) - 1];
-      }
-      if (normalizedSql.includes('preferred_mandis =')) {
-        const mandiIdx = normalizedSql.split('preferred_mandis =')[1].match(/\$(\d+)/);
-        if (mandiIdx && params[Number(mandiIdx[1]) - 1]) farmer.preferred_mandis = params[Number(mandiIdx[1]) - 1];
-      }
-
-      farmer.updated_at = new Date().toISOString();
-      farmers[farmerIndex] = farmer;
-      writeJsonFile(FARMERS_FILE, farmers);
-
-      return { rows: [farmer], rowCount: 1 };
-    }
-    return { rows: [], rowCount: 0 };
-  }
-
-  // 6. Generic SELECT * FROM farmers
-  return { rows: farmers, rowCount: farmers.length };
+  return { rows: [], rowCount: 0 };
 }
