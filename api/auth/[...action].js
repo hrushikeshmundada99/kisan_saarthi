@@ -135,7 +135,7 @@ async function handleSignup(req, res) {
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
     const rawMobile = body.mobile || body.phone;
-    const { password, name, location, landSize, primaryCrop, preferredMandis } = body;
+    const { password, name, location, landSize, primaryCrop, preferredMandis, email } = body;
 
     if (!name || typeof name !== 'string' || !name.trim()) {
       return res.status(400).json({ success: false, error: 'कृपया आपले नाव प्रविष्ट करा' });
@@ -158,10 +158,12 @@ async function handleSignup(req, res) {
       ? preferredMandis
       : ['Kopargaon', 'Rahata', 'Yeola'];
 
+    const cleanEmail = (email && typeof email === 'string' && email.trim()) ? email.trim() : null;
+
     const insertResult = await query(
-      `INSERT INTO farmers (mobile, password_hash, name, location, land_size, primary_crop, preferred_mandis)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [normalizedPhone, passwordHash, name.trim(), (location && location.trim()) || 'कोपरगाव, अहिल्यानगर', (landSize && landSize.trim()) || '5 एकर', primaryCrop || 'Onion', mandisList]
+      `INSERT INTO farmers (mobile, password_hash, name, location, land_size, primary_crop, preferred_mandis, email)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [normalizedPhone, passwordHash, name.trim(), (location && location.trim()) || 'कोपरगाव, अहिल्यानगर', (landSize && landSize.trim()) || '5 एकर', primaryCrop || 'Onion', mandisList, cleanEmail]
     );
 
     const newFarmer = insertResult.rows[0];

@@ -3,7 +3,10 @@
 -- Table: price_alerts (Used for storing farmer price alerts & email triggers)
 -- ====================================================================
 
--- 1. Create price_alerts table
+-- 1. Add email column to farmers table
+ALTER TABLE public.farmers ADD COLUMN IF NOT EXISTS email TEXT;
+
+-- 2. Create price_alerts table
 CREATE TABLE IF NOT EXISTS public.price_alerts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     farmer_id UUID REFERENCES public.farmers(id) ON DELETE CASCADE,

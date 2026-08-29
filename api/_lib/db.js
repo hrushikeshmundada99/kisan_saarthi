@@ -75,6 +75,7 @@ export async function query(text, params = []) {
             mobile VARCHAR(10) NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
             name TEXT NOT NULL,
+            email TEXT,
             location TEXT DEFAULT 'कोपरगाव, अहिल्यानगर',
             land_size TEXT DEFAULT '5 एकर',
             primary_crop TEXT DEFAULT 'Onion',
@@ -210,12 +211,13 @@ async function executeSupabaseRestQuery(sql, params = []) {
 
     // 3. INSERT INTO farmers
     if (normalizedSql.startsWith('insert into farmers')) {
-      const [mobile, passwordHash, name, location, landSize, primaryCrop, preferredMandis] = params;
+      const [mobile, passwordHash, name, location, landSize, primaryCrop, preferredMandis, email] = params;
 
       const newFarmerRecord = {
         mobile: String(mobile),
         password_hash: String(passwordHash),
         name: String(name),
+        email: email ? String(email).trim() : null,
         location: String(location || 'कोपरगाव, अहिल्यानगर'),
         land_size: String(landSize || '5 एकर'),
         primary_crop: String(primaryCrop || 'Onion'),
