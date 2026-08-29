@@ -4,18 +4,33 @@
 import { query } from '../_lib/db.js';
 import { getAuthTokenFromReq, verifyToken, applyCorsHeaders } from '../_lib/auth.js';
 
+function getActionFromReq(req) {
+  if (req.query && req.query.action) {
+    const act = Array.isArray(req.query.action) ? req.query.action[req.query.action.length - 1] : req.query.action;
+    if (act) return act;
+  }
+  if (req.url) {
+    const cleanUrl = req.url.split('?')[0].replace(/\/$/, '');
+    const parts = cleanUrl.split('/');
+    const lastPart = parts[parts.length - 1];
+    if (lastPart && lastPart !== 'recommendations' && lastPart !== 'api') {
+      return lastPart;
+    }
+  }
+  return '';
+}
+
 export default async function handler(req, res) {
   applyCorsHeaders(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const actionParam = req.query.action;
-  const action = Array.isArray(actionParam) ? actionParam[0] : (actionParam || '');
+  const action = getActionFromReq(req);
 
   if (action === 'feedback') {
     return handleFeedback(req, res);
   } else if (action === 'stats') {
     return handleStats(req, res);
-  } else if (!action || action === 'index') {
+  } else if (!action || action === 'index' || action === 'recommendations') {
     return handleCreateRecommendation(req, res);
   } else {
     return res.status(404).json({ success: false, error: `Action '${action}' not found` });

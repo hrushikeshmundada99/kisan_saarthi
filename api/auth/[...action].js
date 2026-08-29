@@ -37,13 +37,28 @@ function recordFailedAttempt(identifier) {
   failedAttemptsMap.set(identifier, record);
 }
 
+function getActionFromReq(req) {
+  if (req.query && req.query.action) {
+    const act = Array.isArray(req.query.action) ? req.query.action[req.query.action.length - 1] : req.query.action;
+    if (act) return act;
+  }
+  if (req.url) {
+    const cleanUrl = req.url.split('?')[0].replace(/\/$/, '');
+    const parts = cleanUrl.split('/');
+    const lastPart = parts[parts.length - 1];
+    if (lastPart && lastPart !== 'auth' && lastPart !== 'api') {
+      return lastPart;
+    }
+  }
+  return '';
+}
+
 export default async function handler(req, res) {
   applyCorsHeaders(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // Extract action parameter from Vercel dynamic route req.query.action
-  const actionParam = req.query.action;
-  const action = Array.isArray(actionParam) ? actionParam[0] : (actionParam || '');
+  // Extract action parameter from Vercel dynamic route req.query.action or req.url path
+  const action = getActionFromReq(req);
 
   switch (action) {
     case 'login':
