@@ -52,13 +52,22 @@ export const PriceAlertsPage: React.FC = () => {
   const cachedEmail = typeof window !== 'undefined' ? localStorage.getItem('KISAN_SAARTHI_USER_EMAIL') || 'farmer@gmail.com' : 'farmer@gmail.com';
   const [farmerEmail, setFarmerEmail] = useState<string>((user?.email || cachedEmail).replace('example.com', 'gmail.com'));
 
-  // Sync logged in user email
+  // Sync logged in user email & purge any legacy sample alerts
   useEffect(() => {
     if (user?.email) setFarmerEmail(user.email);
     else {
       const cached = localStorage.getItem('KISAN_SAARTHI_USER_EMAIL');
       if (cached) setFarmerEmail(cached);
     }
+
+    // Auto purge default sample alerts matching sushantsondkar2 or alt-101
+    setAlerts((prev) => {
+      const filtered = prev.filter((a) => a.id !== 'alt-101' && a.id !== 'alt-102' && a.id !== 'alt-103' && !String(a.farmerEmail || '').includes('sushantsondkar2'));
+      if (filtered.length !== prev.length) {
+        saveStoredAlerts(filtered);
+      }
+      return filtered;
+    });
   }, [user]);
 
   // Filter & Sort State

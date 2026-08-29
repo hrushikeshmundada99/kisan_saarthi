@@ -100,7 +100,9 @@ export function getAlertsFromShadowVault(): any[] {
     const raw = localStorage.getItem(VAULT_ALERTS_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed.alerts) ? parsed.alerts : [];
+    const list = Array.isArray(parsed.alerts) ? parsed.alerts : [];
+    // Purge any legacy sample alerts
+    return list.filter((a: any) => a.id !== 'alt-101' && a.id !== 'alt-102' && a.id !== 'alt-103' && !String(a.farmerEmail || a.farmer_email || '').includes('sushantsondkar2'));
   } catch {
     return [];
   }
