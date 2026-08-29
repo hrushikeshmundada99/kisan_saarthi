@@ -259,6 +259,37 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       )}
 
+      {/* Storage Intelligence Opportunity Banner */}
+      <div
+        onClick={() => navigate('/storage')}
+        className="p-3.5 bg-gradient-to-r from-[#F4F9F4] via-[#FFFFFF] to-[#E8F5E9] border-2 border-[#1B5E20]/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs cursor-pointer hover:border-[#1B5E20] transition-all"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-[#1B5E20] text-white flex items-center justify-center font-black text-lg shrink-0 shadow-xs">
+            🏬
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 bg-[#1B5E20] text-white text-[10px] font-black rounded-md">
+                {i18n.language === 'mr' ? 'नवीन साठवणूक संधी' : 'Storage Opportunity'}
+              </span>
+              <span className="text-xs font-black text-[#1B5E20]">
+                {i18n.language === 'mr' ? 'कोपरगाव क्षेत्रात ७ शीतगृहे उपलब्ध' : '7 Nearby Cold Storage Facilities Available'}
+              </span>
+            </div>
+            <p className="text-xs text-[#526058] font-bold mt-0.5">
+              {i18n.language === 'mr'
+                ? 'कांदा व इतर पिके ३० दिवस साठवून भविष्यातील भाववाढीने नफा वाढवा. खर्च व धोका विश्लेषण तपासा.'
+                : 'Evaluate storage economics, spoilage risk & price forecast before selling.'}
+            </p>
+          </div>
+        </div>
+        <div className="self-end sm:self-auto px-4 py-2 bg-[#1B5E20] hover:bg-[#123E1B] text-white font-black text-xs rounded-xl flex items-center gap-1 shrink-0">
+          <span>{i18n.language === 'mr' ? 'साठवणूक विश्लेषण करा' : 'Analyze Storage'}</span>
+          <ArrowRight className="w-4 h-4" />
+        </div>
+      </div>
+
       {/* Today Suggestions Counter */}
       <TodaySuggestionsCounter />
 

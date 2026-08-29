@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from './Card';
 import { Button } from './Button';
-import { Award, MapPin, Truck, ArrowRight } from 'lucide-react';
+import { Award, MapPin, Truck, ArrowRight, Building2 } from 'lucide-react';
 
 interface MandiComparisonRowProps {
   rate: {
@@ -147,20 +147,28 @@ export const MandiComparisonRow: React.FC<MandiComparisonRowProps> = ({
           </div>
         </div>
 
-        {/* Select Action */}
-        {onSelect && (
-          <div className="shrink-0 flex md:flex-col justify-end">
+        {/* Select Action & Storage Action */}
+        <div className="shrink-0 flex flex-col gap-1.5 justify-end">
+          {onSelect && (
             <Button
               variant={isBestOption ? 'primary' : 'secondary'}
               size="sm"
               onClick={onSelect}
-              className="w-full md:w-auto text-xs font-extrabold"
+              className="w-full text-xs font-extrabold"
             >
               <span>{t('comparison.actionSellHere')}</span>
               <ArrowRight className="w-4 h-4" />
             </Button>
-          </div>
-        )}
+          )}
+
+          <a
+            href={`/storage?crop=${encodeURIComponent(rate.commodity)}&mandi=${encodeURIComponent(rate.mandi)}`}
+            className="w-full px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#E8F5E9] text-[#1B5E20] border border-[#A5D6A7] rounded-xl text-[11px] font-black text-center transition-all flex items-center justify-center gap-1 cursor-pointer"
+          >
+            <Building2 className="w-3.5 h-3.5 text-[#FFB300]" />
+            <span>{i18n.language === 'mr' ? 'साठवणूक पर्याय (Analyze Storage)' : 'Consider Storage'}</span>
+          </a>
+        </div>
 
       </div>
     </Card>

@@ -16,6 +16,7 @@ export const Breadcrumb: React.FC = () => {
     '/dashboard': t('nav.dashboard'),
     '/forecast': t('nav.forecast'),
     '/comparison': t('nav.comparison'),
+    '/storage': t('nav.storage'),
     '/trends': t('nav.trends'),
     '/calculator': t('nav.calculator'),
     '/alerts': t('nav.alerts'),

@@ -228,13 +228,29 @@ export const PriceAlertsPage: React.FC = () => {
       {/* Set New Alert Form Card */}
       {showAddForm && (
         <div ref={formRef}>
-          <form onSubmit={handleAddAlert}>
-            <Card hoverable={false} className="p-5 sm:p-6 border-2 border-[#2E7D32] rounded-2xl space-y-4 animate-in slide-in-from-top-2 duration-200 bg-[#FFFFFF] shadow-md">
-              <div className="flex items-center justify-between border-b border-[#E1EBE1] pb-3">
-                <h3 className="text-lg font-black text-[#1B4332] flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-[#FFC107]" />
-                  <span>{i18n.language === 'mr' ? 'नवीन भाव अलर्ट नोंदवा' : 'Set New Price Alert'}</span>
-                </h3>
+          <form onSubmit={handleAddAlert} className="p-4 sm:p-5 bg-[#FFFFFF] border-2 border-[#1B5E20] rounded-3xl space-y-4 animate-in slide-in-from-top duration-300 shadow-md">
+            <div className="flex items-center justify-between border-b border-[#E1EBE1] pb-3 flex-wrap gap-2">
+              <h3 className="text-base font-black text-[#1B4332] flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#FFC107]" />
+                <span>{i18n.language === 'mr' ? 'नवीन भाव अलर्ट नोंदवा' : 'Set New Price Alert'}</span>
+              </h3>
+
+              <div className="flex items-center gap-2">
+                {/* Storage Exit Alert Preset Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCrop('Onion');
+                    setMandi('Lasalgaon');
+                    setCondition('ABOVE');
+                    setTargetPrice(4500);
+                    showToast(i18n.language === 'mr' ? '🏬 साठवणूक बाहेर पडणे अलर्ट (₹4,500) सेट केला!' : '🏬 Storage Exit Alert preset loaded (₹4,500)!', 'info');
+                  }}
+                  className="px-3 py-1.5 bg-[#1B5E20] hover:bg-[#123E1B] text-white text-xs font-black rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-1"
+                >
+                  <span>🏬 साठवणूक बाहेर पडणे अलर्ट (₹४,५००)</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
@@ -243,6 +259,7 @@ export const PriceAlertsPage: React.FC = () => {
                   {i18n.language === 'mr' ? 'रद्द करा (Cancel)' : 'Cancel'}
                 </button>
               </div>
+            </div>
 
               {/* Crop & Mandi Selectors */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -369,7 +386,6 @@ export const PriceAlertsPage: React.FC = () => {
                   <span>{i18n.language === 'mr' ? 'ई-मेल अलर्ट सुरू करा' : 'Activate Email Alert'}</span>
                 </Button>
               </div>
-            </Card>
           </form>
         </div>
       )}

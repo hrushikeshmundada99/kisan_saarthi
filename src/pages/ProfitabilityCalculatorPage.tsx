@@ -89,6 +89,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
   // Selected Mandis to Compare (2 to 3 mandis)
   const [selectedMandis, setSelectedMandis] = useState<string[]>(['Kopargaon', 'Rahata', 'Yeola']);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleOption>(() => getRecommendedVehicle(150));
+  const [includeStorageInCalc, setIncludeStorageInCalc] = useState<boolean>(false);
 
   // Results & Expansion State
   const [calculatedResults, setCalculatedResults] = useState<MandiProfitResult[] | null>(null);
@@ -170,7 +171,8 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
       const transportCostPerQ = freightCalc.freightPerQuintal;
       const totalTransportCost = freightCalc.totalFreightCost;
 
-      const totalExpenses = totalCultivationCost + totalTransportCost;
+      const storageCostTotal = includeStorageInCalc ? Math.round(totalYieldQuintals * 95) : 0;
+      const totalExpenses = totalCultivationCost + totalTransportCost + storageCostTotal;
       const netProfit = grossRevenue - totalExpenses;
       const profitPerQ = totalYieldQuintals > 0 ? Math.round(netProfit / totalYieldQuintals) : 0;
 
@@ -514,10 +516,36 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
             </select>
           </div>
 
+          {/* Optional Storage Cost Toggle */}
+          <div className="space-y-2 pt-2 border-t border-[#E5DFD5]">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-[#4B5563] uppercase tracking-wider">
+                {isMr ? '६. साठवणूक खर्च समाविष्ट करा (Include Storage in Calculation):' : '6. Include Storage in Calculation:'}
+              </label>
+
+              <button
+                type="button"
+                onClick={() => setIncludeStorageInCalc(!includeStorageInCalc)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer border flex items-center gap-1.5 ${
+                  includeStorageInCalc
+                    ? 'bg-[#1B5E20] text-white border-[#1B5E20] shadow-xs'
+                    : 'bg-white text-[#4B5563] border-[#E5DFD5] hover:bg-[#FAF7F2]'
+                }`}
+              >
+                <span>{includeStorageInCalc ? '🟢 साठवणूक जोडली (ON)' : '⚪ साठवणूक बंद (OFF)'}</span>
+              </button>
+            </div>
+            {includeStorageInCalc && (
+              <p className="text-[11px] font-semibold text-[#1B5E20] bg-[#E8F5E9] p-2.5 rounded-xl border border-[#A5D6A7]">
+                💡 {isMr ? '३० दिवसांच्या साठवणुकीचे अंदाजित ₹९५/क्विंटल भाडे नफा गणितात जोडले जाईल.' : '30-day storage fee (~₹95/Q) will be included in net expenses.'}
+              </p>
+            )}
+          </div>
+
           {/* 2. Mandi Selection Checkboxes for Multi-Mandi Comparison */}
           <div className="space-y-2 pt-2 border-t border-[#E5DFD5]">
             <label className="block text-xs font-bold text-[#4B5563] uppercase tracking-wider">
-              {isMr ? '5. तुलनेसाठी बाजार समित्या निवडा (Select 2-3 Mandis to Compare):' : '5. Select Mandis to Compare:'}
+              {isMr ? '7. तुलनेसाठी बाजार समित्या निवडा (Select 2-3 Mandis to Compare):' : '7. Select Mandis to Compare:'}
             </label>
 
             <div className="flex flex-wrap gap-2">

@@ -35,8 +35,9 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
+  AlertCircle,
   Lightbulb,
-  AlertCircle
+  ArrowRight
 } from 'lucide-react';
 
 export const PriceForecastPage: React.FC = () => {
@@ -517,6 +518,38 @@ export const PriceForecastPage: React.FC = () => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* 🏬 Storage Intelligence Cross-Feature Banner */}
+      <div className="p-4 sm:p-5 bg-gradient-to-r from-[#F4F9F4] via-[#FFFFFF] to-[#E8F5E9] border-2 border-[#1B5E20]/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 bg-[#1B5E20] text-white text-[11px] font-black rounded-lg">
+              🏬 {isMr ? 'साठवणूक बुद्धिमत्ता' : 'Storage Intelligence'}
+            </span>
+            <span className="text-xs font-black text-[#1B5E20]">
+              {isMr ? 'भावी दर वाढीचा फायदा घ्या!' : 'Capitalize on Future Forecast Rise'}
+            </span>
+          </div>
+          <h3 className="text-base font-black text-[#1B4332]">
+            {isMr
+              ? `मी ${crop} ${mandi} क्षेत्रात साठवून ठेवावा का? (Should I Store ${crop}?)`
+              : `Should I Store ${crop} at ${mandi}?`}
+          </h3>
+          <p className="text-xs text-[#526058] font-semibold">
+            {isMr
+              ? `शीतगृह भाडे, वजन घट नुकसान व निव्वळ नफा तुलना तपासा.`
+              : `Check cold storage cost, spoilage loss & net profit comparison.`}
+          </p>
+        </div>
+
+        <a
+          href={`/storage?crop=${encodeURIComponent(crop)}&mandi=${encodeURIComponent(mandi)}`}
+          className="px-5 py-2.5 bg-[#1B5E20] hover:bg-[#123E1B] text-white font-black text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2 shrink-0"
+        >
+          <span>{isMr ? 'साठवणूक विश्लेषण करा' : 'Analyze Storage'}</span>
+          <ArrowRight className="w-4 h-4" />
+        </a>
       </div>
 
     </div>
