@@ -463,30 +463,50 @@ export const MandiComparisonPage: React.FC = () => {
             </div>
           </div>
 
-          {/* 4. Quantity Slider Box */}
-          <div className="md:col-span-6 bg-[#F4F9F4] p-3.5 sm:p-4 rounded-2xl border border-[#D8E6D8] space-y-2">
-            <div className="flex items-center justify-between">
+          {/* 4. Quantity Input Box & Range Slider */}
+          <div className="md:col-span-6 bg-[#F4F9F4] p-3.5 sm:p-4 rounded-2xl border border-[#D8E6D8] space-y-2.5">
+            <div className="flex items-center justify-between gap-2">
               <label className="text-xs font-black text-[#0F291E] flex items-center gap-1.5">
                 <Truck className="w-4 h-4 text-[#FFB300]" />
-                4. मालाचे एकूण वजन (QUANTITY IN QUINTALS):
+                <span>4. मालाचे एकूण वजन (QUANTITY IN QUINTALS):</span>
               </label>
-              <span className="px-3 py-1 bg-[#1B5E20] text-[#FFFFFF] text-xs font-black rounded-xl shadow-xs">
-                {quantity} क्विंटल
-              </span>
+
+              {/* Direct Number Input Box */}
+              <div className="flex items-center gap-1 bg-[#1B5E20] text-white px-2 py-1 rounded-xl shadow-xs">
+                <input
+                  type="number"
+                  min="0.5"
+                  max="500"
+                  step="0.5"
+                  value={quantity || ''}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    if (!isNaN(val) && val > 0) {
+                      handleQuantityChange(val);
+                    } else {
+                      setQuantity(0);
+                    }
+                  }}
+                  className="w-16 bg-white text-[#1B5E20] text-xs font-black rounded-lg px-1.5 py-0.5 text-center focus:outline-none focus:ring-2 focus:ring-[#FFB300]"
+                />
+                <span className="text-xs font-black px-1">क्विंटल</span>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            {/* Range Slider & Quick Preset Chips */}
+            <div className="flex items-center gap-2">
               <input
                 type="range"
-                min="5"
+                min="1"
                 max="300"
-                step="5"
+                step="1"
                 value={quantity}
                 onChange={(e) => handleQuantityChange(Number(e.target.value))}
                 className="flex-1 accent-[#1B5E20] cursor-pointer"
               />
-              <div className="flex gap-1 shrink-0">
-                {[50, 100, 200].map((qVal) => (
+              
+              <div className="flex flex-wrap gap-1 shrink-0">
+                {[7, 15, 50, 100, 200].map((qVal) => (
                   <button
                     key={qVal}
                     type="button"
