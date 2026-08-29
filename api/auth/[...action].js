@@ -128,18 +128,26 @@ async function handleLogin(req, res) {
 
     const farmer = result.rows[0];
 
-    // If farmer's password_hash in Supabase is 'hashed_default' (inserted by background self-healing engine), repair it on the fly!
+    let isPasswordValid = false;
     if (farmer.password_hash === 'hashed_default' || !farmer.password_hash || farmer.password_hash.length < 10) {
-      console.warn(`[Self-Healing Login Repair]: Repairing 'hashed_default' password_hash for mobile ${normalizedPhone}...`);
-      const repairedHash = await hashPassword(password);
-      await query('UPDATE farmers SET password_hash = $1 WHERE id = $2', [repairedHash, farmer.id]);
-      farmer.password_hash = repairedHash;
+      // If placeholder hash was set by background self-healing, allow login with entered password and repair hash
+      isPasswordValid = true;
+    } else {
+      isPasswordValid = await verifyPassword(password, farmer.password_hash);
     }
 
-    const isPasswordValid = await verifyPassword(password, farmer.password_hash);
     if (!isPasswordValid) {
       recordFailedAttempt(rateLimitKey);
       return res.status(401).json({ success: false, error: 'मोबाईल नंबर किंवा पासवर्ड चुकीचा आहे.' });
+    }
+
+    // Always update password_hash in Supabase table upon login to guarantee 100% database sync
+    try {
+      const freshHash = await hashPassword(password);
+      await query('UPDATE farmers SET password_hash = $1, updated_at = now() WHERE mobile = $2', [freshHash, normalizedPhone]);
+      farmer.password_hash = freshHash;
+    } catch (updateErr) {
+      console.warn('[Login Password Hash Update Note]:', updateErr);
     }
 
     failedAttemptsMap.delete(rateLimitKey);
