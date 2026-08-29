@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { AuthModal } from '../components/AuthModal';
 import { ChangePasswordModal } from '../components/ChangePasswordModal';
+import { SelfHealingBanner } from '../components/SelfHealingBanner';
 import {
   REGIONAL_TALUKAS,
   LAND_SIZE_OPTIONS,
@@ -205,6 +206,9 @@ export const FarmerProfilePage: React.FC = () => {
   return (
     <div className="space-y-4 sm:space-y-5 pb-6 max-w-7xl mx-auto animate-in fade-in duration-200 px-1 sm:px-2">
       
+      {/* Self-Healing Architecture Banner */}
+      <SelfHealingBanner />
+
       {/* If Not Logged In: Show Banner to Sign In */}
       {!isLoggedIn && !isLoading && (
         <Card hoverable={false} className="border-2 border-[#FFB300] bg-gradient-to-r from-amber-50 via-white to-emerald-50 p-5 sm:p-6 rounded-3xl shadow-md">

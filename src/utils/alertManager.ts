@@ -1,3 +1,4 @@
+import { saveAlertsToShadowVault } from './selfHealingVault';
 import { REAL_DASHBOARD_CARDS } from '../data/realData';
 
 export interface PriceAlertItem {
@@ -104,10 +105,11 @@ export const getStoredAlerts = (): PriceAlertItem[] => {
   return INITIAL_ALERTS;
 };
 
-// Save alerts to localStorage
+// Save alerts to localStorage & shadow vault
 export const saveStoredAlerts = (alerts: PriceAlertItem[]): void => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(alerts));
+    saveAlertsToShadowVault(alerts);
   } catch (e) {
     console.warn('Failed to save alerts:', e);
   }

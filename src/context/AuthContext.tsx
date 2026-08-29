@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { saveProfileToShadowVault, runSelfHealingEngine } from '../utils/selfHealingVault';
 
 export interface UserProfile {
   id?: string;
@@ -70,13 +71,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Sync user state to local cache for instant reload preview
+  // Sync user state to local cache & shadow vault
   const saveUserCache = (newUser: UserProfile | null) => {
     setUser(newUser);
     try {
       if (newUser) {
         localStorage.setItem('KISAN_SAARTHI_AUTH_USER_CACHE', JSON.stringify(newUser));
         localStorage.setItem('KISAN_SAARTHI_HAS_SESSION', 'true');
+        saveProfileToShadowVault(newUser);
       } else {
         localStorage.removeItem('KISAN_SAARTHI_AUTH_USER_CACHE');
         localStorage.removeItem('KISAN_SAARTHI_HAS_SESSION');
@@ -104,6 +106,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         saveUserCache(data.user);
       } else {
         saveUserCache(null);
+        // Trigger self-healing check in case database wiped mid-session
+        runSelfHealingEngine().catch(e => console.warn('[Self-Healing Note]:', e));
       }
     } catch (err) {
       console.warn('[AuthContext] Session restore note:', err);

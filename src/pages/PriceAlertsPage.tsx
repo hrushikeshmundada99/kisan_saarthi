@@ -16,6 +16,7 @@ import { EmptyState } from '../components/EmptyState';
 import { CropSelector } from '../components/CropSelector';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import { SelfHealingBanner } from '../components/SelfHealingBanner';
 import {
   Bell,
   Plus,
@@ -185,6 +186,9 @@ export const PriceAlertsPage: React.FC = () => {
   return (
     <div className="space-y-4 sm:space-y-5 pb-6 max-w-7xl mx-auto animate-in fade-in duration-200">
       
+      {/* Self-Healing Shadow Vault Banner */}
+      <SelfHealingBanner />
+
       {/* 1. Header Card */}
       <Card hoverable={false} className="p-4 sm:p-6 bg-gradient-to-br from-[#FFFFFF] via-[#F7FBF7] to-[#E8F5E9] border-2 border-[#81C784]/60 rounded-2xl shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
