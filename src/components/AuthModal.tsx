@@ -247,9 +247,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         {/* Error Alert Box */}
         {errorMessage && (
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-2 text-xs text-rose-800 font-bold animate-in shake">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-            <div className="leading-snug">{errorMessage}</div>
+          <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl flex flex-col gap-1.5 text-xs text-rose-800 font-bold animate-in shake">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <div className="leading-snug">{errorMessage}</div>
+            </div>
+
+            {errorMessage.includes('आधीच नोंदणीकृत आहे') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginPhone(signupPhone);
+                  setMode('login');
+                  setErrorMessage(null);
+                }}
+                className="mt-1 px-3 py-1.5 bg-[#1B5E20] hover:bg-[#123E1B] text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+              >
+                <span>👉 १-क्लिकमध्ये लॉगिन करा (Go to Login with {signupPhone})</span>
+              </button>
+            )}
           </div>
         )}
 
