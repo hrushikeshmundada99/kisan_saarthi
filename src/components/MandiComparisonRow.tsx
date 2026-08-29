@@ -1,6 +1,5 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { MANDI_LOCATIONS } from '../data/realData';
 import { Card } from './Card';
 import { Button } from './Button';
 import { Award, MapPin, Truck, ArrowRight } from 'lucide-react';
@@ -18,6 +17,9 @@ interface MandiComparisonRowProps {
     distanceKm: number;
     transportPerQ: number;
     netPerQ: number;
+    tripsNeeded?: number;
+    totalFreightCost?: number;
+    vehicleName?: string;
   };
   isBestOption: boolean;
   quantityQuintals?: number;
@@ -34,11 +36,11 @@ export const MandiComparisonRow: React.FC<MandiComparisonRowProps> = ({
 
   const todayStr = new Date().toISOString().split('T')[0];
   const isToday = rate.arrivalDate === todayStr;
-  const locationInfo = MANDI_LOCATIONS[rate.mandi] || { distanceKm: rate.distanceKm, estFreightRatePerQ: rate.distanceKm * 1.3 };
-  const transportCostPerQ = Math.round(locationInfo.estFreightRatePerQ);
-  const totalTransportCost = transportCostPerQ * quantityQuintals;
+  const transportCostPerQ = Math.round(rate.transportPerQ);
+  const totalTransportCost = rate.totalFreightCost !== undefined ? rate.totalFreightCost : transportCostPerQ * quantityQuintals;
   const netPricePerQ = rate.modalPrice - transportCostPerQ;
   const totalNetPayout = netPricePerQ * quantityQuintals;
+  const tripsNeeded = rate.tripsNeeded || 1;
 
   // Dynamic badge label
   const bestBadgeLabel = isToday
@@ -77,7 +79,7 @@ export const MandiComparisonRow: React.FC<MandiComparisonRowProps> = ({
               {t(`mandis.${rate.mandi}`, rate.mandi)}
             </h3>
 
-            {/* Badges Row: Distance Badge & Transport Badge & Range */}
+            {/* Badges Row: Distance Badge & Transport Badge & Trips */}
             <div className="flex flex-wrap items-center gap-2 text-xs font-bold pt-0.5">
               {/* Distance Badge */}
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-[#F4F9F4] text-[#0F291E] border border-[#D8E6D8]">
@@ -87,10 +89,12 @@ export const MandiComparisonRow: React.FC<MandiComparisonRowProps> = ({
                   : (i18n.language === 'mr' ? `${rate.distanceKm} km अंतर` : `${rate.distanceKm} km away`)}
               </span>
 
-              {/* Transport Cost Badge */}
+              {/* Transport Cost & Trips Badge */}
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-50 text-rose-950 border border-rose-200">
                 <Truck className="w-3.5 h-3.5 text-[#DC2626]" />
-                {i18n.language === 'mr' ? `भाडे: ₹${transportCostPerQ}/क्विंटल` : `Freight: ₹${transportCostPerQ}/q`}
+                {i18n.language === 'mr' 
+                  ? `भाडे: ₹${transportCostPerQ}/क्विंटल (${tripsNeeded} फेऱ्या)` 
+                  : `Freight: ₹${transportCostPerQ}/q (${tripsNeeded} trips)`}
               </span>
 
               {/* Min Max text */}

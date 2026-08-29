@@ -2,6 +2,13 @@ import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { REAL_MANDI_RATES, MANDI_LOCATIONS } from '../data/realData';
+import {
+  VEHICLE_OPTIONS,
+  CAPACITY_TIERS,
+  calculateFreight,
+  getRecommendedVehicle,
+  type VehicleOption
+} from '../data/transportData';
 import { CropSelector } from '../components/CropSelector';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -81,6 +88,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
 
   // Selected Mandis to Compare (2 to 3 mandis)
   const [selectedMandis, setSelectedMandis] = useState<string[]>(['Kopargaon', 'Rahata', 'Yeola']);
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleOption>(() => getRecommendedVehicle(150));
 
   // Results & Expansion State
   const [calculatedResults, setCalculatedResults] = useState<MandiProfitResult[] | null>(null);
@@ -154,8 +162,13 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
       const grossRevenue = Math.round(modalPrice * totalYieldQuintals);
 
       const locInfo = MANDI_LOCATIONS[mName] || { distanceKm: 25, estFreightRatePerQ: 35 };
-      const transportCostPerQ = Math.round(locInfo.estFreightRatePerQ);
-      const totalTransportCost = Math.round(transportCostPerQ * totalYieldQuintals);
+      const freightCalc = calculateFreight({
+        distanceKm: locInfo.distanceKm,
+        totalQuantityQuintals: totalYieldQuintals,
+        vehicle: selectedVehicle
+      });
+      const transportCostPerQ = freightCalc.freightPerQuintal;
+      const totalTransportCost = freightCalc.totalFreightCost;
 
       const totalExpenses = totalCultivationCost + totalTransportCost;
       const netProfit = grossRevenue - totalExpenses;
@@ -446,6 +459,59 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Vehicle Selection for Logistics Freight */}
+          <div className="space-y-2 pt-2 border-t border-[#E5DFD5]">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-[#4B5563] uppercase tracking-wider">
+                {isMr ? '५. वाहन प्रकार व क्षमता निवडा (Select Vehicle & Capacity):' : '5. Select Vehicle & Freight Capacity:'}
+              </label>
+              <span className="px-2 py-0.5 bg-[#2D5016] text-white text-[11px] font-bold rounded-lg">
+                {selectedVehicle.capacityQuintals} Q / {isMr ? 'गाडी' : 'trip'}
+              </span>
+            </div>
+
+            {/* 3 Capacity Tier Buttons (Small | Medium | Large) */}
+            <div className="grid grid-cols-3 gap-2">
+              {CAPACITY_TIERS.map((tier) => {
+                const isActive = selectedVehicle.categoryTier === tier.id;
+                return (
+                  <button
+                    key={tier.id}
+                    type="button"
+                    onClick={() => {
+                      const found = VEHICLE_OPTIONS.find((v) => v.categoryTier === tier.id) || VEHICLE_OPTIONS[0];
+                      setSelectedVehicle(found);
+                    }}
+                    className={`py-2 px-2 rounded-xl text-xs font-extrabold transition-all border flex items-center justify-center gap-1.5 cursor-pointer shadow-xs ${
+                      isActive
+                        ? 'bg-[#2D5016] text-[#FFFFFF] border-[#2D5016] ring-2 ring-[#2D5016]/20'
+                        : 'bg-[#FFFFFF] text-[#1F2937] border-[#E5DFD5] hover:bg-[#FAF7F2]'
+                    }`}
+                  >
+                    <span>{tier.icon}</span>
+                    <span>{isMr ? tier.labelMr : tier.labelEn}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Dropdown */}
+            <select
+              value={selectedVehicle.id}
+              onChange={(e) => {
+                const found = VEHICLE_OPTIONS.find((v) => v.id === e.target.value);
+                if (found) setSelectedVehicle(found);
+              }}
+              className="w-full px-3 py-2 bg-[#FFFFFF] border border-[#E5DFD5] rounded-xl text-xs font-bold text-[#1F2937] min-h-[44px]"
+            >
+              {VEHICLE_OPTIONS.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.icon} {isMr ? v.nameMr : v.nameEn} — [₹{v.costPerKm}/km]
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* 2. Mandi Selection Checkboxes for Multi-Mandi Comparison */}

@@ -6,6 +6,13 @@ import {
   MANDIS
 } from '../data/mandiComparisonData';
 import { MANDI_LOCATIONS, REAL_DASHBOARD_CARDS } from '../data/realData';
+import {
+  VEHICLE_OPTIONS,
+  CAPACITY_TIERS,
+  calculateFreight,
+  getRecommendedVehicle,
+  type VehicleOption
+} from '../data/transportData';
 import { MandiComparisonRow } from '../components/MandiComparisonRow';
 import { MandiDateMatrixTable } from '../components/MandiDateMatrixTable';
 import { CropSelector } from '../components/CropSelector';
@@ -47,6 +54,7 @@ export const MandiComparisonPage: React.FC = () => {
   const [crop, setCrop] = useState<string>(initialCrop);
   const [selectedDate, setSelectedDate] = useState<string>(TODAY_DATE);
   const [quantity, setQuantity] = useState<number>(20);
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleOption>(() => getRecommendedVehicle(20));
   const [sortBy, setSortBy] = useState<'netPrice' | 'distance' | 'rawPrice'>('netPrice');
   const [showMatrixView, setShowMatrixView] = useState<boolean>(false);
 
@@ -58,6 +66,16 @@ export const MandiComparisonPage: React.FC = () => {
     const timer = setTimeout(() => setIsLoading(false), 200);
     return () => clearTimeout(timer);
   }, [crop, selectedDate]);
+
+  const handleSelectTier = (tierId: string) => {
+    const foundInTier = VEHICLE_OPTIONS.find((v) => v.categoryTier === tierId) || VEHICLE_OPTIONS[0];
+    setSelectedVehicle(foundInTier);
+  };
+
+  const handleQuantityChange = (newQty: number) => {
+    setQuantity(newQty);
+    setSelectedVehicle(getRecommendedVehicle(newQty));
+  };
 
   // Navigate date +1 or -1 day
   const handleStepDate = (daysDelta: number) => {
@@ -92,9 +110,8 @@ export const MandiComparisonPage: React.FC = () => {
     });
   }, [selectedDate, i18n.language]);
 
-  // Filter records for selected crop & selected date (Matching BOTH crop and commodity)
+  // Filter records
   const filteredRecordsForDate = useMemo(() => {
-    // If today is selected, always pull directly from REAL_DASHBOARD_CARDS for highest live accuracy
     if (isTodaySelected) {
       const liveCardsForCrop = REAL_DASHBOARD_CARDS.filter((c) => c.crop === crop);
       const cardMap = new Map(liveCardsForCrop.map((c) => [c.mandiName, c]));
@@ -113,76 +130,81 @@ export const MandiComparisonPage: React.FC = () => {
         if (liveCard) {
           modal = liveCard.modalPrice;
         } else {
-          // Realistic regional variance for mandis without explicit single card
           if (mandi === 'Lasalgaon' && crop === 'Onion') modal = 4250;
           else if (mandi === 'Ahilyanagar' && crop === 'Onion') modal = 4350;
           else if (mandi === 'Nashik' && crop === 'Onion') modal = 4050;
           else if (mandi === 'Yeola' && crop === 'Onion') modal = 4000;
-          else if (mandi === 'Rahata' && crop === 'Onion') modal = 3850;
-          else if (mandi === 'Sangamner' && crop === 'Onion') modal = 3800;
-          else if (mandi === 'Shrirampur' && crop === 'Onion') modal = 3900;
+          else if (mandi === 'Sangamner' && crop === 'Onion') modal = 4100;
+          else if (mandi === 'Rahata' && crop === 'Onion') modal = 4120;
+          else if (mandi === 'Shrirampur' && crop === 'Onion') modal = 4080;
         }
 
-        const minP = liveCard ? liveCard.minPrice : Math.round(modal * 0.89);
-        const maxP = liveCard ? liveCard.maxPrice : Math.round(modal * 1.11);
+        const minPrice = Math.round(modal * 0.88);
+        const maxPrice = Math.round(modal * 1.12);
 
         return {
-          date: selectedDate,
+          date: TODAY_DATE,
           formattedDate: formattedSelectedDateDisplay,
-          mandiName: mandi,
-          crop: crop,
+          crop,
           commodity: crop,
-          modalPrice: modal,
-          minPrice: minP,
-          maxPrice: maxP,
+          mandiName: mandi,
           distanceFromKopargaon: dist,
-          arrivalsQuantity: 2450
+          minPrice,
+          maxPrice,
+          modalPrice: modal,
+          arrivalsQuantity: Math.round(150 + (dist * 2.5))
         };
       });
     }
 
-    const matches = DATEWISE_COMPARISON_DATA.filter(
+    let matches = DATEWISE_COMPARISON_DATA.filter(
       (r) => (r.crop === crop || r.commodity === crop) && r.date === selectedDate
     );
 
-    // Fallback: If date was selected dynamically outside generated dataset array, generate rows for target mandis
     if (matches.length === 0) {
-      const basePrices: Record<string, number> = {
-        Onion: 4050, Soybean: 5850, Cotton: 7350, Sugarcane: 3140, Pomegranate: 8500,
-        Wheat: 2650, Tomato: 1560, Maize: 2350, Gram: 6180, Bajra: 2410
+      const fallbackPrices: Record<string, number> = {
+        Onion: 4150, Soybean: 6032, Cotton: 7300, Wheat: 2650, Pomegranate: 8500,
+        Sugarcane: 3140, Tomato: 1520, Maize: 2350, Gram: 6180, Bajra: 2410
       };
-      const base = basePrices[crop] || 3950;
+      const base = fallbackPrices[crop] || 4000;
 
-      return MANDIS.map((mandi) => {
+      matches = MANDIS.map((mandi) => {
         const dist = MANDI_LOCATIONS[mandi]?.distanceKm ?? (mandi === 'Kopargaon' ? 0 : 25);
-        const modal = base + (mandi === 'Nashik' ? 180 : mandi === 'Kopargaon' ? 0 : mandi === 'Sangamner' ? -30 : 50);
         return {
           date: selectedDate,
           formattedDate: formattedSelectedDateDisplay,
-          mandiName: mandi,
-          crop: crop,
+          crop,
           commodity: crop,
-          modalPrice: modal,
-          minPrice: Math.round(modal * 0.9),
-          maxPrice: Math.round(modal * 1.1),
+          mandiName: mandi,
           distanceFromKopargaon: dist,
-          arrivalsQuantity: 2100
+          minPrice: Math.round(base * 0.9),
+          maxPrice: Math.round(base * 1.1),
+          modalPrice: base,
+          arrivalsQuantity: 120
         };
       });
     }
 
     return matches;
-  }, [crop, selectedDate, formattedSelectedDateDisplay, isTodaySelected]);
+  }, [crop, selectedDate, isTodaySelected]);
 
-  // Process transport & net prices
+  // Process vehicle-based transport & net prices
   const processedRates = useMemo(() => {
     return filteredRecordsForDate.map((rate) => {
       const loc = MANDI_LOCATIONS[rate.mandiName] || {
         distanceKm: rate.distanceFromKopargaon,
         estFreightRatePerQ: rate.distanceFromKopargaon * 1.3
       };
-      const transportPerQ = Math.round(loc.estFreightRatePerQ);
+      
+      const freightCalc = calculateFreight({
+        distanceKm: loc.distanceKm,
+        totalQuantityQuintals: quantity,
+        vehicle: selectedVehicle
+      });
+
+      const transportPerQ = freightCalc.freightPerQuintal;
       const netPerQ = rate.modalPrice - transportPerQ;
+
       return {
         id: `rate-${rate.mandiName}-${rate.date}`,
         commodity: rate.crop,
@@ -194,14 +216,18 @@ export const MandiComparisonPage: React.FC = () => {
         modalPrice: rate.modalPrice,
         arrivalDate: rate.date,
         arrivalsQuantity: rate.arrivalsQuantity,
-        distanceKm: rate.distanceFromKopargaon,
+        distanceKm: loc.distanceKm,
         dailyChange: 0,
         dailyChangePct: 0,
         transportPerQ,
-        netPerQ
+        netPerQ,
+        tripsNeeded: freightCalc.tripsNeeded,
+        totalFreightCost: freightCalc.totalFreightCost,
+        costPerTrip: freightCalc.costPerTrip,
+        vehicleName: i18n.language === 'mr' ? selectedVehicle.nameMr : selectedVehicle.nameEn
       };
     });
-  }, [filteredRecordsForDate]);
+  }, [filteredRecordsForDate, selectedVehicle, quantity, i18n.language]);
 
   // Sort processed rates
   const sortedRates = useMemo(() => {
@@ -215,7 +241,6 @@ export const MandiComparisonPage: React.FC = () => {
 
   const bestMandiId = sortedRates.length > 0 ? sortedRates[0].id : '';
 
-  // Get last 7 days list for Matrix View
   const last7DaysList = useMemo(() => {
     const dates: string[] = [];
     const base = new Date(selectedDate);
@@ -233,7 +258,7 @@ export const MandiComparisonPage: React.FC = () => {
   return (
     <div className="space-y-4 sm:space-y-5 pb-6 max-w-7xl mx-auto animate-in fade-in duration-200">
       
-      {/* 1. Header & Controls Card (Crop + Date Selector) */}
+      {/* 1. Header & Controls Card (Crop + Vehicle + Date + Quantity) */}
       <Card hoverable={false} className="p-4 sm:p-6 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -249,7 +274,6 @@ export const MandiComparisonPage: React.FC = () => {
             </p>
           </div>
 
-          {/* 4. Matrix / Single Date Toggle Button */}
           <Button
             variant={showMatrixView ? 'primary' : 'secondary'}
             size="sm"
@@ -261,12 +285,11 @@ export const MandiComparisonPage: React.FC = () => {
           </Button>
         </div>
 
-        {/* 1. Crop Selector & Date Picker Bar */}
+        {/* Crop Selector & Vehicle Selection Grid */}
         <div className="pt-4 border-t border-[#E1EBE1] grid grid-cols-1 md:grid-cols-12 gap-4">
           
-          {/* Crop Chips Column */}
-          <div className="md:col-span-7">
-            <label className="block text-xs font-extrabold text-[#1B4332] uppercase tracking-wider mb-2">
+          <div className="md:col-span-12 lg:col-span-6 space-y-2">
+            <label className="block text-xs font-extrabold text-[#1B4332] uppercase tracking-wider">
               1. पिक निवडा (SELECT CROP):
             </label>
             <CropSelector
@@ -276,14 +299,71 @@ export const MandiComparisonPage: React.FC = () => {
             />
           </div>
 
-          {/* 1. Date Selector + Prev/Next Arrows Column */}
-          <div className="md:col-span-5 space-y-2">
+          <div className="md:col-span-12 lg:col-span-6 space-y-2.5 bg-[#F4F9F4] p-3.5 sm:p-4 rounded-2xl border border-[#D8E6D8]">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-black text-[#1B4332] uppercase tracking-wider flex items-center gap-1.5">
+                <Truck className="w-4 h-4 text-[#FFB300]" />
+                <span>2. वाहन प्रकार व क्षमता (VEHICLE CAPACITY):</span>
+              </label>
+              <span className="px-2 py-0.5 bg-[#1B5E20] text-white text-[11px] font-black rounded-lg">
+                {selectedVehicle.capacityQuintals} क्विंटल / गाडी
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-1.5">
+              {CAPACITY_TIERS.map((tier) => {
+                const isActive = selectedVehicle.categoryTier === tier.id;
+                return (
+                  <button
+                    key={tier.id}
+                    type="button"
+                    onClick={() => handleSelectTier(tier.id)}
+                    className={`py-1.5 px-2 rounded-xl text-xs font-extrabold transition-all border flex items-center justify-center gap-1 cursor-pointer shadow-xs ${
+                      isActive
+                        ? 'bg-[#1B5E20] text-[#FFFFFF] border-[#1B5E20] ring-2 ring-[#1B5E20]/20'
+                        : 'bg-[#FFFFFF] text-[#1B4332] border-[#D8E6D8] hover:bg-[#E8F5E9]'
+                    }`}
+                  >
+                    <span>{tier.icon}</span>
+                    <span>{i18n.language === 'mr' ? tier.labelMr : tier.labelEn}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="relative">
+              <select
+                value={selectedVehicle.id}
+                onChange={(e) => {
+                  const found = VEHICLE_OPTIONS.find((v) => v.id === e.target.value);
+                  if (found) setSelectedVehicle(found);
+                }}
+                className="w-full pl-3 pr-8 min-h-[46px] bg-[#FFFFFF] border-2 border-[#E1EBE1] rounded-xl text-[#1B4332] font-black text-xs sm:text-sm focus:outline-none focus:ring-3 focus:ring-[#2E7D32]/20 focus:border-[#2E7D32] transition-all cursor-pointer shadow-xs"
+              >
+                {VEHICLE_OPTIONS.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.icon} {i18n.language === 'mr' ? v.nameMr : v.nameEn} — [₹{v.costPerKm}/km]
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <p className="text-[11px] font-semibold text-[#526058] flex items-center gap-1 leading-tight">
+              <span>💡 {i18n.language === 'mr' ? selectedVehicle.bestSuitedForMr : selectedVehicle.bestSuitedForEn}</span>
+            </p>
+          </div>
+
+        </div>
+
+        {/* Date Selector & Quantity Slider Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-2">
+          
+          <div className="md:col-span-6 space-y-2">
             <label className="block text-xs font-extrabold text-[#1B4332] uppercase tracking-wider mb-2">
-              2. तारीख निवडा (SELECT DATE):
+              3. तारीख निवडा (SELECT DATE):
             </label>
             
             <div className="flex items-center gap-2">
-              {/* Previous Day Button */}
               <button
                 onClick={() => handleStepDate(-1)}
                 className="p-2.5 bg-[#FFFFFF] border-2 border-[#E1EBE1] hover:bg-[#F7FBF7] text-[#2E7D32] rounded-2xl font-bold transition-colors min-h-[50px] cursor-pointer shadow-xs"
@@ -292,7 +372,6 @@ export const MandiComparisonPage: React.FC = () => {
                 <ChevronLeft className="w-5 h-5" />
               </button>
 
-              {/* Date Input Picker */}
               <div className="relative flex-1 flex items-center">
                 <CalendarIcon className="absolute left-4 w-5 h-5 text-[#FFC107] shrink-0 pointer-events-none" />
                 <input
@@ -303,7 +382,6 @@ export const MandiComparisonPage: React.FC = () => {
                 />
               </div>
 
-              {/* Next Day Button */}
               <button
                 onClick={() => handleStepDate(1)}
                 disabled={isTodaySelected}
@@ -319,34 +397,53 @@ export const MandiComparisonPage: React.FC = () => {
             </div>
           </div>
 
-        </div>
+          {/* 4. Quantity Slider Box */}
+          <div className="md:col-span-6 bg-[#F4F9F4] p-3.5 sm:p-4 rounded-2xl border border-[#D8E6D8] space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-black text-[#0F291E] flex items-center gap-1.5">
+                <Truck className="w-4 h-4 text-[#FFB300]" />
+                4. मालाचे एकूण वजन (QUANTITY IN QUINTALS):
+              </label>
+              <span className="px-3 py-1 bg-[#1B5E20] text-[#FFFFFF] text-xs font-black rounded-xl shadow-xs">
+                {quantity} क्विंटल
+              </span>
+            </div>
 
-        {/* Quantity Slider Box */}
-        <div className="bg-[#F4F9F4] p-3.5 sm:p-4 rounded-2xl border border-[#D8E6D8] flex flex-col sm:flex-row items-center justify-between gap-3 pt-3">
-          <div className="space-y-0.5 text-center sm:text-left w-full sm:w-auto">
-            <label className="text-xs sm:text-sm font-black text-[#0F291E] flex items-center gap-1.5 justify-center sm:justify-start">
-              <Truck className="w-4 h-4 text-[#FFB300]" />
-              तुमच्या मालाचे एकूण वजन (क्विंटल):
-            </label>
-            <p className="text-[11px] sm:text-xs text-[#526058] font-semibold">
-              वाहतूक खर्च वजनानुसार आपोआप मोजला जाईल
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="5"
+                max="300"
+                step="5"
+                value={quantity}
+                onChange={(e) => handleQuantityChange(Number(e.target.value))}
+                className="flex-1 accent-[#1B5E20] cursor-pointer"
+              />
+              <div className="flex gap-1 shrink-0">
+                {[50, 100, 200].map((qVal) => (
+                  <button
+                    key={qVal}
+                    type="button"
+                    onClick={() => handleQuantityChange(qVal)}
+                    className={`px-2 py-1 text-[11px] font-bold rounded-lg border cursor-pointer ${
+                      quantity === qVal
+                        ? 'bg-[#1B5E20] text-white border-[#1B5E20]'
+                        : 'bg-white text-[#1B4332] border-[#D8E6D8] hover:bg-[#E8F5E9]'
+                    }`}
+                  >
+                    {qVal}Q
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <p className="text-[11px] text-[#526058] font-semibold">
+              {quantity > selectedVehicle.capacityQuintals
+                ? `⚠️ ${quantity} क्विंटल मालासाठी ${selectedVehicle.capacityQuintals} क्विंटल क्षमतेच्या वाहनाच्या ${Math.ceil(quantity / selectedVehicle.capacityQuintals)} फेऱ्या लागतील.`
+                : `✅ १ फेरीत पूर्ण माल वाहतूक होईल.`}
             </p>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-            <input
-              type="range"
-              min="5"
-              max="100"
-              step="5"
-              value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
-              className="flex-1 sm:w-48 accent-[#1B5E20] cursor-pointer"
-            />
-            <span className="px-3.5 py-1.5 bg-[#1B5E20] text-[#FFFFFF] text-xs sm:text-sm font-black rounded-xl shrink-0 shadow-xs">
-              {quantity} क्विंटल
-            </span>
-          </div>
         </div>
       </Card>
 
