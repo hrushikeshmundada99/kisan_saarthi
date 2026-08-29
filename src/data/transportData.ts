@@ -124,12 +124,12 @@ export const CAPACITY_TIERS = [
 ];
 
 export function getRecommendedVehicle(totalQuantityQuintals: number): VehicleOption {
-  if (totalQuantityQuintals <= 10) return VEHICLE_OPTIONS[0]; // 3-Wheeler Auto
-  if (totalQuantityQuintals <= 20) return VEHICLE_OPTIONS[1]; // Tata Ace
-  if (totalQuantityQuintals <= 60) return VEHICLE_OPTIONS[2]; // Bolero Pickup
-  if (totalQuantityQuintals <= 110) return VEHICLE_OPTIONS[3]; // Tractor Trolley
-  if (totalQuantityQuintals <= 160) return VEHICLE_OPTIONS[4]; // 6-Wheeler Truck
-  return VEHICLE_OPTIONS[5]; // 10-Wheeler Container
+  if (totalQuantityQuintals <= 7.5) return VEHICLE_OPTIONS[0]; // 3-Wheeler Auto (7.5 Q)
+  if (totalQuantityQuintals <= 15) return VEHICLE_OPTIONS[1]; // Tata Ace (15 Q)
+  if (totalQuantityQuintals <= 50) return VEHICLE_OPTIONS[2]; // Bolero Pickup (50 Q)
+  if (totalQuantityQuintals <= 100) return VEHICLE_OPTIONS[3]; // Tractor Trolley (100 Q)
+  if (totalQuantityQuintals <= 150) return VEHICLE_OPTIONS[4]; // 6-Wheeler Truck (150 Q)
+  return VEHICLE_OPTIONS[5]; // 10/12-Wheeler Heavy Bulk Truck (200 Q)
 }
 
 export function calculateFreight({

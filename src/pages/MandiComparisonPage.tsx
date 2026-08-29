@@ -55,6 +55,8 @@ export const MandiComparisonPage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(TODAY_DATE);
   const [quantity, setQuantity] = useState<number>(20);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleOption>(() => getRecommendedVehicle(20));
+  const [isManualVehicleOverride, setIsManualVehicleOverride] = useState<boolean>(false);
+  const [showCustomVehicleMenu, setShowCustomVehicleMenu] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<'netPrice' | 'distance' | 'rawPrice'>('netPrice');
   const [showMatrixView, setShowMatrixView] = useState<boolean>(false);
 
@@ -70,11 +72,29 @@ export const MandiComparisonPage: React.FC = () => {
   const handleSelectTier = (tierId: string) => {
     const foundInTier = VEHICLE_OPTIONS.find((v) => v.categoryTier === tierId) || VEHICLE_OPTIONS[0];
     setSelectedVehicle(foundInTier);
+    setIsManualVehicleOverride(true);
+  };
+
+  const handleManualVehicleSelect = (vehicleId: string) => {
+    const found = VEHICLE_OPTIONS.find((v) => v.id === vehicleId);
+    if (found) {
+      setSelectedVehicle(found);
+      setIsManualVehicleOverride(true);
+    }
+  };
+
+  const handleResetToAutoVehicle = () => {
+    setIsManualVehicleOverride(false);
+    setSelectedVehicle(getRecommendedVehicle(quantity));
+    setShowCustomVehicleMenu(false);
+    showToast(i18n.language === 'mr' ? '⚡ वजनानुसार सर्वोत्कृष्ट वाहन निवडले!' : '⚡ Auto-selected best vehicle for load!', 'success');
   };
 
   const handleQuantityChange = (newQty: number) => {
     setQuantity(newQty);
-    setSelectedVehicle(getRecommendedVehicle(newQty));
+    if (!isManualVehicleOverride) {
+      setSelectedVehicle(getRecommendedVehicle(newQty));
+    }
   };
 
   // Navigate date +1 or -1 day
@@ -299,56 +319,102 @@ export const MandiComparisonPage: React.FC = () => {
             />
           </div>
 
+          {/* 2. Vehicle Capacity Box with Smart Auto-Selection & Override Option */}
           <div className="md:col-span-12 lg:col-span-6 space-y-2.5 bg-[#F4F9F4] p-3.5 sm:p-4 rounded-2xl border border-[#D8E6D8]">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-1.5">
               <label className="text-xs font-black text-[#1B4332] uppercase tracking-wider flex items-center gap-1.5">
                 <Truck className="w-4 h-4 text-[#FFB300]" />
-                <span>2. वाहन प्रकार व क्षमता (VEHICLE CAPACITY):</span>
+                <span>2. वाहन व वाहतूक क्षमता (VEHICLE CAPACITY):</span>
               </label>
-              <span className="px-2 py-0.5 bg-[#1B5E20] text-white text-[11px] font-black rounded-lg">
-                {selectedVehicle.capacityQuintals} क्विंटल / गाडी
-              </span>
+
+              {isManualVehicleOverride ? (
+                <button
+                  type="button"
+                  onClick={handleResetToAutoVehicle}
+                  className="px-2 py-0.5 bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-black rounded-lg transition-colors cursor-pointer shadow-xs flex items-center gap-1"
+                >
+                  <span>⚡ वजनानुसार सर्वोत्कृष्ट (Auto-Select)</span>
+                </button>
+              ) : (
+                <span className="px-2.5 py-0.5 bg-[#1B5E20] text-white text-[11px] font-black rounded-lg shadow-xs flex items-center gap-1">
+                  <span>⚡ वजनानुसार आपोआप निवडलेले (Auto-Selected)</span>
+                </span>
+              )}
             </div>
 
-            <div className="grid grid-cols-3 gap-1.5">
-              {CAPACITY_TIERS.map((tier) => {
-                const isActive = selectedVehicle.categoryTier === tier.id;
-                return (
-                  <button
-                    key={tier.id}
-                    type="button"
-                    onClick={() => handleSelectTier(tier.id)}
-                    className={`py-1.5 px-2 rounded-xl text-xs font-extrabold transition-all border flex items-center justify-center gap-1 cursor-pointer shadow-xs ${
-                      isActive
-                        ? 'bg-[#1B5E20] text-[#FFFFFF] border-[#1B5E20] ring-2 ring-[#1B5E20]/20'
-                        : 'bg-[#FFFFFF] text-[#1B4332] border-[#D8E6D8] hover:bg-[#E8F5E9]'
-                    }`}
-                  >
-                    <span>{tier.icon}</span>
-                    <span>{i18n.language === 'mr' ? tier.labelMr : tier.labelEn}</span>
-                  </button>
-                );
-              })}
-            </div>
+            {/* Currently Selected Vehicle Card Banner */}
+            <div className="p-3 bg-[#FFFFFF] border-2 border-[#1B5E20]/20 rounded-xl flex items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="text-2xl shrink-0">{selectedVehicle.icon}</span>
+                <div className="min-w-0">
+                  <h4 className="text-xs sm:text-sm font-black text-[#0F291E] truncate">
+                    {i18n.language === 'mr' ? selectedVehicle.nameMr : selectedVehicle.nameEn}
+                  </h4>
+                  <p className="text-[11px] text-[#526058] font-bold">
+                    क्षमता: <strong className="text-[#1B5E20]">{selectedVehicle.capacityQuintals} क्विंटल</strong> • भाडे: ₹{selectedVehicle.costPerKm}/km
+                  </p>
+                </div>
+              </div>
 
-            <div className="relative">
-              <select
-                value={selectedVehicle.id}
-                onChange={(e) => {
-                  const found = VEHICLE_OPTIONS.find((v) => v.id === e.target.value);
-                  if (found) setSelectedVehicle(found);
-                }}
-                className="w-full pl-3 pr-8 min-h-[46px] bg-[#FFFFFF] border-2 border-[#E1EBE1] rounded-xl text-[#1B4332] font-black text-xs sm:text-sm focus:outline-none focus:ring-3 focus:ring-[#2E7D32]/20 focus:border-[#2E7D32] transition-all cursor-pointer shadow-xs"
+              <button
+                type="button"
+                onClick={() => setShowCustomVehicleMenu(!showCustomVehicleMenu)}
+                className="px-2.5 py-1.5 bg-[#E8F5E9] hover:bg-[#C8E6C9] text-[#1B5E20] border border-[#A5D6A7] rounded-xl text-xs font-black shrink-0 transition-all cursor-pointer shadow-xs flex items-center gap-1"
               >
-                {VEHICLE_OPTIONS.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.icon} {i18n.language === 'mr' ? v.nameMr : v.nameEn} — [₹{v.costPerKm}/km]
-                  </option>
-                ))}
-              </select>
+                <span>{showCustomVehicleMenu ? 'हीड करा (Hide)' : '✏️ बदल करा (Change)'}</span>
+              </button>
             </div>
 
-            <p className="text-[11px] font-semibold text-[#526058] flex items-center gap-1 leading-tight">
+            {/* Custom Manual Vehicle Selection Controls (Dropdown + 3 Tier Buttons) */}
+            {showCustomVehicleMenu && (
+              <div className="space-y-2 pt-2 border-t border-[#D8E6D8] animate-in fade-in duration-200">
+                <div className="flex items-center justify-between text-xs font-black text-[#1B4332]">
+                  <span>वाहन श्रेणी निवडा (Capacity Tiers):</span>
+                  {isManualVehicleOverride && (
+                    <span className="text-amber-800 text-[11px]">हाताने बदललेले वाहन (Custom Selected)</span>
+                  )}
+                </div>
+
+                {/* 3 Capacity Tier Buttons (Small | Medium | Large) */}
+                <div className="grid grid-cols-3 gap-1.5">
+                  {CAPACITY_TIERS.map((tier) => {
+                    const isActive = selectedVehicle.categoryTier === tier.id;
+                    return (
+                      <button
+                        key={tier.id}
+                        type="button"
+                        onClick={() => handleSelectTier(tier.id)}
+                        className={`py-1.5 px-2 rounded-xl text-xs font-extrabold transition-all border flex items-center justify-center gap-1 cursor-pointer shadow-xs ${
+                          isActive
+                            ? 'bg-[#1B5E20] text-[#FFFFFF] border-[#1B5E20] ring-2 ring-[#1B5E20]/20'
+                            : 'bg-[#FFFFFF] text-[#1B4332] border-[#D8E6D8] hover:bg-[#E8F5E9]'
+                        }`}
+                      >
+                        <span>{tier.icon}</span>
+                        <span>{i18n.language === 'mr' ? tier.labelMr : tier.labelEn}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Dropdown Menu */}
+                <div className="relative">
+                  <select
+                    value={selectedVehicle.id}
+                    onChange={(e) => handleManualVehicleSelect(e.target.value)}
+                    className="w-full pl-3 pr-8 min-h-[44px] bg-[#FFFFFF] border-2 border-[#E1EBE1] rounded-xl text-[#1B4332] font-black text-xs sm:text-sm focus:outline-none focus:ring-3 focus:ring-[#2E7D32]/20 focus:border-[#2E7D32] transition-all cursor-pointer shadow-xs"
+                  >
+                    {VEHICLE_OPTIONS.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.icon} {i18n.language === 'mr' ? v.nameMr : v.nameEn} — [₹{v.costPerKm}/km]
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            <p className="text-[11px] font-semibold text-[#526058] flex items-center gap-1 leading-tight pt-0.5">
               <span>💡 {i18n.language === 'mr' ? selectedVehicle.bestSuitedForMr : selectedVehicle.bestSuitedForEn}</span>
             </p>
           </div>
