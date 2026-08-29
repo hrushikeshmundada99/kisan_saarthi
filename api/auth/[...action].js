@@ -287,8 +287,30 @@ async function handleProfile(req, res) {
     updates.push('updated_at = now()');
     values.push(payload.id);
 
-    const result = await query(`UPDATE farmers SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *`, values);
-    return res.status(200).json({ success: true, user: sanitizeFarmer(result.rows[0]) });
+    let result = await query(`UPDATE farmers SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *`, values);
+
+    if (!result.rows || result.rows.length === 0) {
+      const targetMobile = normalizeMobile(rawMobile || payload.mobile || payload.phone);
+      if (targetMobile) {
+        const mobValues = [...values.slice(0, -1), targetMobile];
+        result = await query(`UPDATE farmers SET ${updates.join(', ')} WHERE mobile = $${paramIndex} RETURNING *`, mobValues);
+      }
+    }
+
+    if (!result.rows || result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'प्रोफाईल माहिती अपडेट करता आली नाही.' });
+    }
+
+    const updatedFarmer = result.rows[0];
+    const sanitized = sanitizeFarmer(updatedFarmer);
+    const newToken = signToken(sanitized);
+    setAuthCookie(res, newToken);
+
+    return res.status(200).json({
+      success: true,
+      message: 'प्रोफाईल माहिती यशस्वीरित्या अपडेट झाली!',
+      user: sanitized
+    });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }

@@ -280,13 +280,28 @@ async function executeSupabaseRestQuery(sql, params = []) {
         if (mandiIdx && params[Number(mandiIdx[1]) - 1]) updates.preferred_mandis = params[Number(mandiIdx[1]) - 1];
       }
 
-      const { data, error } = await supabaseClient
+      let { data, error } = await supabaseClient
         .from('farmers')
         .update(updates)
         .eq('id', idParam)
         .select('*');
 
-      if (error) {
+      // Fallback: If id does not match (e.g. after DB wipe & self-healing), update matching mobile
+      if ((!data || data.length === 0)) {
+        const mobParam = updates.mobile || params.find(p => typeof p === 'string' && /^\d{10}$/.test(p));
+        if (mobParam) {
+          const fallbackRes = await supabaseClient
+            .from('farmers')
+            .update(updates)
+            .eq('mobile', mobParam)
+            .select('*');
+          if (fallbackRes.data && fallbackRes.data.length > 0) {
+            data = fallbackRes.data;
+          }
+        }
+      }
+
+      if (error && (!data || data.length === 0)) {
         console.error('[Supabase Farmers Update Error]:', error);
         return { rows: [], rowCount: 0 };
       }
