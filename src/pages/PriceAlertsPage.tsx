@@ -25,7 +25,10 @@ import {
   CheckCircle2,
   TrendingUp,
   TrendingDown,
-  Mail
+  Mail,
+  Clock,
+  Zap,
+  Loader2
 } from 'lucide-react';
 
 const MANDIS_WITH_ANY = ['ANY', 'Kopargaon', 'Rahata', 'Shrirampur', 'Yeola', 'Lasalgaon', 'Sangamner', 'Nashik', 'Ahilyanagar'];
@@ -60,6 +63,24 @@ export const PriceAlertsPage: React.FC = () => {
   // Filter & Sort State
   const [filterTab, setFilterTab] = useState<'ALL' | 'ACTIVE' | 'TRIGGERED'>('ALL');
   const [sortBy, setSortBy] = useState<'closest' | 'newest'>('closest');
+  const [isRunningCron, setIsRunningCron] = useState<boolean>(false);
+
+  const handleRunCronAutoTrigger = async () => {
+    setIsRunningCron(true);
+    try {
+      const res = await fetch('/api/cron/check-alerts', { method: 'POST' });
+      const data = await res.json();
+      setIsRunningCron(false);
+      if (res.ok && data.success) {
+        showToast(data.message || 'Vercel Cron ऑटो-ट्रिगर यशस्वीरित्या चालवला गेला!', 'success');
+      } else {
+        showToast(data.error || 'ऑटो-ट्रिगर चालवताना त्रुटी आली.', 'error');
+      }
+    } catch (err: any) {
+      setIsRunningCron(false);
+      showToast(err?.message || 'ऑटो-ट्रिगर चालवताना नेटवर्क त्रुटी आली.', 'error');
+    }
+  };
 
   // Persist alerts to localStorage on change
   useEffect(() => {
@@ -228,6 +249,38 @@ export const PriceAlertsPage: React.FC = () => {
               <span className="text-[#6B7280] font-medium">भाव येताच थेट ई-मेलवर सूचना</span>
             </div>
           </div>
+        </div>
+
+        {/* Vercel Cron Auto-Trigger Status & Manual Run Strip */}
+        <div className="p-3.5 bg-[#F4F9F4] border border-[#A5D6A7] rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2.5 text-xs text-[#0F291E] text-center sm:text-left">
+            <div className="w-8 h-8 rounded-xl bg-[#1B5E20] text-[#FFB300] flex items-center justify-center font-black shrink-0">
+              <Clock className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="font-black text-[#1B5E20] flex items-center justify-center sm:justify-start gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Vercel Cron Auto-Trigger Engine: Active</span>
+              </div>
+              <p className="text-[11px] text-[#526058] font-semibold mt-0.5">
+                दररोज सकाळी ०९:०० वाजता एपीएमसी बाजार भाव तपासून ठरवलेली मर्यादा ओलांडणाऱ्या अलर्ट्सना आपोआप ई-मेल पाठवला जातो.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleRunCronAutoTrigger}
+            disabled={isRunningCron}
+            className="px-3.5 py-2 bg-[#1B5E20] text-white rounded-xl text-xs font-black hover:bg-[#2E7D32] transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-xs cursor-pointer disabled:opacity-50 min-h-[38px]"
+          >
+            {isRunningCron ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+            ) : (
+              <Zap className="w-3.5 h-3.5 text-[#FFB300]" />
+            )}
+            <span>{isRunningCron ? 'तपासत आहे...' : '⚡ Run Auto-Trigger Check Now'}</span>
+          </button>
         </div>
       </Card>
 

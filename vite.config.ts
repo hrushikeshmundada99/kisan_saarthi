@@ -40,6 +40,8 @@ function vercelApiDevPlugin() {
           // @ts-ignore
           else if (urlPath === '/api/alerts/send-email') handler = (await import('./api/alerts/send-email.js')).default;
           // @ts-ignore
+          else if (urlPath === '/api/cron/check-alerts') handler = (await import('./api/cron/check-alerts.js')).default;
+          // @ts-ignore
           else if (urlPath === '/api/assistant/ask') handler = (await import('./api/assistant/ask.js')).default;
           // @ts-ignore
           else if (urlPath === '/api/tts') handler = (await import('./api/tts.js')).default;
