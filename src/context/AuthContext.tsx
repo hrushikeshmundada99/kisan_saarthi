@@ -1,5 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { saveProfileToShadowVault, runSelfHealingEngine, healFarmerOnLogin } from '../utils/selfHealingVault';
+import { saveProfileToShadowVault, getProfileFromShadowVault, runSelfHealingEngine } from '../utils/selfHealingVault';
+
+function tryGetShadowProfile() {
+  try {
+    return getProfileFromShadowVault();
+  } catch {
+    return null;
+  }
+}
 
 export interface UserProfile {
   id?: string;
@@ -127,6 +135,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (phone: string, password: string): Promise<AuthResult> => {
     try {
       setIsLoading(true);
+      const shadowProfile = typeof window !== 'undefined' ? (tryGetShadowProfile() || null) : null;
+
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -135,30 +145,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         credentials: 'include',
         body: JSON.stringify({
           mobile: phone,
-          password
+          password,
+          name: shadowProfile?.name,
+          email: shadowProfile?.email,
+          location: shadowProfile?.location,
+          landSize: shadowProfile?.landSize,
+          primaryCrop: shadowProfile?.primaryCrop,
+          preferredMandis: shadowProfile?.preferredMandis
         })
       });
 
-      let { ok, status, data } = await parseSafeJson(res);
-
-      if (!ok || !data.success) {
-        // Attempt self-healing in case the farmer row was deleted from Supabase SQL Editor
-        const healed = await healFarmerOnLogin(phone, password);
-        if (healed) {
-          // Retry login against restored row in Supabase
-          const retryRes = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ mobile: phone, password })
-          });
-          const retryParsed = await parseSafeJson(retryRes);
-          if (retryParsed.ok && retryParsed.data.success) {
-            ok = true;
-            data = retryParsed.data;
-          }
-        }
-      }
+      const { ok, status, data } = await parseSafeJson(res);
 
       if (!ok || !data.success) {
         const errorMessage =

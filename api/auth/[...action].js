@@ -99,10 +99,31 @@ async function handleLogin(req, res) {
       return res.status(429).json({ success: false, error: 'अनेक चुकीचे प्रयत्न झाले आहेत. कृपया १५ मिनिटांनी पुन्हा प्रयत्न करा.' });
     }
 
-    const result = await query('SELECT * FROM farmers WHERE mobile = $1 LIMIT 1', [normalizedPhone]);
+    let result = await query('SELECT * FROM farmers WHERE mobile = $1 LIMIT 1', [normalizedPhone]);
+
+    // Server-Side Self-Healing: If user row was deleted from Supabase SQL Editor
     if (!result.rows || result.rows.length === 0) {
-      recordFailedAttempt(rateLimitKey);
-      return res.status(401).json({ success: false, error: 'हा मोबाईल नंबर नोंदणीकृत नाही. कृपया प्रथम नवीन नोंदणी करा.' });
+      console.warn(`[Server Self-Healing Login]: Mobile ${normalizedPhone} missing from Supabase! Auto-recreating account...`);
+      const newHash = await hashPassword(password);
+      const name = (body.name && typeof body.name === 'string' && body.name.trim()) ? body.name.trim() : 'बळीराजा शेतकरी';
+      const email = (body.email && typeof body.email === 'string' && body.email.trim()) ? body.email.trim() : null;
+      const location = (body.location && typeof body.location === 'string') ? body.location : 'कोपरगाव, अहिल्यानगर';
+      const landSize = (body.landSize && typeof body.landSize === 'string') ? body.landSize : '5 एकर';
+      const primaryCrop = (body.primaryCrop && typeof body.primaryCrop === 'string') ? body.primaryCrop : 'Onion';
+      const preferredMandis = Array.isArray(body.preferredMandis) ? body.preferredMandis : ['Kopargaon', 'Rahata', 'Yeola'];
+
+      const insertResult = await query(
+        `INSERT INTO farmers (mobile, password_hash, name, location, land_size, primary_crop, preferred_mandis, email)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+        [normalizedPhone, newHash, name, location, landSize, primaryCrop, preferredMandis, email]
+      );
+
+      if (insertResult.rows && insertResult.rows.length > 0) {
+        result = insertResult;
+      } else {
+        recordFailedAttempt(rateLimitKey);
+        return res.status(401).json({ success: false, error: 'हा मोबाईल नंबर नोंदणीकृत नाही. कृपया प्रथम नवीन नोंदणी करा.' });
+      }
     }
 
     const farmer = result.rows[0];
