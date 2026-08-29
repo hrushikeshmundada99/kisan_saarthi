@@ -219,7 +219,7 @@ async function handleProfile(req, res) {
     if (!payload || !payload.id) return res.status(401).json({ success: false, error: 'सत्र कालबाह्य झाले आहे' });
 
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
-    const { name, location, landSize, primaryCrop, preferredMandis } = body;
+    const { name, location, landSize, primaryCrop, preferredMandis, email, mobile, phone } = body;
 
     const updates = [];
     const values = [];
@@ -228,6 +228,18 @@ async function handleProfile(req, res) {
     if (name && typeof name === 'string' && name.trim()) {
       updates.push(`name = $${paramIndex++}`);
       values.push(name.trim());
+    }
+    if (email !== undefined && typeof email === 'string') {
+      updates.push(`email = $${paramIndex++}`);
+      values.push(email.trim());
+    }
+    const rawMobile = mobile || phone;
+    if (rawMobile) {
+      const normPhone = normalizeMobile(rawMobile);
+      if (normPhone) {
+        updates.push(`mobile = $${paramIndex++}`);
+        values.push(normPhone);
+      }
     }
     if (location !== undefined && typeof location === 'string') {
       updates.push(`location = $${paramIndex++}`);

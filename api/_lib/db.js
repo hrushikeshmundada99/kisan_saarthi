@@ -247,8 +247,37 @@ async function executeSupabaseRestQuery(sql, params = []) {
       const idParam = params[params.length - 1];
       let updates = { updated_at: new Date().toISOString() };
 
-      if (normalizedSql.includes('password_hash = $1')) {
-        updates.password_hash = params[0];
+      if (normalizedSql.includes('password_hash =')) {
+        const hashIdx = normalizedSql.split('password_hash =')[1].match(/\$(\d+)/);
+        if (hashIdx && params[Number(hashIdx[1]) - 1]) updates.password_hash = params[Number(hashIdx[1]) - 1];
+      }
+      if (normalizedSql.includes('name =')) {
+        const nameIdx = normalizedSql.split('name =')[1].match(/\$(\d+)/);
+        if (nameIdx && params[Number(nameIdx[1]) - 1]) updates.name = params[Number(nameIdx[1]) - 1];
+      }
+      if (normalizedSql.includes('email =')) {
+        const emailIdx = normalizedSql.split('email =')[1].match(/\$(\d+)/);
+        if (emailIdx && params[Number(emailIdx[1]) - 1] !== undefined) updates.email = params[Number(emailIdx[1]) - 1];
+      }
+      if (normalizedSql.includes('mobile =')) {
+        const mobIdx = normalizedSql.split('mobile =')[1].match(/\$(\d+)/);
+        if (mobIdx && params[Number(mobIdx[1]) - 1]) updates.mobile = params[Number(mobIdx[1]) - 1];
+      }
+      if (normalizedSql.includes('location =')) {
+        const locIdx = normalizedSql.split('location =')[1].match(/\$(\d+)/);
+        if (locIdx && params[Number(locIdx[1]) - 1]) updates.location = params[Number(locIdx[1]) - 1];
+      }
+      if (normalizedSql.includes('land_size =')) {
+        const landIdx = normalizedSql.split('land_size =')[1].match(/\$(\d+)/);
+        if (landIdx && params[Number(landIdx[1]) - 1]) updates.land_size = params[Number(landIdx[1]) - 1];
+      }
+      if (normalizedSql.includes('primary_crop =')) {
+        const cropIdx = normalizedSql.split('primary_crop =')[1].match(/\$(\d+)/);
+        if (cropIdx && params[Number(cropIdx[1]) - 1]) updates.primary_crop = params[Number(cropIdx[1]) - 1];
+      }
+      if (normalizedSql.includes('preferred_mandis =')) {
+        const mandiIdx = normalizedSql.split('preferred_mandis =')[1].match(/\$(\d+)/);
+        if (mandiIdx && params[Number(mandiIdx[1]) - 1]) updates.preferred_mandis = params[Number(mandiIdx[1]) - 1];
       }
 
       const { data, error } = await supabaseClient

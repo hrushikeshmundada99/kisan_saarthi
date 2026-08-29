@@ -26,8 +26,33 @@ import {
   Loader2,
   KeyRound,
   Compass,
-  Layers
+  Layers,
+  Mail
 } from 'lucide-react';
+
+const CROP_OPTIONS = [
+  'Onion',
+  'Soybean',
+  'Cotton',
+  'Wheat',
+  'Sugarcane',
+  'Pomegranate',
+  'Grapes',
+  'Potato',
+  'Tomato',
+  'Maize'
+];
+
+const ALL_MANDIS = [
+  'Kopargaon',
+  'Rahata',
+  'Yeola',
+  'Lasalgaon',
+  'Nashik',
+  'Shrirampur',
+  'Sangamner',
+  'Ahilyanagar'
+];
 
 export const FarmerProfilePage: React.FC = () => {
   const { t } = useTranslation();
@@ -42,17 +67,33 @@ export const FarmerProfilePage: React.FC = () => {
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isDetectingGps, setIsDetectingGps] = useState<boolean>(false);
 
-  // Edit fields
+  // Edit fields for ALL profile information
   const [editName, setEditName] = useState<string>('');
+  const [editPhone, setEditPhone] = useState<string>('');
+  const [editEmail, setEditEmail] = useState<string>('');
+  const [editPrimaryCrop, setEditPrimaryCrop] = useState<string>('Onion');
+  const [editLandSize, setEditLandSize] = useState<string>('५ एकर (5 Acres)');
   const [editTaluka, setEditTaluka] = useState<string>('Kopargaon');
   const [editVillage, setEditVillage] = useState<string>('कोपरगाव शहर (Kopargaon City)');
   const [customVillage, setCustomVillage] = useState<string>('');
-  const [editLandSize, setEditLandSize] = useState<string>('५ एकर (5 Acres)');
+  const [editPreferredMandis, setEditPreferredMandis] = useState<string[]>([
+    'Kopargaon',
+    'Rahata',
+    'Yeola'
+  ]);
 
   useEffect(() => {
     if (user) {
       setEditName(user.name || '');
+      setEditPhone(user.phone || user.mobile || '');
+      setEditEmail(user.email || '');
+      setEditPrimaryCrop(user.primaryCrop || 'Onion');
       setEditLandSize(user.landSize || '५ एकर (5 Acres)');
+      setEditPreferredMandis(
+        Array.isArray(user.preferredMandis) && user.preferredMandis.length > 0
+          ? user.preferredMandis
+          : ['Kopargaon', 'Rahata', 'Yeola']
+      );
 
       // Attempt to parse location into village & taluka
       if (user.location) {
@@ -106,6 +147,18 @@ export const FarmerProfilePage: React.FC = () => {
     );
   };
 
+  const handleMandiToggle = (mandiName: string) => {
+    if (editPreferredMandis.includes(mandiName)) {
+      if (editPreferredMandis.length === 1) {
+        showToast('किमान एक बाजार समिती निवडणे आवश्यक आहे.', 'info');
+        return;
+      }
+      setEditPreferredMandis(editPreferredMandis.filter((m) => m !== mandiName));
+    } else {
+      setEditPreferredMandis([...editPreferredMandis, mandiName]);
+    }
+  };
+
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -121,15 +174,19 @@ export const FarmerProfilePage: React.FC = () => {
 
     const res = await updateProfile({
       name: editName.trim(),
+      mobile: editPhone.replace(/\D/g, ''),
+      email: editEmail.trim(),
+      primaryCrop: editPrimaryCrop,
       location: finalLoc,
-      landSize: editLandSize
+      landSize: editLandSize,
+      preferredMandis: editPreferredMandis
     });
 
     setIsSaving(false);
 
     if (res.success) {
       setIsEditing(false);
-      showToast('प्रोफाईल माहिती यशस्वीरित्या अपडेट केली! (Profile Updated)', 'success');
+      showToast('प्रोफाईलची संपूर्ण माहिती यशस्वीरित्या सेव्ह झाली! (All Profile Info Updated)', 'success');
     } else {
       showToast(res.error || 'प्रोफाईल सेव्ह करताना त्रुटी आली.', 'error');
     }
@@ -198,119 +255,169 @@ export const FarmerProfilePage: React.FC = () => {
           <User className="w-12 h-12 stroke-[2.5]" />
         </div>
 
-        {/* Profile Details */}
-        <div className="text-center sm:text-left space-y-2 flex-1 w-full">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* User Info & Stats */}
+        <div className="flex-1 space-y-3 text-center sm:text-left w-full">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2ECE2] pb-3">
             <div>
-              <h1 className="text-xl sm:text-2xl font-black text-[#0F291E]">
-                {user ? user.name : (isLoggedIn ? 'शेतकरी मित्र' : 'अतिथी शेतकरी (Guest Farmer)')}
-              </h1>
-              <p className="text-xs sm:text-sm font-black text-[#526058] flex items-center justify-center sm:justify-start gap-1 mt-0.5">
-                <MapPin className="w-4 h-4 text-[#FFB300]" />
-                {user ? user.location : 'कोपरगाव, अहिल्यानगर'}
+              <h2 className="text-2xl sm:text-3xl font-black text-[#0F291E] flex items-center justify-center sm:justify-start gap-2">
+                <span>{user?.name || 'बळीराजा शेतकरी'}</span>
+              </h2>
+              <p className="text-xs sm:text-sm font-semibold text-[#526058] flex items-center justify-center sm:justify-start gap-1 mt-0.5">
+                <MapPin className="w-4 h-4 text-[#FFB300] shrink-0" />
+                <span>{user?.location || 'कोपरगाव, अहिल्यानगर'}</span>
               </p>
             </div>
-            
-            <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 self-center sm:self-auto">
-              {isLoggedIn ? (
-                <>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setIsEditing(!isEditing)}
-                    className="cursor-pointer font-bold"
-                  >
-                    <Edit className="w-4 h-4 text-[#1B5E20]" />
-                    <span>{isEditing ? 'रद्द करा' : 'प्रोफाईल संपादीत करा'}</span>
-                  </Button>
 
-                  {/* 🔒 Change Password Button */}
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setPasswordModalOpen(true)}
-                    className="cursor-pointer font-bold border-amber-300 text-amber-900 bg-amber-50 hover:bg-amber-100"
-                    title="पासवर्ड बदला"
-                  >
-                    <KeyRound className="w-4 h-4 text-[#FFB300]" />
-                    <span>पासवर्ड बदला</span>
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleLogout}
-                    className="border-2 border-rose-500 text-rose-600 hover:bg-rose-50 font-black cursor-pointer"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>लॉगआउट</span>
-                  </Button>
-                </>
-              ) : (
+            {/* Top Right Action Buttons */}
+            {isLoggedIn && (
+              <div className="flex items-center justify-center sm:justify-end gap-2 flex-wrap">
                 <Button
-                  variant="primary"
+                  variant={isEditing ? 'secondary' : 'primary'}
                   size="sm"
-                  onClick={() => openAuth('login')}
+                  onClick={() => setIsEditing(!isEditing)}
                   className="cursor-pointer font-black"
                 >
-                  <LogIn className="w-4 h-4 text-[#FFB300]" />
-                  <span>लॉगिन करा</span>
+                  <Edit className="w-4 h-4" />
+                  <span>{isEditing ? 'रद्द करा (Cancel)' : 'माहिती संपादीत करा (Edit Profile)'}</span>
                 </Button>
-              )}
-            </div>
+
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setPasswordModalOpen(true)}
+                  className="cursor-pointer font-black bg-white"
+                >
+                  <KeyRound className="w-4 h-4 text-[#1B5E20]" />
+                  <span>पासवर्ड बदला (Password)</span>
+                </Button>
+
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="cursor-pointer font-black text-rose-700 hover:bg-rose-50 border-rose-200"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>लॉगआउट (Logout)</span>
+                </Button>
+              </div>
+            )}
           </div>
 
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 pt-2 text-xs">
-            <span className="px-3 py-1 bg-[#FFFFFF] border border-[#D8E6D8] rounded-xl font-black text-[#1B5E20] shadow-xs">
-              🌱 {user ? user.landSize : '५ एकर जमीन'}
-            </span>
-            <span className="px-3 py-1 bg-[#FFFFFF] border border-[#D8E6D8] rounded-xl font-black text-[#0F291E] flex items-center gap-1.5 shadow-xs">
+          {/* Quick Details Chips */}
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs">
+            <span className="px-3 py-1 bg-[#FFFFFF] border border-[#D8E6D8] rounded-xl font-bold text-[#0F291E] flex items-center gap-1.5 shadow-xs">
               <Phone className="w-3.5 h-3.5 text-[#1B5E20]" />
-              +91 {user ? (user.phone || user.mobile) : '98220 *****'}
+              {user?.phone || user?.mobile || '९८२२१५४३२१'}
+            </span>
+            {user?.email && (
+              <span className="px-3 py-1 bg-[#FFFFFF] border border-[#D8E6D8] rounded-xl font-bold text-[#0F291E] flex items-center gap-1.5 shadow-xs">
+                <Mail className="w-3.5 h-3.5 text-[#1B5E20]" />
+                {user.email}
+              </span>
+            )}
+            <span className="px-3 py-1 bg-[#FFFFFF] border border-[#D8E6D8] rounded-xl font-bold text-[#0F291E] flex items-center gap-1.5 shadow-xs">
+              <Layers className="w-3.5 h-3.5 text-[#1B5E20]" />
+              {user?.landSize || '५ एकर'}
+            </span>
+            <span className="px-3 py-1 bg-[#1B5E20] text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs">
+              <Sprout className="w-3.5 h-3.5 text-[#FFB300]" />
+              मुख्य पिक: {user?.primaryCrop || 'Onion'}
             </span>
             <span className="px-3 py-1 bg-emerald-100 text-emerald-950 border border-emerald-300 rounded-xl font-black flex items-center gap-1.5 shadow-xs">
               <ShieldCheck className="w-4 h-4 text-[#1B5E20]" />
-              {isLoggedIn ? 'डेटाबेस सुरक्षित नोंदणी' : 'लॉगिन आवश्यक'}
+              {isLoggedIn ? 'Supabase डेटाबेस सुरक्षित नोंदणी' : 'लॉगिन आवश्यक'}
             </span>
           </div>
         </div>
 
       </Card>
 
-      {/* Edit Profile Form Drawer/Card */}
+      {/* Edit Profile Form Card */}
       {isEditing && isLoggedIn && (
-        <Card hoverable={false} className="border-2 border-[#1B5E20] space-y-4 animate-in slide-in-from-top-2 duration-200 p-5 rounded-3xl bg-[#FFFFFF] shadow-lg">
+        <Card hoverable={false} className="border-2 border-[#1B5E20] space-y-4 animate-in slide-in-from-top-2 duration-200 p-5 sm:p-6 rounded-3xl bg-[#FFFFFF] shadow-lg">
           <h3 className="text-base sm:text-lg font-black text-[#0F291E] flex items-center gap-2 pb-3 border-b border-[#E2ECE2]">
             <Edit className="w-5 h-5 text-[#FFB300]" />
-            <span>प्रोफाईल माहिती संपादीत करा (Edit Profile Info)</span>
+            <span>संपूर्ण प्रोफाईल माहिती संपादीत करा (Edit All Profile Info)</span>
           </h3>
 
           <form onSubmit={handleSaveProfile} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Farmer Name */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
+              
+              {/* 1. Farmer Full Name */}
               <div>
                 <label className="block text-xs font-black text-[#0F291E] uppercase tracking-wider mb-1.5">
-                  शेतकरी नाव (Full Name):
+                  १. शेतकरी संपूर्ण नाव (Full Name):
                 </label>
                 <input
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-[#F4F9F4] border-2 border-[#D8E6D8] rounded-2xl text-sm font-black text-[#0F291E] focus:ring-4 focus:ring-[#1B5E20]/20 focus:border-[#1B5E20]"
+                  className="w-full px-3.5 py-2.5 bg-[#F4F9F4] border-2 border-[#D8E6D8] rounded-2xl text-xs sm:text-sm font-black text-[#0F291E] focus:ring-4 focus:ring-[#1B5E20]/20 focus:border-[#1B5E20]"
                   required
                 />
               </div>
 
-              {/* Land in Acres */}
+              {/* 2. Mobile Number */}
+              <div>
+                <label className="block text-xs font-black text-[#0F291E] uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                  <Phone className="w-3.5 h-3.5 text-[#1B5E20]" />
+                  <span>२. मोबाईल नंबर (Mobile Number):</span>
+                </label>
+                <input
+                  type="tel"
+                  maxLength={10}
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-[#F4F9F4] border-2 border-[#D8E6D8] rounded-2xl text-xs sm:text-sm font-black text-[#0F291E] focus:ring-4 focus:ring-[#1B5E20]/20 focus:border-[#1B5E20]"
+                  required
+                />
+              </div>
+
+              {/* 3. Email Address */}
+              <div>
+                <label className="block text-xs font-black text-[#0F291E] uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                  <Mail className="w-3.5 h-3.5 text-[#1B5E20]" />
+                  <span>३. ई-मेल पत्ता (Email for Price Alerts):</span>
+                </label>
+                <input
+                  type="email"
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  placeholder="farmer@gmail.com"
+                  className="w-full px-3.5 py-2.5 bg-[#F4F9F4] border-2 border-[#D8E6D8] rounded-2xl text-xs sm:text-sm font-black text-[#0F291E] focus:ring-4 focus:ring-[#1B5E20]/20 focus:border-[#1B5E20]"
+                />
+              </div>
+
+              {/* 4. Primary Crop */}
+              <div>
+                <label className="block text-xs font-black text-[#0F291E] uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                  <Sprout className="w-3.5 h-3.5 text-[#1B5E20]" />
+                  <span>४. मुख्य पीक (Primary Crop):</span>
+                </label>
+                <select
+                  value={editPrimaryCrop}
+                  onChange={(e) => setEditPrimaryCrop(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-[#F4F9F4] border-2 border-[#D8E6D8] rounded-2xl text-xs sm:text-sm font-black text-[#0F291E] focus:ring-4 focus:ring-[#1B5E20]/20 cursor-pointer min-h-[46px]"
+                >
+                  {CROP_OPTIONS.map((c) => (
+                    <option key={c} value={c}>
+                      🌱 {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 5. Land in Acres */}
               <div>
                 <label className="block text-xs font-black text-[#0F291E] uppercase tracking-wider mb-1.5 flex items-center gap-1">
                   <Layers className="w-3.5 h-3.5 text-[#1B5E20]" />
-                  <span>जमीन क्षेत्र (एकरामध्ये):</span>
+                  <span>५. जमीन क्षेत्र (एकरामध्ये):</span>
                 </label>
                 <select
                   value={editLandSize}
                   onChange={(e) => setEditLandSize(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-[#F4F9F4] border-2 border-[#D8E6D8] rounded-2xl text-sm font-black text-[#0F291E] focus:ring-4 focus:ring-[#1B5E20]/20 cursor-pointer"
+                  className="w-full px-3.5 py-2.5 bg-[#F4F9F4] border-2 border-[#D8E6D8] rounded-2xl text-xs sm:text-sm font-black text-[#0F291E] focus:ring-4 focus:ring-[#1B5E20]/20 cursor-pointer min-h-[46px]"
                 >
                   {LAND_SIZE_OPTIONS.map((acre) => (
                     <option key={acre} value={acre}>
@@ -319,14 +426,15 @@ export const FarmerProfilePage: React.FC = () => {
                   ))}
                 </select>
               </div>
+
             </div>
 
-            {/* Location Selector in Profile Edit */}
+            {/* 6. Location Selector in Profile Edit */}
             <div className="p-3.5 bg-[#F4F9F4] border border-[#D8E6D8] rounded-2xl space-y-2.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-black text-[#0F291E] flex items-center gap-1.5">
+                <label className="text-xs font-black text-[#0F291E] flex items-center gap-1.5 uppercase tracking-wider">
                   <MapPin className="w-3.5 h-3.5 text-[#1B5E20]" />
-                  <span>तालुका व गाव निवडा:</span>
+                  <span>६. तालुका व गाव (Location):</span>
                 </label>
 
                 <button
@@ -401,26 +509,65 @@ export const FarmerProfilePage: React.FC = () => {
               )}
             </div>
 
-            <div className="flex justify-end gap-2 pt-1">
+            {/* 7. Preferred Mandis Checklist */}
+            <div className="p-3.5 bg-[#F4F9F4] border border-[#D8E6D8] rounded-2xl space-y-2">
+              <label className="block text-xs font-black text-[#0F291E] uppercase tracking-wider flex items-center gap-1.5">
+                <Store className="w-3.5 h-3.5 text-[#1B5E20]" />
+                <span>७. पसंतीच्या बाजार समित्या (Preferred Mandis):</span>
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                {ALL_MANDIS.map((mandi) => {
+                  const isChecked = editPreferredMandis.includes(mandi);
+                  return (
+                    <button
+                      key={mandi}
+                      type="button"
+                      onClick={() => handleMandiToggle(mandi)}
+                      className={`px-3 py-2 rounded-xl text-xs font-black border transition-all text-left flex items-center justify-between cursor-pointer ${
+                        isChecked
+                          ? 'bg-[#1B5E20] text-white border-[#1B5E20] shadow-xs'
+                          : 'bg-white text-[#0F291E] border-[#D8E6D8] hover:bg-[#E8F5E9]'
+                      }`}
+                    >
+                      <span>📍 {mandi}</span>
+                      {isChecked && <span>✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Form Action Buttons */}
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsEditing(false)}
+                className="cursor-pointer font-black"
+              >
+                <span>रद्द करा (Cancel)</span>
+              </Button>
               <Button
                 type="submit"
                 variant="primary"
                 size="sm"
                 disabled={isSaving}
-                className="cursor-pointer"
+                className="cursor-pointer font-black shadow-md"
               >
                 {isSaving ? (
                   <Loader2 className="w-4 h-4 animate-spin text-[#FFFFFF]" />
                 ) : (
                   <Save className="w-4 h-4 text-[#FFB300]" />
                 )}
-                <span>{isSaving ? 'सेव्ह करत आहे...' : 'माहिती सेव्ह करा (Save Profile)'}</span>
+                <span>{isSaving ? 'सेव्ह करत आहे...' : 'माहिती सेव्ह करा (Save All Info)'}</span>
               </Button>
             </div>
           </form>
         </Card>
       )}
 
+      {/* Overview Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         
         {/* Saved Preferences Card */}
@@ -433,33 +580,28 @@ export const FarmerProfilePage: React.FC = () => {
           <div className="space-y-4">
             <div>
               <span className="text-xs font-black text-[#526058] uppercase tracking-wider block mb-2">
-                जतन केलेली पिके:
+                मुख्य पिक:
               </span>
               <div className="flex flex-wrap gap-2">
-                {['Onion', 'Soybean', 'Cotton', 'Sugarcane'].map((crop) => (
-                  <span
-                    key={crop}
-                    className="px-3.5 py-1.5 bg-[#1B5E20] text-[#FFFFFF] text-xs font-black rounded-xl shadow-xs flex items-center gap-1.5 min-h-[36px]"
-                  >
-                    <Sprout className="w-4 h-4 text-[#FFB300]" />
-                    {t(`crops.${crop}`, crop)}
-                  </span>
-                ))}
+                <span className="px-3.5 py-1.5 bg-[#1B5E20] text-[#FFFFFF] text-xs font-black rounded-xl shadow-xs flex items-center gap-1.5 min-h-[36px]">
+                  <Sprout className="w-4 h-4 text-[#FFB300]" />
+                  {user?.primaryCrop || 'Onion'}
+                </span>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-[#E2ECE2]">
+            <div>
               <span className="text-xs font-black text-[#526058] uppercase tracking-wider block mb-2">
-                पसंतीच्या मंडी समित्या:
+                पसंतीच्या बाजार समित्या:
               </span>
               <div className="flex flex-wrap gap-2">
-                {['Kopargaon', 'Rahata', 'Yeola', 'Sangamner'].map((mandi) => (
+                {(user?.preferredMandis || ['Kopargaon', 'Rahata', 'Yeola']).map((mandi) => (
                   <span
                     key={mandi}
-                    className="px-3.5 py-1.5 bg-[#F4F9F4] border border-[#D8E6D8] text-[#1B5E20] text-xs font-black rounded-xl flex items-center gap-1.5 min-h-[36px]"
+                    className="px-3.5 py-1.5 bg-[#F4F9F4] text-[#0F291E] border border-[#D8E6D8] text-xs font-black rounded-xl flex items-center gap-1.5 min-h-[36px]"
                   >
-                    <Store className="w-4 h-4 text-[#FFB300]" />
-                    {t(`mandis.${mandi}`, mandi)}
+                    <Store className="w-4 h-4 text-[#1B5E20]" />
+                    {mandi} APMC
                   </span>
                 ))}
               </div>
@@ -467,42 +609,47 @@ export const FarmerProfilePage: React.FC = () => {
           </div>
         </Card>
 
-        {/* Security & Password Card */}
+        {/* Security & Verification Card */}
         <Card hoverable={false} className="space-y-4 border border-[#D8E6D8] rounded-3xl shadow-xs bg-[#FFFFFF] p-5">
           <h3 className="text-base sm:text-lg font-black text-[#0F291E] flex items-center gap-2 pb-3 border-b border-[#E2ECE2]">
-            <KeyRound className="w-5 h-5 text-[#FFB300]" />
-            <span>सुरक्षा व पासवर्ड (Security & Password)</span>
+            <ShieldCheck className="w-5 h-5 text-[#1B5E20]" />
+            <span>सुरक्षा व सर्व्हर डेटाबेस नोंदणी</span>
           </h3>
 
-          <div className="space-y-3 text-xs">
-            <div className="p-3 bg-[#F4F9F4] rounded-2xl border border-[#D8E6D8] flex items-center justify-between">
-              <div>
-                <span className="font-black text-[#0F291E] block">खाते पासवर्ड:</span>
-                <span className="text-[#526058] font-bold">•••••••••• (सुरक्षित पासवर्ड)</span>
-              </div>
-              {isLoggedIn && (
+          <div className="space-y-3 text-xs font-semibold text-[#526058]">
+            <div className="p-3.5 rounded-2xl bg-[#F4F9F4] border border-[#D8E6D8] flex items-center justify-between">
+              <span className="font-bold text-[#0F291E]">खाते प्रकार (Account Status):</span>
+              <span className="px-3 py-1 bg-emerald-100 text-emerald-950 font-black rounded-xl text-xs">
+                ✓ Supabase सत्यापित
+              </span>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-[#F4F9F4] border border-[#D8E6D8] flex items-center justify-between">
+              <span className="font-bold text-[#0F291E]">ई-मेल अलर्ट स्टेट्युस:</span>
+              <span className="px-3 py-1 bg-amber-100 text-amber-900 font-black rounded-xl text-xs">
+                🔔 {user?.email ? 'सक्रिय (Active)' : 'ई-मेल जोडा'}
+              </span>
+            </div>
+
+            {isLoggedIn && (
+              <div className="pt-2 flex gap-2">
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={() => setPasswordModalOpen(true)}
-                  className="cursor-pointer font-black text-xs"
+                  className="w-full cursor-pointer font-black"
                 >
-                  <KeyRound className="w-3.5 h-3.5 text-[#FFB300]" />
+                  <KeyRound className="w-4 h-4 text-[#1B5E20]" />
                   <span>पासवर्ड बदला</span>
                 </Button>
-              )}
-            </div>
-
-            <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-900 font-bold flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-[#1B5E20] shrink-0" />
-              <span>तुमचा पासवर्ड Bcrypt एनक्रिप्शनने सुरक्षित साठवला जातो.</span>
-            </div>
+              </div>
+            )}
           </div>
         </Card>
 
       </div>
 
-      {/* Auth Modal for Login / Signup */}
+      {/* Auth Modal */}
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
