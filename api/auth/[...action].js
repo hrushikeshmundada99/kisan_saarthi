@@ -127,6 +127,15 @@ async function handleLogin(req, res) {
     }
 
     const farmer = result.rows[0];
+
+    // If farmer's password_hash in Supabase is 'hashed_default' (inserted by background self-healing engine), repair it on the fly!
+    if (farmer.password_hash === 'hashed_default' || !farmer.password_hash || farmer.password_hash.length < 10) {
+      console.warn(`[Self-Healing Login Repair]: Repairing 'hashed_default' password_hash for mobile ${normalizedPhone}...`);
+      const repairedHash = await hashPassword(password);
+      await query('UPDATE farmers SET password_hash = $1 WHERE id = $2', [repairedHash, farmer.id]);
+      farmer.password_hash = repairedHash;
+    }
+
     const isPasswordValid = await verifyPassword(password, farmer.password_hash);
     if (!isPasswordValid) {
       recordFailedAttempt(rateLimitKey);

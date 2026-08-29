@@ -22,12 +22,40 @@ export interface RecoveryLogItem {
   itemCount: number;
 }
 
+const VAULT_PASS_HASH_KEY = 'KS_SHADOW_VAULT_PASS_HASH';
+
+/**
+ * Save Password Hash in Local Shadow Vault
+ */
+export function savePasswordHashToShadowVault(hash: string) {
+  if (!hash) return;
+  try {
+    localStorage.setItem(VAULT_PASS_HASH_KEY, hash);
+  } catch (err) {
+    console.warn('[Shadow Vault Save Pass Hash Exception]:', err);
+  }
+}
+
+/**
+ * Get Password Hash from Local Shadow Vault
+ */
+export function getPasswordHashFromShadowVault(): string | null {
+  try {
+    return localStorage.getItem(VAULT_PASS_HASH_KEY) || null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Save / Update Profile in Local Shadow Vault
  */
-export function saveProfileToShadowVault(farmer: any) {
+export function saveProfileToShadowVault(farmer: any, passwordHash?: string) {
   if (!farmer) return;
   try {
+    if (passwordHash) {
+      savePasswordHashToShadowVault(passwordHash);
+    }
     localStorage.setItem(VAULT_PROFILE_KEY, JSON.stringify({
       ...farmer,
       _vaultSavedAt: new Date().toISOString()
@@ -133,9 +161,11 @@ export async function runSelfHealingEngine(): Promise<{ healed: boolean; log: Re
       if (!error && (!data || data.length === 0)) {
         console.warn(`[Self-Healing Engine]: Database wipe detected for farmer mobile ${mobileNum}. Re-hydrating profile to Supabase...`);
 
+        const storedHash = getPasswordHashFromShadowVault();
+
         const insertRecord = {
           mobile: mobileNum,
-          password_hash: shadowProfile.password_hash || shadowProfile.passwordHash || 'hashed_default',
+          password_hash: shadowProfile.password_hash || shadowProfile.passwordHash || storedHash || 'hashed_default',
           name: shadowProfile.name || 'बळीराजा शेतकरी',
           email: shadowProfile.email || null,
           location: shadowProfile.location || 'कोपरगाव, अहिल्यानगर',
