@@ -16,40 +16,6 @@ export interface PriceAlertItem {
 
 const STORAGE_KEY = 'KISAN_SAARTHI_PRICE_ALERTS';
 
-// Default initial alerts for farmers
-const INITIAL_ALERTS: PriceAlertItem[] = [
-  {
-    id: "alt-101",
-    crop: "Onion",
-    mandi: "Lasalgaon",
-    condition: "ABOVE",
-    targetPrice: 2100,
-    notificationMethods: ["Email", "In-App"],
-    status: "ACTIVE",
-    createdAt: "2026-08-01"
-  },
-  {
-    id: "alt-102",
-    crop: "Soybean",
-    mandi: "Kopargaon",
-    condition: "ABOVE",
-    targetPrice: 4700,
-    notificationMethods: ["Email", "In-App"],
-    status: "ACTIVE",
-    createdAt: "2026-07-28"
-  },
-  {
-    id: "alt-103",
-    crop: "Onion",
-    mandi: "Kopargaon",
-    condition: "ABOVE",
-    targetPrice: 3950,
-    notificationMethods: ["Email", "In-App"],
-    status: "TRIGGERED",
-    createdAt: "2026-07-25"
-  }
-];
-
 // Helper to find current modal price for crop + mandi
 export const getCurrentPriceForAlert = (crop: string, mandi: string): number => {
   if (mandi === 'ANY') {
@@ -97,12 +63,12 @@ export const getStoredAlerts = (): PriceAlertItem[] => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch (e) {
     console.warn('Failed to load stored alerts:', e);
   }
-  return INITIAL_ALERTS;
+  return [];
 };
 
 // Save alerts to localStorage & shadow vault
