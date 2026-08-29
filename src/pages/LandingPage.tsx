@@ -26,13 +26,35 @@ export const LandingPage: React.FC = () => {
 
   const isMr = i18n.language === 'mr';
 
-  const LIVE_TICKER_ITEMS = [
-    { crop: isMr ? 'कांदा (Onion)' : 'Onion', mandi: isMr ? 'लासलगाव' : 'Lasalgaon', price: '₹२,१२०', trend: '+₹१६०' },
-    { crop: isMr ? 'कांदा (Onion)' : 'Onion', mandi: isMr ? 'कोपरगाव' : 'Kopargaon', price: '₹१,८५०', trend: '+₹६०' },
-    { crop: isMr ? 'सोयाबीन (Soybean)' : 'Soybean', mandi: isMr ? 'कोपरगाव' : 'Kopargaon', price: '₹४,६२०', trend: '+₹११०' },
-    { crop: isMr ? 'कापूस (Cotton)' : 'Cotton', mandi: isMr ? 'श्रीरामपूर' : 'Shrirampur', price: '₹७,२४०', trend: '+₹१५०' },
-    { crop: isMr ? 'डाळिंब (Pomegranate)' : 'Pomegranate', mandi: isMr ? 'राहाता' : 'Rahata', price: '₹८,५००', trend: '+₹२५०' },
-  ];
+  const LIVE_TICKER_ITEMS = REAL_DASHBOARD_CARDS.slice(0, 10).map((c) => {
+    let cropName = c.crop;
+    if (isMr) {
+      if (c.crop === 'Onion') cropName = 'कांदा (Onion)';
+      else if (c.crop === 'Soybean') cropName = 'सोयाबीन (Soybean)';
+      else if (c.crop === 'Cotton') cropName = 'कापूस (Cotton)';
+      else if (c.crop === 'Pomegranate') cropName = 'डाळिंब (Pomegranate)';
+      else if (c.crop === 'Grapes') cropName = 'द्राक्षे (Grapes)';
+      else if (c.crop === 'Wheat') cropName = 'गहू (Wheat)';
+      else if (c.crop === 'Potato') cropName = 'बटाटा (Potato)';
+      else if (c.crop === 'Tomato') cropName = 'टोमॅटो (Tomato)';
+      else if (c.crop === 'Maize') cropName = 'मका (Maize)';
+    }
+
+    const priceFormatted = isMr
+      ? `₹${c.modalPrice.toLocaleString('mr-IN')}`
+      : `₹${c.modalPrice.toLocaleString('en-IN')}`;
+
+    const trendFormatted = isMr
+      ? `+₹${c.priceChangeAmount.toLocaleString('mr-IN')}`
+      : `+₹${c.priceChangeAmount.toLocaleString('en-IN')}`;
+
+    return {
+      crop: cropName,
+      mandi: c.mandiName,
+      price: priceFormatted,
+      trend: trendFormatted
+    };
+  });
 
   // Duplicate for seamless infinite scroll
   const allTickerItems = [...LIVE_TICKER_ITEMS, ...LIVE_TICKER_ITEMS];
