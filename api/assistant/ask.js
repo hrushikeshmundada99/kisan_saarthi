@@ -1,5 +1,8 @@
 import fs from 'fs';
 import path from 'path';
+import { FULL_WEBSITE_KNOWLEDGE_INDEX, getSystemPromptContext } from '../_assistant/knowledgeBase.js';
+import serverI18n, { toMarathiNumerals } from '../_assistant/i18n.js';
+import { analyzeMessage, generateGroundedAnswer } from '../_assistant/intentDetector.js';
 
 function getRuntimeGeminiApiKey() {
   if (process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.includes('placeholder')) {
@@ -22,7 +25,6 @@ function getRuntimeGeminiApiKey() {
   }
   return process.env.GEMINI_API_KEY || null;
 }
-
 function detectLanguageHeuristic(text = '') {
   if (!text) return 'mr';
   // Devanagari script regex range: \u0900-\u097F
@@ -30,42 +32,160 @@ function detectLanguageHeuristic(text = '') {
   if (devanagariCount > 0) {
     return 'mr';
   }
-  return 'en';
+
+  const lower = text.toLowerCase().trim();
+  // Check Transliterated Marathi keywords (Latin script)
+  const marathiLatinKeywords = [
+    'kanda', 'kande', 'bhav', 'bhavat', 'sanga', 'shetkari', 'ahe', 'kay', 'kiti',
+    'aajcha', 'sangne', 'karava', 'vikava', 'kapus', 'gahat', 'daalimb', 'mati', 'jamin',
+    'rahata', 'yeola', 'sangamner', 'nashik', 'kopargaon', 'lasalgaon'
+  ];
+
+  if (marathiLatinKeywords.some(k => lower.includes(k))) {
+    return 'mr';
+  }
+
+  // Explicit English phrasing indicators
+  const englishPhrases = ['what is', 'what are', 'show me', 'tell me', 'price of', 'rate of', 'how to', 'when to', 'which crop', 'forecast for'];
+  if (englishPhrases.some(p => lower.includes(p))) {
+    return 'en';
+  }
+
+  return 'mr';
 }
 
-function getFallbackAnswer(message, lang) {
-  const lowerMsg = message.toLowerCase();
+/**
+ * Dynamic Website Search Engine (RAG)
+ * Searches current website data index (live rates, soil types, post-harvest processing, profit calculator, alerts, modules)
+ * to answer questions dynamically instead of returning fixed static strings.
+ */
+function searchWebsiteKnowledge(message = '', lang = 'mr') {
+  const query = message.toLowerCase().trim();
   const isMr = lang === 'mr' || /[\u0900-\u097F]/.test(message);
 
-  if (lowerMsg.includes('कांदा') || lowerMsg.includes('onion') || lowerMsg.includes('भाव') || lowerMsg.includes('price') || lowerMsg.includes('rate')) {
-    if (isMr) {
-      return `रामराम! आज कोपरगाव बाजारात कांद्याचा सरासरी भाव ₹३,९५०/क्विंटल आहे (किमान ₹३,५०० ते कमाल ₹४,३८०). तर लासलगाव मंडीत आजचा कांदा भाव ₹४,२५०/क्विंटल आहे.`;
-    } else {
-      return `Hello! The current modal price of Onion at Kopargaon mandi today is ₹3,950/quintal (Min: ₹3,500 - Max: ₹4,380). At Lasalgaon mandi, Onion modal price is ₹4,250/quintal.`;
+  // Entity Mapping Arrays for Strict Query Scoping
+  const cropMap = [
+    { key: 'Onion', searchTerms: ['onion', 'कांदा', 'कांदे'] },
+    { key: 'Soybean', searchTerms: ['soybean', 'सोयाबीन'] },
+    { key: 'Cotton', searchTerms: ['cotton', 'कापूस'] },
+    { key: 'Wheat', searchTerms: ['wheat', 'गहू'] },
+    { key: 'Sugarcane', searchTerms: ['sugarcane', 'ऊस'] },
+    { key: 'Pomegranate', searchTerms: ['pomegranate', 'डाळिंब'] },
+    { key: 'Tomato', searchTerms: ['tomato', 'टोमॅटो'] },
+    { key: 'Maize', searchTerms: ['maize', 'मका'] },
+    { key: 'Gram', searchTerms: ['gram', 'हरभरा', 'चना'] },
+    { key: 'Bajra', searchTerms: ['bajra', 'बाजरी'] }
+  ];
+
+  const mandiMap = [
+    { key: 'Kopargaon', searchTerms: ['kopargaon', 'कोपरगाव'] },
+    { key: 'Lasalgaon', searchTerms: ['lasalgaon', 'लासलगाव'] },
+    { key: 'Yeola', searchTerms: ['yeola', 'येवला'] },
+    { key: 'Rahata', searchTerms: ['rahata', 'राहाता'] },
+    { key: 'Nashik', searchTerms: ['nashik', 'नाशिक'] },
+    { key: 'Sangamner', searchTerms: ['sangamner', 'संगमनेर'] },
+    { key: 'Ahilyanagar', searchTerms: ['ahilyanagar', 'अहिल्यानगर', 'अहमदनगर', 'nagar'] },
+    { key: 'Shrirampur', searchTerms: ['shrirampur', 'श्रीरामपूर'] }
+  ];
+
+  const detectedCropObj = cropMap.find(c => c.searchTerms.some(t => query.includes(t)));
+  const detectedMandiObj = mandiMap.find(m => m.searchTerms.some(t => query.includes(t)));
+
+  const detectedCrop = detectedCropObj ? detectedCropObj.key : null;
+  const detectedMandi = detectedMandiObj ? detectedMandiObj.key : null;
+
+  // Force Marathi language ALWAYS
+  const effectiveLang = 'mr';
+  serverI18n.changeLanguage('mr');
+
+  // SCENARIO 1: SPECIFIC MANDI + SPECIFIC CROP (Exact single answer)
+  if (detectedCrop && detectedMandi) {
+    const exactMatch = FULL_WEBSITE_KNOWLEDGE_INDEX.liveMandiRates.find(
+      r => r.crop.includes(detectedCrop) && r.mandi.toLowerCase() === detectedMandi.toLowerCase()
+    );
+
+    if (exactMatch) {
+      return serverI18n.t('mandiPriceSingle', {
+        mandi: exactMatch.mandi,
+        crop: exactMatch.crop,
+        modalPrice: toMarathiNumerals(exactMatch.modalPrice),
+        minPrice: toMarathiNumerals(exactMatch.minPrice),
+        maxPrice: toMarathiNumerals(exactMatch.maxPrice)
+      });
     }
   }
 
-  if (lowerMsg.includes('अलर्ट') || lowerMsg.includes('alert') || lowerMsg.includes('sms')) {
-    if (isMr) {
-      return `भाव अलर्ट सेट करण्यासाठी नेव्हिगेशन मेनूमधून "Price Alerts" वर जा. तेथे तुमचे पिक, अपेक्षित भाव आणि मोबाईल नंबर टाकून SMS व ई-मेल अलर्ट सुरू करू शकता.`;
-    } else {
-      return `To set a price alert, go to "Price Alerts" in the sidebar menu. Select your crop, target price, and phone/email to activate live SMS & Email notifications.`;
+  // SCENARIO 2: BROADER CROP QUERY (All Mandis for that Crop)
+  if (detectedCrop && !detectedMandi) {
+    const cropMatches = FULL_WEBSITE_KNOWLEDGE_INDEX.liveMandiRates.filter(
+      r => r.crop.includes(detectedCrop)
+    );
+
+    if (cropMatches.length > 0) {
+      const ratesText = cropMatches.map(m => `${m.mandi}: ₹${toMarathiNumerals(m.modalPrice)}/क्विंटल`).join(', ');
+      return serverI18n.t('mandiPriceCropAll', {
+        crop: cropMatches[0].crop,
+        rates: ratesText
+      });
     }
   }
 
-  if (lowerMsg.includes('कॅल्क्युलेटर') || lowerMsg.includes('calculator') || lowerMsg.includes('नफा') || lowerMsg.includes('profit')) {
-    if (isMr) {
-      return `नफा-तोटा कॅल्क्युलेटरद्वारे तुम्ही जमीन क्षेत्र, बियाणे, खत व वाहतूक खर्च टाकून विविध मंडयांमधील निव्वळ नफा एका क्लिकवर मोजू शकता.`;
-    } else {
-      return `The Profit Calculator lets you enter your land size, cultivation expenses, and transport cost to compare net payouts across nearby APMC mandis.`;
+  // SCENARIO 3: SPECIFIC MANDI QUERY (All Crops for that Mandi)
+  if (detectedMandi && !detectedCrop) {
+    const mandiMatches = FULL_WEBSITE_KNOWLEDGE_INDEX.liveMandiRates.filter(
+      r => r.mandi.toLowerCase() === detectedMandi.toLowerCase()
+    );
+
+    if (mandiMatches.length > 0) {
+      const cropsText = mandiMatches.map(m => `${m.crop}: ₹${toMarathiNumerals(m.modalPrice)}/क्विंटल`).join(', ');
+      return serverI18n.t('mandiPriceMandiAll', {
+        mandi: mandiMatches[0].mandi,
+        crops: cropsText
+      });
     }
   }
 
-  if (isMr) {
-    return `नमस्कार! मी किसान मित्र AI आहे. तुम्ही मला चालू बाजार भाव, पिक सल्ला किंवा ॲप वापराबाबत मराठीत किंवा इंग्रजीत विचारू शकता.`;
-  } else {
-    return `Hello! I am Kisan Mitra AI. You can ask me about live mandi rates, crop timing advice, or app features in Marathi or English.`;
+  // SCENARIO 4: Soil Types Search
+  if (query.includes('माती') || query.includes('soil') || query.includes('जमीन') || query.includes('पोयटा') || query.includes('काळी') || query.includes('रेतीड') || query.includes('लाल')) {
+    const matchedSoil = FULL_WEBSITE_KNOWLEDGE_INDEX.soilTypes.find((s) => {
+      const n = s.name.toLowerCase();
+      if (query.includes('काळी खोल') || query.includes('भारी') || query.includes('heavy black')) return n.includes('खोल');
+      if (query.includes('काळी') || query.includes('black')) return n.includes('काळी');
+      if (query.includes('पोयटा') || query.includes('loamy') || query.includes('मुरुमाड')) return n.includes('पोयटा');
+      if (query.includes('रेतीड') || query.includes('हलकी') || query.includes('sandy')) return n.includes('रेतीड');
+      if (query.includes('लाल') || query.includes('तांबडी') || query.includes('red')) return n.includes('तांबडी');
+      if (query.includes('चोपण') || query.includes('खारपड') || query.includes('saline')) return n.includes('चोपण');
+      return false;
+    }) || FULL_WEBSITE_KNOWLEDGE_INDEX.soilTypes[0];
+
+    return serverI18n.t('soilGuidance', {
+      name: matchedSoil.name,
+      location: matchedSoil.location,
+      crops: matchedSoil.crops,
+      tip: matchedSoil.tip
+    });
   }
+
+  // 5. Post-Harvest Value Addition & Storage Search
+  if (query.includes('चाळ') || query.includes('साठवणूक') || query.includes('storage') || query.includes('dehydration') || query.includes('निर्जलीकरण') || query.includes('प्रक्रिया') || query.includes('fpo')) {
+    if (query.includes('सोयाबीन') || query.includes('soybean')) {
+      return serverI18n.t('postHarvestSoybean');
+    }
+    return serverI18n.t('postHarvestOnion');
+  }
+
+  // 6. Profit Calculator & Cultivation Cost Search
+  if (query.includes('कॅल्क्युलेटर') || query.includes('calculator') || query.includes('नफा') || query.includes('profit') || query.includes('खर्च') || query.includes('cost')) {
+    return serverI18n.t('profitCalculatorHelp');
+  }
+
+  // 7. Price Alerts Search
+  if (query.includes('अलर्ट') || query.includes('alert') || query.includes('sms') || query.includes('email') || query.includes('इमेल')) {
+    return serverI18n.t('priceAlertsHelp');
+  }
+
+  // 8. Generic Website Search Fallback Response
+  return serverI18n.t('generalWebsiteHelp');
 }
 
 export default async function handler(req, res) {
@@ -90,7 +210,7 @@ export default async function handler(req, res) {
     });
   }
 
-  const { message = '', detectedLanguage, conversationHistory = [] } = req.body || {};
+  const { message = '' } = req.body || {};
 
   if (!message || typeof message !== 'string' || !message.trim()) {
     return res.status(400).json({
@@ -99,34 +219,48 @@ export default async function handler(req, res) {
     });
   }
 
-  const lang = detectedLanguage || detectLanguageHeuristic(message);
+  const analysis = analyzeMessage(message);
+  const lang = analysis.language || 'mr';
+  serverI18n.changeLanguage(lang);
   const apiKey = getRuntimeGeminiApiKey();
 
-  // If Gemini API Key is missing or placeholder, use grounded fallback response
-  if (!apiKey || apiKey.includes('placeholder')) {
-    const fallbackAnswer = getFallbackAnswer(message, lang);
+  // If Gemini API Key is missing or invalid, generate exact grounded answer
+  if (!apiKey || apiKey.includes('placeholder') || apiKey.startsWith('AQ.')) {
+    const groundedAnswer = generateGroundedAnswer ? generateGroundedAnswer(message, lang) : searchWebsiteKnowledge(message, lang);
     return res.status(200).json({
       success: true,
-      replyText: fallbackAnswer,
+      replyText: groundedAnswer,
       replyLanguage: lang,
-      isFallback: true
+      intent: analysis.intent,
+      entities: analysis.entities,
+      isGrounded: true
     });
   }
 
   try {
     const systemPrompt = getSystemPromptContext(lang);
-    const fullPrompt = `${systemPrompt}\n\nUser Question (Language Hint: ${lang}): ${message.trim()}`;
+    const systemInstructionText = `${systemPrompt}\n\nCRITICAL MANDATE: You MUST answer every question in clear, respectful MARATHI (मराठी/देवनागरी script). ALL numbers, prices, mandi names, and explanations should be presented clearly.\n\n[Intent Analysis]\nDetected Intent: ${analysis.intent}\nExtracted Commodity: ${analysis.entities.commodity || 'None'}\nExtracted Market: ${analysis.entities.market || 'None'}`;
 
-    // 1. Try Gemini 1.5 Flash via REST API
+    const geminiPayload = {
+      systemInstruction: {
+        parts: [{ text: systemInstructionText }]
+      },
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: message.trim() }]
+        }
+      ]
+    };
+
+    // 1. Try Gemini 1.5 Flash via REST API with Search Grounding & systemInstruction
     let replyText = '';
     const geminiUrl15 = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
 
     const geminiRes = await fetch(geminiUrl15, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: fullPrompt }] }]
-      })
+      body: JSON.stringify(geminiPayload)
     });
 
     if (geminiRes.ok) {
@@ -138,9 +272,7 @@ export default async function handler(req, res) {
       const fallbackRes = await fetch(geminiUrl20, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: fullPrompt }] }]
-        })
+        body: JSON.stringify(geminiPayload)
       });
       if (fallbackRes.ok) {
         const data20 = await fallbackRes.json();
@@ -149,22 +281,26 @@ export default async function handler(req, res) {
     }
 
     if (!replyText || !replyText.trim()) {
-      replyText = getFallbackAnswer(message, lang);
+      replyText = generateGroundedAnswer ? generateGroundedAnswer(message, lang) : searchWebsiteKnowledge(message, lang);
     }
 
     return res.status(200).json({
       success: true,
       replyText: replyText.trim(),
-      replyLanguage: lang
+      replyLanguage: lang,
+      intent: analysis.intent,
+      entities: analysis.entities
     });
   } catch (error) {
-    console.error('[Kisan Mitra AI API Exception]:', error?.message || error);
-    const fallbackAnswer = getFallbackAnswer(message, lang);
+    console.error('[Kisan Mitra AI Exception]:', error?.message || error);
+    const fallbackAnswer = generateGroundedAnswer ? generateGroundedAnswer(message, lang) : searchWebsiteKnowledge(message, lang);
     return res.status(200).json({
       success: true,
       replyText: fallbackAnswer,
       replyLanguage: lang,
-      isFallback: true
+      intent: analysis.intent,
+      entities: analysis.entities,
+      isGrounded: true
     });
   }
 }

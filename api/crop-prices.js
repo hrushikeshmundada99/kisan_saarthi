@@ -1,7 +1,7 @@
 // Vercel Serverless Function / HTTP API Route for Crop Prices
 // Invokes AI-Powered Google Search Grounded Fallback when DB data is missing or stale.
 
-import { getCropPrice } from './services/cropPriceFallbackService.js';
+import { getCropPrice } from './_services/cropPriceFallbackService.js';
 
 export default async function handler(req, res) {
   // CORS Headers

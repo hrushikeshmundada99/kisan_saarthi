@@ -16,6 +16,7 @@ import {
   CartesianGrid,
   Cell
 } from 'recharts';
+import { REGIONAL_SOIL_TYPES } from '../data/soilData';
 import {
   Calculator,
   Award,
@@ -25,7 +26,11 @@ import {
   ChevronUp,
   CheckSquare,
   Square,
-  Sprout
+  Sprout,
+  Layers,
+  MapPin,
+  CheckCircle2,
+  Info
 } from 'lucide-react';
 
 const CROP_DEFAULT_YIELDS: Record<string, number> = {
@@ -62,6 +67,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
 
   // Form State
   const [crop, setCrop] = useState<string>(initialCrop);
+  const [selectedSoilId, setSelectedSoilId] = useState<string>('BLACK_MEDIUM');
   const [landUnit, setLandUnit] = useState<'acres' | 'guntha'>('acres');
   const [landValue, setLandValue] = useState<number>(2);
   const [yieldPerAcre, setYieldPerAcre] = useState<number>(CROP_DEFAULT_YIELDS[initialCrop] || 75);
@@ -90,6 +96,15 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
 
   // Convert land value to Acres
   const landInAcres = landUnit === 'acres' ? landValue : landValue / 40;
+
+  // Selected Soil Information & Agronomic Match
+  const selectedSoilInfo = useMemo(() => {
+    return REGIONAL_SOIL_TYPES.find((s) => s.id === selectedSoilId) || REGIONAL_SOIL_TYPES[0];
+  }, [selectedSoilId]);
+
+  const isSoilOptimal = useMemo(() => {
+    return selectedSoilInfo.suitableCrops.includes(crop);
+  }, [selectedSoilInfo, crop]);
 
   // Validation
   const errors = useMemo(() => {
@@ -125,7 +140,8 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
   const handleCalculate = () => {
     if (!isValid) return;
 
-    const totalYieldQuintals = landInAcres * yieldPerAcre;
+    const effectiveYieldPerAcre = Math.round(yieldPerAcre * selectedSoilInfo.yieldMultiplier);
+    const totalYieldQuintals = landInAcres * effectiveYieldPerAcre;
     const totalCultivationCost = seedCost + fertilizerCost + laborCost + irrigationCost + miscCost;
 
     const results: MandiProfitResult[] = selectedMandis.map((mName) => {
@@ -179,6 +195,7 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
 
   const handleReset = () => {
     setCrop('Onion');
+    setSelectedSoilId('BLACK_MEDIUM');
     setLandValue(1);
     setLandUnit('acres');
     setYieldPerAcre(100);
@@ -240,12 +257,70 @@ export const ProfitabilityCalculatorPage: React.FC = () => {
             />
           </div>
 
-          {/* 1. Land Area + Unit Toggle */}
+          {/* 2. Soil Type Selection Dropdown with Regional Location Guidance */}
+          <div className="space-y-2.5 pt-3 border-t border-[#E5DFD5]">
+            <label className="block text-xs font-extrabold text-[#2D5016] uppercase tracking-wider flex flex-wrap items-center justify-between gap-1">
+              <span className="flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-[#2D5016]" />
+                {isMr ? '2. मातीचा प्रकार निवडा (Select Soil Type):' : '2. Select Soil Type:'}
+              </span>
+              <span className="text-[11px] font-normal text-[#6B7280] normal-case">
+                ({isMr ? 'तुमच्या परिसरातील जमिनीनुसार' : 'preferable for your location'})
+              </span>
+            </label>
+
+            <select
+              value={selectedSoilId}
+              onChange={(e) => {
+                setSelectedSoilId(e.target.value);
+                setCalculatedResults(null);
+              }}
+              className="w-full px-4 py-3 bg-[#FFFFFF] border-2 border-[#E5DFD5] rounded-xl text-sm font-bold text-[#1F2937] focus:ring-2 focus:ring-[#2D5016]/40 min-h-[48px] shadow-xs cursor-pointer"
+            >
+              {REGIONAL_SOIL_TYPES.map((soil) => (
+                <option key={soil.id} value={soil.id}>
+                  {isMr ? soil.nameMr : soil.nameEn}
+                </option>
+              ))}
+            </select>
+
+            {/* Regional Location Info & Soil Agronomy Card */}
+            <div className="p-3.5 rounded-2xl bg-[#FAF7F2] border border-[#E5DFD5] space-y-2">
+              <div className="flex items-start gap-2 text-xs font-semibold text-[#374151]">
+                <MapPin className="w-4 h-4 text-[#D97706] shrink-0 mt-0.5" />
+                <span>{isMr ? selectedSoilInfo.locationInfoMr : selectedSoilInfo.locationInfoEn}</span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                {isSoilOptimal ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#E8F5E9] text-[#2D5016] border border-[#A5D6A7]">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#2D5016]" />
+                    {isMr ? `✅ ${crop} पिकासाठी ही जमीन उत्तम आहे!` : `✅ Optimal soil match for ${crop}!`}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
+                    <Info className="w-3.5 h-3.5 text-[#D97706]" />
+                    {isMr ? `ℹ️ ${crop} साठी विशेष खते व निचरा व्यवस्थापन आवश्यक` : `ℹ️ ${crop} needs specialized soil management`}
+                  </span>
+                )}
+
+                <span className="text-xs font-bold text-[#4B5563]">
+                  ({isMr ? `उत्पादन प्रभाव: ${Math.round((selectedSoilInfo.yieldMultiplier - 1) * 100) > 0 ? '+' : ''}${Math.round((selectedSoilInfo.yieldMultiplier - 1) * 100)}%` : `Yield Impact: ${Math.round((selectedSoilInfo.yieldMultiplier - 1) * 100) > 0 ? '+' : ''}${Math.round((selectedSoilInfo.yieldMultiplier - 1) * 100)}%`})
+                </span>
+              </div>
+
+              <p className="text-xs text-[#526058] font-medium pt-1 border-t border-[#E5DFD5]/60">
+                {isMr ? selectedSoilInfo.careTipMr : selectedSoilInfo.careTipEn}
+              </p>
+            </div>
+          </div>
+
+          {/* 3. Land Area + Unit Toggle */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold text-[#4B5563] uppercase tracking-wider">
-                  2. जमिनीचे क्षेत्र (Land Area):
+                  3. जमिनीचे क्षेत्र (Land Area):
                 </label>
 
                 {/* Unit Toggle Button */}

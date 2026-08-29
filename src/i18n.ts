@@ -227,6 +227,18 @@ const resources = {
         Nashik: "नाशिक कृषी उत्पन्न बाजार समिती",
         Ahilyanagar: "अहिल्यानगर कृषी उत्पन्न बाजार समिती",
         Ahmednagar: "अहिल्यानगर कृषी उत्पन्न बाजार समिती"
+      },
+      chatbot: {
+        title: "किसान मित्र AI",
+        subtitle: "बाजार भाव व पिक सल्लागार",
+        welcomeMsg: "रामराम शेतकरी दादा! मी किसान मित्र AI आहे. तुम्ही मला थेट बोलून किंवा टाईप करून बाजार भाव व ॲप बद्दल प्रश्न विचारू शकता. 🌱",
+        thinking: "माहिती शोधत आहे...",
+        listening: "ऐकत आहे... बोला",
+        placeholder: "तुमचा प्रश्न मराठीत किंवा इंग्रजीत विचारा...",
+        micNotSupported: "या ब्राऊझरमध्ये व्हॉईस सपोर्ट उपलब्ध नाही, कृपया टाईप करा.",
+        micDenied: "मायक्रोफोन परवानगी नाकारली गेली.",
+        micError: "आवाज ऐकता आला नाही, कृपया पुन्हा बोला.",
+        fallbackError: "क्षमस्व, प्रतिसाद तयार करता आला नाही."
       }
     }
   },
@@ -443,6 +455,18 @@ const resources = {
         Nashik: "Nashik Agricultural Produce Market Committee (APMC)",
         Ahilyanagar: "Ahilyanagar Agricultural Produce Market Committee (APMC)",
         Ahmednagar: "Ahilyanagar Agricultural Produce Market Committee (APMC)"
+      },
+      chatbot: {
+        title: "Kisan Mitra AI",
+        subtitle: "Market Rates & Crop Advisor",
+        welcomeMsg: "Welcome! I am Kisan Mitra AI. Ask me about live mandi rates, crop advice, or app features by voice or text. 🌱",
+        thinking: "Searching website knowledge...",
+        listening: "Listening... speak now",
+        placeholder: "Ask your question in English or Marathi...",
+        micNotSupported: "Voice recognition not supported in this browser, please type.",
+        micDenied: "Microphone permission denied.",
+        micError: "Could not hear voice, try speaking again.",
+        fallbackError: "Sorry, could not process request."
       }
     }
   }

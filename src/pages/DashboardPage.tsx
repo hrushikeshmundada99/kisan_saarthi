@@ -67,6 +67,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     return getStoredAlerts();
   }, []);
 
+
+
   const evaluatedAlerts = useMemo(() => {
     return storedAlerts
       .map((alt) => {

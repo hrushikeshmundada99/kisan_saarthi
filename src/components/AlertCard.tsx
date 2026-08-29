@@ -2,11 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   type PriceAlertItem,
-  evaluateAlertStatus,
-  generateSmsAlertText,
-  generateSmsDirectUrl,
-  dispatchSmsToFarmer,
-  type SmsDispatchResult
+  evaluateAlertStatus
 } from '../utils/alertManager';
 import { Card } from './Card';
 import { useAuth } from '../context/AuthContext';
@@ -21,10 +17,6 @@ import {
   TrendingUp,
   TrendingDown,
   Clock,
-  Smartphone,
-  Send,
-  MessageSquareText,
-  Radio,
   CheckCheck,
   Mail,
   AlertCircle
@@ -41,9 +33,9 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onToggleStatus, onD
   const { user } = useAuth();
   const { showToast } = useToast();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [showSmsPreview, setShowSmsPreview] = useState(false);
-  const [isSendingSms, setIsSendingSms] = useState(false);
-  const [lastDispatch, setLastDispatch] = useState<SmsDispatchResult | null>(null);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailSuccessTime, setEmailSuccessTime] = useState<string | null>(null);
 
   const { currentPrice, distanceToTarget, isTriggered } = evaluateAlertStatus(alert);
   const isDisabled = alert.status === 'DISABLED';
@@ -51,20 +43,10 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onToggleStatus, onD
   const isAbove = alert.condition === 'ABOVE';
   const mandiName = alert.mandi === 'ANY' ? (i18n.language === 'mr' ? 'कोणतीही जवळची बाजार समिती' : 'Any nearby market') : t(`mandis.${alert.mandi}`, alert.mandi);
   const cropName = t(`crops.${alert.crop}`, alert.crop);
-
-  const farmerPhone = alert.farmerPhone || user?.phone || '9822154321';
   const farmerName = user?.name || 'शेतकरी';
-  const smsText = generateSmsAlertText(alert, farmerName);
-  const smsUrl = generateSmsDirectUrl(alert, farmerPhone, farmerName);
-
-  const [isSendingEmail, setIsSendingEmail] = useState(false);
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [emailSuccessTime, setEmailSuccessTime] = useState<string | null>(null);
 
   const cachedEmail = typeof window !== 'undefined' ? localStorage.getItem('KISAN_SAARTHI_USER_EMAIL') : null;
-  const initialEmail = (alert.farmerEmail || user?.email || cachedEmail || 'farmer@gmail.com').replace('example.com', 'gmail.com');
-  const customEmail = initialEmail;
-  const farmerEmail = customEmail || initialEmail;
+  const farmerEmail = (alert.farmerEmail || user?.email || cachedEmail || 'farmer@gmail.com').replace('example.com', 'gmail.com');
 
   const emailSubject = encodeURIComponent(`Price Alert Triggered: ${cropName} at ${mandiName}`);
   const emailBody = encodeURIComponent(
@@ -74,20 +56,6 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onToggleStatus, onD
     `किसान सारथी • APMC Intelligence`
   );
   const emailMailtoUrl = `mailto:${farmerEmail}?subject=${emailSubject}&body=${emailBody}`;
-
-  const handleSendSms = async () => {
-    setIsSendingSms(true);
-    try {
-      const res = await dispatchSmsToFarmer(alert, farmerPhone, farmerName);
-      setLastDispatch(res);
-      setShowSmsPreview(true);
-      showToast(`+91 ${farmerPhone} वर SMS संदेश यशस्वीरीत्या पाठवला! (SMS Dispatched)`, 'success');
-    } catch (e) {
-      showToast('SMS पाठवताना अडचण आली, कृपया पुन्हा प्रयत्न करा', 'error');
-    } finally {
-      setIsSendingSms(false);
-    }
-  };
 
   const handleSendEmail = async () => {
     setIsSendingEmail(true);
@@ -237,64 +205,32 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onToggleStatus, onD
         </div>
       )}
 
-      {/* Notification Actions: Direct SMS + Email Alert + View SMS */}
+      {/* Notification Action: Email Alert */}
       <div className="space-y-2 ml-1.5">
-        <div className="flex flex-col sm:flex-row gap-2">
-          {/* Direct Send SMS Button */}
-          <button
-            type="button"
-            onClick={handleSendSms}
-            disabled={isSendingSms}
-            className="flex-1 py-2.5 px-3 rounded-2xl bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] text-[#FFFFFF] text-xs font-black hover:from-[#144919] hover:to-[#1B5E20] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-emerald-950/15 min-h-[44px]"
-          >
-            <Smartphone className="w-4 h-4 text-[#FFB300]" />
-            <span>
-              {isSendingSms
-                ? 'SMS पाठवला जात आहे...'
-                : i18n.language === 'mr'
-                ? 'SIM SMS पाठवा'
-                : 'Send SIM SMS'}
-            </span>
-            <Send className="w-3.5 h-3.5" />
-          </button>
+        {/* Email Alert Button */}
+        <button
+          type="button"
+          onClick={handleSendEmail}
+          disabled={isSendingEmail}
+          className="w-full py-2.5 px-3 rounded-2xl bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] text-[#FFFFFF] text-xs font-black hover:from-[#144919] hover:to-[#1B5E20] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-emerald-950/15 min-h-[44px]"
+        >
+          <Mail className="w-4 h-4 text-[#FFB300]" />
+          <span>
+            {isSendingEmail
+              ? (i18n.language === 'mr' ? 'ई-मेल पाठवत आहे...' : 'Sending Email...')
+              : (i18n.language === 'mr' ? 'ई-मेल अलर्ट पाठवा' : 'Send Email Alert')}
+          </span>
+        </button>
 
-          {/* Email Alert Action Button */}
-          <button
-            type="button"
-            onClick={handleSendEmail}
-            disabled={isSendingEmail}
-            className="flex-1 py-2.5 px-3 rounded-2xl bg-[#FFFFFF] border-2 border-[#1B5E20] text-[#1B5E20] text-xs font-black hover:bg-[#E8F5E9] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs min-h-[44px]"
-          >
-            <Mail className="w-4 h-4 text-[#FFB300]" />
-            <span>
-              {isSendingEmail
-                ? (i18n.language === 'mr' ? 'ई-मेल पाठवत आहे...' : 'Sending Email...')
-                : (i18n.language === 'mr' ? 'ई-मेल अलर्ट पाठवा (Email)' : 'Email Alert')}
-            </span>
-          </button>
-
-          {/* View SMS Text Button */}
-          <button
-            type="button"
-            onClick={() => setShowSmsPreview(!showSmsPreview)}
-            className="py-2 px-3 rounded-2xl border border-[#D8E6D8] bg-[#F4F9F4] text-xs font-black text-[#0F291E] hover:bg-[#E8F5E9] transition-all flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer"
-          >
-            <MessageSquareText className="w-4 h-4 text-[#1B5E20]" />
-            <span>{showSmsPreview ? (i18n.language === 'mr' ? 'लपवा' : 'Hide') : (i18n.language === 'mr' ? 'SMS पहा' : 'View SMS')}</span>
-          </button>
-        </div>
-
-        {/* Email Error Alert Banner (if failure e.g. missing API key or network) */}
+        {/* Email Error Banner */}
         {emailError && (
           <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-2 text-xs text-rose-800 font-bold animate-in fade-in duration-200">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <span>{emailError}</span>
-            </div>
+            <span>{emailError}</span>
           </div>
         )}
 
-        {/* Email Success Confirmation Banner */}
+        {/* Email Success Banner */}
         {emailSuccessTime && !emailError && (
           <div className="p-3.5 bg-emerald-50 border-2 border-emerald-300 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-emerald-950 font-black animate-in fade-in duration-200 shadow-xs">
             <div className="flex items-center gap-1.5">
@@ -316,53 +252,16 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onToggleStatus, onD
             </div>
           </div>
         )}
-
-        {/* SMS Live Delivery Notification / Preview Bubble */}
-        {showSmsPreview && (
-          <div className="p-3.5 bg-[#FFFFFF] border-2 border-[#A5D6A7] rounded-2xl shadow-sm space-y-2 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between text-[11px] font-black text-[#1B5E20]">
-              <span className="flex items-center gap-1">
-                <Smartphone className="w-3.5 h-3.5 text-[#2E7D32]" />
-                मोबाईल नंबर: +91 {farmerPhone}
-              </span>
-              {lastDispatch ? (
-                <span className="text-emerald-700 font-black flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                  <CheckCheck className="w-3.5 h-3.5 text-[#2E7D32]" />
-                  डिलिव्हर झाले ({lastDispatch.timestamp})
-                </span>
-              ) : (
-                <span className="text-[#526058] font-bold">SIM SMS मजकूर</span>
-              )}
-            </div>
-
-            <div className="p-2.5 bg-[#F4F9F4] rounded-xl border border-[#D8E6D8] text-xs font-bold text-[#0F291E] leading-relaxed">
-              "{smsText}"
-            </div>
-
-            <div className="flex items-center justify-between text-[10px] font-bold text-[#526058] pt-1 border-t border-[#D8E6D8]">
-              <span className="flex items-center gap-1">
-                <Radio className="w-3 h-3 text-[#FFB300]" />
-                मोबाईल नेटवर्क: Jio / Airtel 4G SIM
-              </span>
-              <a
-                href={smsUrl}
-                className="text-[#1B5E20] underline font-black hover:text-[#0F291E]"
-              >
-                फोन ॲपमध्ये उघडा
-              </a>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Timeline Footer Controls: Registered SIM + Date + Pause/Enable + Delete */}
+      {/* Footer Controls */}
       <div className="flex items-center justify-between border-t border-[#D8E6D8] pt-3 text-xs ml-1.5">
         
-        {/* SIM Badge & Date */}
+        {/* Email Badge & Date */}
         <div className="flex items-center gap-2">
           <span className="px-2.5 py-1 bg-emerald-50 text-emerald-950 border border-emerald-200 rounded-lg text-[11px] font-black flex items-center gap-1">
-            <Smartphone className="w-3.5 h-3.5 text-[#1B5E20]" />
-            <span>SIM SMS (+91 {farmerPhone.slice(-10)})</span>
+            <Mail className="w-3.5 h-3.5 text-[#1B5E20]" />
+            <span className="truncate max-w-[120px]">{farmerEmail}</span>
           </span>
 
           <span className="hidden sm:flex items-center gap-1 text-[11px] font-semibold text-[#526058]">

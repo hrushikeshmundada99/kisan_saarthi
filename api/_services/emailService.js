@@ -1,3 +1,7 @@
+function getEnvValue(key) {
+  return process.env[key] || '';
+}
+
 /**
  * Creates Nodemailer Transporter if SMTP credentials exist
  */

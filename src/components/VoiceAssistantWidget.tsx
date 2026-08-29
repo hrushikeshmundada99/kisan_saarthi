@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   Bot,
   X,
@@ -9,8 +10,16 @@ import {
   Volume2,
   VolumeX,
   Loader2,
-  Sparkles
+  Sparkles,
+  Compass,
+  Radio,
+  Volume1
 } from 'lucide-react';
+import { classifyIntent, type ExtractedEntities } from '../utils/assistantProcessor';
+import { playGeminiMarathiAudio, stopGeminiAudio } from '../utils/geminiTTSService';
+
+import { REAL_DASHBOARD_CARDS } from '../data/realData';
+import { REGIONAL_SOIL_TYPES } from '../data/soilData';
 
 interface ChatMessage {
   id: string;
@@ -18,15 +27,128 @@ interface ChatMessage {
   text: string;
   timestamp: string;
   lang?: string;
+  isNav?: boolean;
+}
+
+import i18n from '../i18n';
+
+function toMarathiNumerals(num: any): string {
+  if (num === null || num === undefined) return '';
+  const devanagariDigits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+  return String(num).replace(/[0-9]/g, (w) => devanagariDigits[+w]);
+}
+
+function searchWebsiteContentLocally(query: string): string {
+  const q = query.toLowerCase().trim();
+  if (i18n.language !== 'mr') {
+    i18n.changeLanguage('mr');
+  }
+
+  // Entity Mapping Arrays for Strict Query Scoping
+  const cropMap = [
+    { key: 'onion', searchTerms: ['onion', 'कांदा', 'कांदे'] },
+    { key: 'soybean', searchTerms: ['soybean', 'सोयाबीन'] },
+    { key: 'cotton', searchTerms: ['cotton', 'कापूस'] },
+    { key: 'wheat', searchTerms: ['wheat', 'गहू'] },
+    { key: 'sugarcane', searchTerms: ['sugarcane', 'ऊस'] },
+    { key: 'pomegranate', searchTerms: ['pomegranate', 'डाळिंब'] },
+    { key: 'tomato', searchTerms: ['tomato', 'टोमॅटो'] },
+    { key: 'maize', searchTerms: ['maize', 'मका'] },
+    { key: 'gram', searchTerms: ['gram', 'हरभरा', 'चना'] },
+    { key: 'bajra', searchTerms: ['bajra', 'बाजरी'] }
+  ];
+
+  const mandiMap = [
+    { key: 'kopargaon', searchTerms: ['kopargaon', 'कोपरगाव'] },
+    { key: 'lasalgaon', searchTerms: ['lasalgaon', 'लासलगाव'] },
+    { key: 'yeola', searchTerms: ['yeola', 'येवला'] },
+    { key: 'rahata', searchTerms: ['rahata', 'राहाता'] },
+    { key: 'nashik', searchTerms: ['nashik', 'नाशिक'] },
+    { key: 'sangamner', searchTerms: ['sangamner', 'संगमनेर'] },
+    { key: 'ahilyanagar', searchTerms: ['ahilyanagar', 'अहिल्यानगर', 'अहमदनगर', 'nagar'] },
+    { key: 'shrirampur', searchTerms: ['shrirampur', 'श्रीरामपूर'] }
+  ];
+
+  const detectedCropObj = cropMap.find(c => c.searchTerms.some(t => q.includes(t)));
+  const detectedMandiObj = mandiMap.find(m => m.searchTerms.some(t => q.includes(t)));
+
+  const detectedCrop = detectedCropObj ? detectedCropObj.key : null;
+  const detectedMandi = detectedMandiObj ? detectedMandiObj.key : null;
+
+  // SCENARIO 1: SPECIFIC MANDI + SPECIFIC CROP
+  if (detectedCrop && detectedMandi) {
+    const exact = REAL_DASHBOARD_CARDS.find(
+      c => c.crop.toLowerCase().includes(detectedCrop) && c.mandiName.toLowerCase().includes(detectedMandi)
+    );
+
+    if (exact) {
+      return `रामराम! ${exact.mandiName} बाजारात आज ${exact.crop} चा चालू भाव ₹${toMarathiNumerals(exact.modalPrice)}/क्विंटल आहे (किमान ₹${toMarathiNumerals(exact.minPrice)} ते कमाल ₹${toMarathiNumerals(exact.maxPrice)}).`;
+    }
+  }
+
+  // SCENARIO 2: BROADER CROP QUERY (All Mandis for that Crop)
+  if (detectedCrop && !detectedMandi) {
+    const cropMatches = REAL_DASHBOARD_CARDS.filter(
+      c => c.crop.toLowerCase().includes(detectedCrop)
+    );
+
+    if (cropMatches.length > 0) {
+      const text = cropMatches.map(c => `${c.mandiName}: ₹${toMarathiNumerals(c.modalPrice)}/क्विंटल`).join(', ');
+      return `रामराम! वेबसाईटवरील विविध बाजारांतील आजचे ${cropMatches[0].crop} भाव: ${text}.`;
+    }
+  }
+
+  // SCENARIO 3: SPECIFIC MANDI QUERY (All Crops for that Mandi)
+  if (detectedMandi && !detectedCrop) {
+    const mandiMatches = REAL_DASHBOARD_CARDS.filter(
+      c => c.mandiName.toLowerCase().includes(detectedMandi)
+    );
+
+    if (mandiMatches.length > 0) {
+      const text = mandiMatches.map(c => `${c.crop}: ₹${toMarathiNumerals(c.modalPrice)}/क्विंटल`).join(', ');
+      return `रामराम! आज ${mandiMatches[0].mandiName} बाजारातील चालू भाव: ${text}.`;
+    }
+  }
+
+  // SCENARIO 4: Soil Query
+  if (q.includes('माती') || q.includes('soil') || q.includes('जमीन') || q.includes('पोयटा') || q.includes('काळी') || q.includes('रेतीड') || q.includes('लाल')) {
+    const soil = REGIONAL_SOIL_TYPES.find((s) => {
+      const name = (s.nameMr + ' ' + s.nameEn).toLowerCase();
+      if (q.includes('काळी खोल') || q.includes('भारी')) return name.includes('खोल');
+      if (q.includes('काळी')) return name.includes('काळी');
+      if (q.includes('पोयटा') || q.includes('मुरुमाड')) return name.includes('पोयटा');
+      if (q.includes('रेतीड') || q.includes('हलकी')) return name.includes('रेतीड');
+      if (q.includes('तांबडी') || q.includes('लाल')) return name.includes('तांबडी');
+      return false;
+    }) || REGIONAL_SOIL_TYPES[0];
+
+    return `रामराम! वेबसाईटवरील माती माहितीनुसार: ${soil.nameMr} ही ${soil.locationInfoMr} योग्य पिके: ${soil.suitableCrops.join(', ')}. सल्ला: ${soil.careTipMr}`;
+  }
+
+  // 3. Profit Calculator Query
+  if (q.includes('कॅल्क्युलेटर') || q.includes('calculator') || q.includes('नफा') || q.includes('profit')) {
+    return `वेबसाईटवरील "Profit Calculator" पृष्ठावर जाऊन तुम्ही मातीचा प्रकार, एकरी जमीन क्षेत्र आणि लागवड खर्च टाकून मंडयांमधील निव्वळ नफा मोजू शकता.`;
+  }
+
+  // 4. Default Website Search
+  return `रामराम शेतकरी मित्र! मी किसान सारथी वेबसाईटवरील ताज्या माहितीवरून केवळ मराठीत उत्तर देतो. तुम्ही मला चालू बाजार भाव, मातीचे प्रकार किंवा नफा कॅल्क्युलेटरबद्दल विचारू शकता.`;
 }
 
 export const VoiceAssistantWidget: React.FC = () => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const isMr = i18n.language === 'mr';
 
   // Open/Close Chat Drawer
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [unreadCount, setUnreadCount] = useState<number>(1);
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+
+  // Active Conversation Context (For follow-up questions like "Lasalgaon cha?")
+  const [activeContext, setActiveContext] = useState<ExtractedEntities>({
+    commodity: 'onion',
+    market: 'Kopargaon'
+  });
 
   // Messages State
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -34,10 +156,10 @@ export const VoiceAssistantWidget: React.FC = () => {
       id: 'welcome-1',
       sender: 'assistant',
       text: isMr
-        ? 'रामराम शेतकरी दादा! मी किसान मित्र AI आहे. तुम्ही मला थेट बोलून किंवा टाईप करून बाजार भाव व ॲप बद्दल प्रश्न विचारू शकता. 🌱'
+        ? 'रामराम शेतकरी दादा! मी किसान मित्र AI आहे. आजचा कांदा भाव, बाजार समिती तुलना किंवा ॲप बद्दल प्रश्न विचारा. 🌱'
         : 'Welcome! I am Kisan Mitra AI. Ask me about live mandi rates, crop advice, or app features by voice or text. 🌱',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      lang: isMr ? 'mr' : 'en'
+      lang: i18n.language
     }
   ]);
 
@@ -64,7 +186,7 @@ export const VoiceAssistantWidget: React.FC = () => {
     }
   }, [messages, isOpen]);
 
-  // Initialize Web Speech Recognition
+  // Initialize Web Speech Recognition (STT)
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -79,7 +201,7 @@ export const VoiceAssistantWidget: React.FC = () => {
       };
 
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
+        const transcript = event.results[0][0]?.transcript;
         if (transcript && transcript.trim()) {
           setInputText(transcript);
           handleSendMessage(transcript);
@@ -90,9 +212,9 @@ export const VoiceAssistantWidget: React.FC = () => {
         console.warn('[Speech Recognition Note]:', event.error);
         setIsListening(false);
         if (event.error === 'not-allowed') {
-          setSpeechError(isMr ? 'मायक्रोफोन परवानगी नाकारली गेली.' : 'Microphone permission denied.');
+          setSpeechError(t('chatbot.micDenied'));
         } else if (event.error !== 'no-speech') {
-          setSpeechError(isMr ? 'आवाज ऐकता आला नाही, कृपया पुन्हा बोला.' : 'Could not hear voice, try speaking again.');
+          setSpeechError(t('chatbot.micError'));
         }
       };
 
@@ -102,23 +224,22 @@ export const VoiceAssistantWidget: React.FC = () => {
 
       recognitionRef.current = recognition;
     }
-  }, [isMr]);
+  }, [isMr, t]);
 
-  // Text-To-Speech Output
-  const speakText = (text: string, langHint = 'mr') => {
+  // Text-To-Speech Output with strict Marathi voice engine locale alignment
+  const speakText = (text: string) => {
     if (isMuted || !('speechSynthesis' in window)) return;
 
     window.speechSynthesis.cancel(); // Stop any ongoing speech
     const utterance = new SpeechSynthesisUtterance(text);
     
-    // Set language code
-    const isDevanagari = /[\u0900-\u097F]/.test(text);
-    utterance.lang = isDevanagari ? 'mr-IN' : (langHint === 'mr' ? 'mr-IN' : 'en-IN');
+    // Always enforce Marathi language locale
+    utterance.lang = 'mr-IN';
     utterance.rate = 0.95;
 
-    // Pick best available voice
+    // Pick matching localized Marathi/Hindi voice engine
     const voices = window.speechSynthesis.getVoices();
-    const matchingVoice = voices.find((v) => v.lang.includes('mr') || v.lang.includes('hi') || v.lang.includes('en'));
+    const matchingVoice = voices.find((v) => v.lang.includes('mr') || v.lang.includes('hi'));
     if (matchingVoice) {
       utterance.voice = matchingVoice;
     }
@@ -126,10 +247,37 @@ export const VoiceAssistantWidget: React.FC = () => {
     window.speechSynthesis.speak(utterance);
   };
 
+  // Speak message helper using Gemini Text-to-Speech Engine
+  const playAudioForMessage = (msgId: string, text: string, lang = 'mr') => {
+    if (speakingMessageId === msgId) {
+      stopGeminiAudio();
+      setSpeakingMessageId(null);
+      return;
+    }
+
+    playGeminiMarathiAudio({
+      text,
+      lang,
+      isMuted,
+      onStart: () => setSpeakingMessageId(msgId),
+      onEnd: () => setSpeakingMessageId(null),
+      onError: () => setSpeakingMessageId(null)
+    });
+  };
+
+  // Dedicated Standalone Voice Test Function (Part 28 Requirement)
+  const handleTestVoice = () => {
+    const testText = isMr
+      ? 'नमस्कार! मी किसान मित्र AI आहे. मी तुम्हाला शेती, हवामान, बाजारभाव आणि पिकांबद्दल माहिती देऊ शकतो.'
+      : 'Hello! I am Kisan Mitra AI. I can guide you on farming, weather, mandi rates and crop advice.';
+    
+    playAudioForMessage('test-voice', testText, isMr ? 'mr' : 'en');
+  };
+
   // Toggle Voice Input (Mic)
   const toggleListening = () => {
     if (!recognitionRef.current) {
-      setSpeechError(isMr ? 'या ब्राऊझरमध्ये व्हॉईस सपोर्ट उपलब्ध नाही, कृपया टाईप करा.' : 'Voice recognition not supported in this browser, please type.');
+      setSpeechError(t('chatbot.micNotSupported'));
       return;
     }
 
@@ -138,24 +286,29 @@ export const VoiceAssistantWidget: React.FC = () => {
     } else {
       setSpeechError(null);
       try {
-        recognitionRef.current.lang = isMr ? 'mr-IN' : 'en-IN';
+        recognitionRef.current.lang = 'mr-IN';
         recognitionRef.current.start();
       } catch (err) {
         console.warn('[Mic Start Note]:', err);
       }
     }
   };
-
-  // Send Message Handler
+  // Central Unified Message Processing Function
   const handleSendMessage = async (textToSend?: string) => {
     const messageContent = (textToSend || inputText).trim();
     if (!messageContent || isLoading) return;
+
+    // Force Marathi language ALWAYS
+    if (i18n.language !== 'mr') {
+      i18n.changeLanguage('mr');
+    }
 
     const userMessage: ChatMessage = {
       id: `msg-${Date.now()}`,
       sender: 'user',
       text: messageContent,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      lang: 'mr'
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -163,44 +316,97 @@ export const VoiceAssistantWidget: React.FC = () => {
     setIsLoading(true);
     setSpeechError(null);
 
+    // 1. Intent Analysis & Voice Navigation Routing
+    const analysis = classifyIntent(messageContent, activeContext);
+
+    // Update conversation context for follow-up questions
+    if (analysis.entities.commodity || analysis.entities.market) {
+      setActiveContext((prev) => ({
+        commodity: analysis.entities.commodity || prev.commodity,
+        market: analysis.entities.market || prev.market
+      }));
+    }
+
+    // Handle Voice Navigation Intents directly
+    if (analysis.intent === 'VOICE_NAVIGATION' && analysis.entities.navRoute) {
+      const targetRoute = analysis.entities.navRoute;
+      let navMsg = isMr ? 'पेजवर घेऊन जात आहे...' : 'Navigating...';
+
+      if (targetRoute === '/comparison') navMsg = isMr ? '🧭 बाजार समिती तुलना पेज उघडत आहे...' : '🧭 Opening Mandi Comparison page...';
+      else if (targetRoute === '/trends') navMsg = isMr ? '🧭 दर अंदाज व हवामान अंदाज पेज उघडत आहे...' : '🧭 Opening Market Trends & Weather page...';
+      else if (targetRoute === '/recommendation') navMsg = isMr ? '🧭 पिक सल्ला शिफारस पेज उघडत आहे...' : '🧭 Opening Crop Recommendation page...';
+      else if (targetRoute === '/calculator') navMsg = isMr ? '🧭 नफा-तोटा कॅल्क्युलेटर उघडत आहे...' : '🧭 Opening Profit Calculator...';
+      else if (targetRoute === '/alerts') navMsg = isMr ? '🧭 भाव अलर्ट स्क्रीन उघडत आहे...' : '🧭 Opening Price Alerts...';
+      else if (targetRoute === '/') navMsg = isMr ? '🧭 मुख्य डॅशबोर्ड उघडत आहे...' : '🧭 Opening Main Dashboard...';
+
+      const navMsgId = `nav-${Date.now()}`;
+      const assistantNavMsg: ChatMessage = {
+        id: navMsgId,
+        sender: 'assistant',
+        text: navMsg,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isNav: true
+      };
+
+      setMessages((prev) => [...prev, assistantNavMsg]);
+      setIsLoading(false);
+      playAudioForMessage(navMsgId, navMsg, 'mr');
+
+      setTimeout(() => {
+        navigate(targetRoute);
+      }, 500);
+
+      return;
+    }
+
+    // 2. Call AI & Grounded Mandi Backend Endpoint
     try {
       const res = await fetch('/api/assistant/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: messageContent,
+          detectedLanguage: 'mr',
           conversationHistory: messages.slice(-4)
         })
       });
 
       const data = await res.json();
-      const replyText = data.replyText || (isMr ? 'क्षमस्व, प्रतिसाद तयार करता आला नाही.' : 'Sorry, could not process request.');
-      const replyLang = data.replyLanguage || 'mr';
+      const replyText = data.replyText || 'क्षमस्व, प्रतिसाद तयार करता आला नाही.';
 
+      const replyMsgId = `assistant-${Date.now()}`;
       const assistantMessage: ChatMessage = {
-        id: `assistant-${Date.now()}`,
+        id: replyMsgId,
         sender: 'assistant',
         text: replyText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        lang: replyLang
+        lang: 'mr'
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-      speakText(replyText, replyLang);
+      if (typeof speakText === 'function') {
+        speakText(replyText);
+      } else if (typeof playAudioForMessage === 'function') {
+        playAudioForMessage(replyMsgId, replyText, 'mr');
+      }
     } catch (err) {
       console.warn('[Assistant Fetch Error]:', err);
-      const fallbackText = isMr
-        ? 'रामराम! आज कोपरगाव कांदा भाव ₹३,९५०/क्विंटल व लासलगाव भाव ₹४,२५०/क्विंटल आहे.'
-        : 'Hello! Onion modal price today is ₹3,950/q at Kopargaon & ₹4,250/q at Lasalgaon.';
+      const fallbackText = searchWebsiteContentLocally(messageContent);
 
+      const fallbackId = `assistant-fallback-${Date.now()}`;
       const fallbackMsg: ChatMessage = {
-        id: `assistant-fallback-${Date.now()}`,
+        id: fallbackId,
         sender: 'assistant',
         text: fallbackText,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        lang: 'mr'
       };
       setMessages((prev) => [...prev, fallbackMsg]);
-      speakText(fallbackText, 'mr');
+      if (typeof speakText === 'function') {
+        speakText(fallbackText);
+      } else if (typeof playAudioForMessage === 'function') {
+        playAudioForMessage(fallbackId, fallbackText, 'mr');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -227,11 +433,10 @@ export const VoiceAssistantWidget: React.FC = () => {
               <Sparkles className="w-3 h-3 text-[#FFB300] animate-pulse" />
             </span>
             <span className="text-[11px] font-extrabold text-[#E8F5E9]">
-              {isMr ? 'व्हॉईस व चॅट सहाय्यक' : 'Voice & Chat Assistant'}
+              {isMr ? 'व्हॉईस व नेव्हिगेशन सहाय्यक' : 'Voice & Navigation Assistant'}
             </span>
           </div>
 
-          {/* Unread notification pulse dot */}
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#FFB300] text-[#0F291E] rounded-full text-[10px] font-black flex items-center justify-center border-2 border-[#FFFFFF] animate-pulse">
               1
@@ -242,7 +447,7 @@ export const VoiceAssistantWidget: React.FC = () => {
 
       {/* 2. Expanded Chat Drawer Panel */}
       {isOpen && (
-        <div className="w-[92vw] sm:w-[380px] h-[520px] max-h-[85vh] bg-[#FFFFFF] border-2 border-[#1B5E20] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="w-[92vw] sm:w-[380px] h-[540px] max-h-[88vh] bg-[#FFFFFF] border-2 border-[#1B5E20] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
           
           {/* Header Bar */}
           <div className="p-3.5 bg-gradient-to-r from-[#1B5E20] via-[#2E7D32] to-[#144919] text-[#FFFFFF] flex items-center justify-between shadow-xs shrink-0">
@@ -256,19 +461,30 @@ export const VoiceAssistantWidget: React.FC = () => {
                   <Sparkles className="w-3.5 h-3.5 text-[#FFB300]" />
                 </h3>
                 <p className="text-[10px] font-bold text-[#C8E6C9]">
-                  {isMr ? 'मराठी व English मध्ये अचूक उत्तरे' : 'Bilingual Farmer Assistant'}
+                  {isMr ? 'मराठी, Roman Marathi व English समजणारा AI' : 'Bilingual Farmer Assistant'}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
+              {/* Test Audio Button */}
+              <button
+                type="button"
+                onClick={handleTestVoice}
+                className="px-2 py-1 bg-white/10 hover:bg-white/20 text-[#FFB300] rounded-xl text-[10px] font-black flex items-center gap-1 transition-colors cursor-pointer border border-[#FFB300]/30"
+                title="आवाज टेस्ट करा (Test Voice Output)"
+              >
+                <Volume1 className="w-3.5 h-3.5 text-[#FFB300]" />
+                <span>टेस्ट</span>
+              </button>
+
               {/* Global Mute Toggle */}
               <button
                 type="button"
                 onClick={() => {
                   const nextMute = !isMuted;
                   setIsMuted(nextMute);
-                  if (nextMute) window.speechSynthesis.cancel();
+                  if (nextMute) stopGeminiAudio();
                 }}
                 className={`p-2 rounded-xl transition-colors cursor-pointer text-xs font-black min-h-[34px] ${
                   isMuted ? 'bg-rose-500/20 text-rose-300' : 'bg-white/10 text-[#FFB300] hover:bg-white/20'
@@ -281,7 +497,10 @@ export const VoiceAssistantWidget: React.FC = () => {
               {/* Close Button */}
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  stopGeminiAudio();
+                  setIsOpen(false);
+                }}
                 className="p-2 text-[#E8F5E9] hover:text-[#FFFFFF] hover:bg-white/10 rounded-xl transition-colors cursor-pointer min-h-[34px]"
                 title="बंद करा (Close)"
               >
@@ -290,47 +509,85 @@ export const VoiceAssistantWidget: React.FC = () => {
             </div>
           </div>
 
+          {/* Active Voice Info Bar */}
+          <div className="px-3 py-1 bg-[#E8F5E9] text-[#1B5E20] text-[10px] font-extrabold flex items-center justify-between border-b border-[#C8E6C9] shrink-0">
+            <span className="truncate">🔊 Voice Engine: Gemini Marathi Audio (24kHz WAV)</span>
+            <span className="shrink-0 text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#1B5E20] text-[#FFFFFF]">Ready</span>
+          </div>
+
           {/* Messages Scroll Area */}
           <div className="flex-1 p-3.5 overflow-y-auto space-y-3 bg-gradient-to-b from-[#F4F9F4] via-[#FFFFFF] to-[#F4F9F4]">
             {/* Messages List */}
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} space-y-1 animate-in fade-in duration-150`}
-              >
-                <div
-                  className={`max-w-[85%] p-3 rounded-2xl text-xs font-semibold leading-relaxed shadow-xs relative ${
-                    msg.sender === 'user'
-                      ? 'bg-[#1B5E20] text-[#FFFFFF] rounded-br-none font-bold'
-                      : 'bg-[#FFFFFF] border-2 border-[#D8E6D8] text-[#0F291E] rounded-bl-none font-bold'
-                  }`}
-                >
-                  <p>{msg.text}</p>
-                </div>
+            {messages.map((msg) => {
+              const isSpeakingThis = speakingMessageId === msg.id;
 
-                <div className="flex items-center gap-1.5 px-1 text-[10px] text-[#526058] font-bold">
-                  <span>{msg.timestamp}</span>
+              return (
+                <div
+                  key={msg.id}
+                  className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} space-y-1 animate-in fade-in duration-150`}
+                >
+                  <div
+                    className={`max-w-[88%] p-3 rounded-2xl text-xs font-semibold leading-relaxed shadow-xs relative ${
+                      msg.sender === 'user'
+                        ? 'bg-[#1B5E20] text-[#FFFFFF] rounded-br-none font-bold'
+                        : msg.isNav
+                        ? 'bg-[#FFF8E1] border-2 border-[#FFB300] text-[#0F291E] rounded-bl-none font-bold'
+                        : 'bg-[#FFFFFF] border-2 border-[#D8E6D8] text-[#0F291E] rounded-bl-none font-bold'
+                    }`}
+                  >
+                    {msg.isNav && <Compass className="w-4 h-4 text-[#FFB300] inline mr-1 mb-0.5 animate-spin" />}
+                    <p className="whitespace-pre-line">{msg.text}</p>
+                  </div>
+
                   {msg.sender === 'assistant' && (
                     <button
                       type="button"
-                      onClick={() => speakText(msg.text, msg.lang)}
+                      onClick={() => speakText(msg.text)}
                       className="p-0.5 text-[#1B5E20] hover:text-[#0F291E] cursor-pointer"
                       title="पुन्हा ऐका (Replay Voice)"
                     >
                       <Volume2 className="w-3 h-3 text-[#1B5E20]" />
                     </button>
                   )}
+=======
+                  <div className="flex items-center gap-1.5 px-1 text-[10px] text-[#526058] font-bold">
+                    <span>{msg.timestamp}</span>
+                    {msg.sender === 'assistant' && (
+                      <button
+                        type="button"
+                        onClick={() => playAudioForMessage(msg.id, msg.text, msg.lang)}
+                        className={`p-1 rounded-lg flex items-center gap-1 cursor-pointer transition-all ${
+                          isSpeakingThis
+                            ? 'bg-[#FFB300] text-[#0F291E] font-black animate-pulse'
+                            : 'text-[#1B5E20] hover:bg-[#E8F5E9]'
+                        }`}
+                        title={isSpeakingThis ? 'आवाज थांबवा (Stop Audio)' : 'आवाज ऐका (Play Voice)'}
+                      >
+                        {isSpeakingThis ? (
+                          <>
+                            <Radio className="w-3.5 h-3.5 text-[#0F291E] animate-spin" />
+                            <span>बोलत आहे...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="w-3.5 h-3.5 text-[#1B5E20]" />
+                            <span>ऐका</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
-            {/* Quick Suggestion Chips for Fast Farmer Queries */}
+            {/* Quick Suggestion Chips for Fast Farmer Queries & Voice Navigation */}
             {messages.length <= 2 && !isLoading && (
               <div className="pt-2 flex flex-wrap gap-1.5 animate-in fade-in duration-200">
                 {[
-                  isMr ? '🧅 आजचा कांदा भाव काय?' : '🧅 Today Onion price?',
-                  isMr ? '🔔 भाव अलर्ट कसा लावावा?' : '🔔 How to set alert?',
-                  isMr ? '📊 नफा कसा मोजावा?' : '📊 Profit Calculator?'
+                  isMr ? '🧅 आज लासलगाव कांदा बाजार भाव सांगा' : '🧅 Lasalgaon onion price today',
+                  isMr ? '🧭 बाजार भाव उघडा (Mandi open)' : '🧭 Open mandi rates',
+                  isMr ? '🔔 भाव अलर्ट कसा लावावा?' : '🔔 How to set alert?'
                 ].map((chip, idx) => (
                   <button
                     key={idx}
@@ -346,9 +603,9 @@ export const VoiceAssistantWidget: React.FC = () => {
 
             {/* Typing Loader Indicator */}
             {isLoading && (
-              <div className="flex items-center gap-2 p-3 bg-[#FFFFFF] border-2 border-[#D8E6D8] rounded-2xl rounded-bl-none text-xs font-black text-[#1B5E20] max-w-[70%] animate-pulse">
+              <div className="flex items-center gap-2 p-3 bg-[#FFFFFF] border-2 border-[#D8E6D8] rounded-2xl rounded-bl-none text-xs font-black text-[#1B5E20] max-w-[75%] animate-pulse">
                 <Loader2 className="w-4 h-4 animate-spin text-[#FFB300]" />
-                <span>किसान मित्र विचार करत आहे...</span>
+                <span>{t('chatbot.thinking')}</span>
               </div>
             )}
 
@@ -380,7 +637,7 @@ export const VoiceAssistantWidget: React.FC = () => {
                     ? 'bg-rose-600 text-white animate-pulse ring-4 ring-rose-400/40'
                     : 'bg-[#F4F9F4] border-2 border-[#1B5E20] text-[#1B5E20] hover:bg-[#E8F5E9]'
                 }`}
-                title={isListening ? 'बोलणे थांबवा' : 'बोलून प्रश्न विचारा (Speak)'}
+                title={isListening ? 'बोलणे थांबवा' : 'बोलून प्रश्न किंवा कमांड सांगा (Speak)'}
               >
                 {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5 text-[#1B5E20]" />}
               </button>
@@ -390,7 +647,7 @@ export const VoiceAssistantWidget: React.FC = () => {
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder={isListening ? (isMr ? 'ऐकत आहे, बोला...' : 'Listening...') : (isMr ? 'प्रश्न प्रविष्ट करा...' : 'Ask a question...')}
+                placeholder={isListening ? (isMr ? 'ऐकत आहे, बोला...' : 'Listening...') : (isMr ? 'प्रश्न किंवा व्हॉईस कमांड प्रविष्ट करा...' : 'Ask a question or command...')}
                 className="flex-1 px-3.5 py-2.5 min-h-[44px] bg-[#F4F9F4] border-2 border-[#D8E6D8] rounded-2xl text-xs font-black text-[#0F291E] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-4 focus:ring-[#1B5E20]/20 focus:border-[#1B5E20]"
               />
 

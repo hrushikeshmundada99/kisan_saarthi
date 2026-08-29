@@ -1,3 +1,5 @@
+
+
 // Database connection manager with automatic PostgreSQL (Supabase/Neon) support
 // and resilient local fallback for zero-config development
 import pg from 'pg';
@@ -225,7 +227,7 @@ function executeLocalQuery(sql, params = []) {
 
       const existingIdx = prices.findIndex(
         (p) => String(p.crop).toLowerCase() === String(crop).toLowerCase() &&
-               String(p.region).toLowerCase() === String(region).toLowerCase()
+          String(p.region).toLowerCase() === String(region).toLowerCase()
       );
 
       if (existingIdx !== -1) {
