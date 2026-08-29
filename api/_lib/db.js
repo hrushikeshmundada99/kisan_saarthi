@@ -179,6 +179,24 @@ export async function query(text, params = []) {
           );
 
           CREATE INDEX IF NOT EXISTS idx_crop_prices_crop_region ON crop_prices (crop, region);
+
+          -- 5. Price Alerts Table for Supabase & Email Alerts
+          CREATE TABLE IF NOT EXISTS price_alerts (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            farmer_id UUID REFERENCES farmers(id) ON DELETE CASCADE,
+            farmer_email TEXT NOT NULL,
+            crop TEXT NOT NULL,
+            mandi TEXT NOT NULL,
+            condition TEXT NOT NULL DEFAULT 'ABOVE',
+            target_price NUMERIC NOT NULL,
+            status TEXT NOT NULL DEFAULT 'ACTIVE',
+            notification_methods TEXT[] DEFAULT ARRAY['Email', 'In-App']::TEXT[],
+            created_at TIMESTAMPTZ DEFAULT now(),
+            last_email_sent_at TIMESTAMPTZ
+          );
+
+          CREATE INDEX IF NOT EXISTS idx_price_alerts_email ON price_alerts(farmer_email);
+          CREATE INDEX IF NOT EXISTS idx_price_alerts_status ON price_alerts(status);
         `);
         isTableInitialized = true;
       }

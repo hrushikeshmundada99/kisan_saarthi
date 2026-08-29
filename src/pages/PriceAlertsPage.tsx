@@ -4,7 +4,10 @@ import {
   type PriceAlertItem,
   getStoredAlerts,
   saveStoredAlerts,
-  evaluateAlertStatus
+  evaluateAlertStatus,
+  syncAlertToSupabase,
+  toggleAlertInSupabase,
+  deleteAlertFromSupabase
 } from '../utils/alertManager';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
@@ -93,6 +96,7 @@ export const PriceAlertsPage: React.FC = () => {
 
     setAlerts([newAlert, ...alerts]);
     setShowAddForm(false);
+    syncAlertToSupabase(newAlert);
     showToast(`ई-मेल अलर्ट सेट झाला! (${farmerEmail})`, 'success');
   };
 
@@ -102,6 +106,7 @@ export const PriceAlertsPage: React.FC = () => {
       prev.map((alt) => {
         if (alt.id === id) {
           const nextStatus = alt.status === 'DISABLED' ? 'ACTIVE' : 'DISABLED';
+          toggleAlertInSupabase(id, nextStatus);
           showToast(nextStatus === 'DISABLED' ? 'अलर्ट थांबवला (Alert Paused)' : 'अलर्ट पुन्हा सुरू केला (Alert Active)', 'info');
           return { ...alt, status: nextStatus };
         }
@@ -113,6 +118,7 @@ export const PriceAlertsPage: React.FC = () => {
   // Delete Alert
   const handleDeleteAlert = (id: string) => {
     setAlerts((prev) => prev.filter((alt) => alt.id !== id));
+    deleteAlertFromSupabase(id);
     showToast('अलर्ट हटवला गेला (Alert Deleted)', 'error');
   };
 

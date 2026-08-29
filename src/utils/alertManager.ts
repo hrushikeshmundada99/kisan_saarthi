@@ -112,3 +112,40 @@ export const saveStoredAlerts = (alerts: PriceAlertItem[]): void => {
     console.warn('Failed to save alerts:', e);
   }
 };
+
+// Sync new alert to Supabase / Backend database
+export const syncAlertToSupabase = async (alert: PriceAlertItem): Promise<void> => {
+  try {
+    await fetch('/api/alerts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(alert)
+    });
+  } catch (err) {
+    console.warn('[Supabase Alert Sync Note]: Offline or backend unavailable, using local cache.', err);
+  }
+};
+
+// Toggle alert status in Supabase
+export const toggleAlertInSupabase = async (id: string, status: 'ACTIVE' | 'DISABLED'): Promise<void> => {
+  try {
+    await fetch('/api/alerts', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status })
+    });
+  } catch (err) {
+    console.warn('[Supabase Alert Toggle Note]:', err);
+  }
+};
+
+// Delete alert in Supabase
+export const deleteAlertFromSupabase = async (id: string): Promise<void> => {
+  try {
+    await fetch(`/api/alerts?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    });
+  } catch (err) {
+    console.warn('[Supabase Alert Delete Note]:', err);
+  }
+};
