@@ -413,14 +413,14 @@ export const VoiceAssistantWidget: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 animate-in fade-in duration-300">
+    <div className="fixed bottom-20 right-3 sm:bottom-6 sm:right-6 z-50 animate-in fade-in duration-300">
       
       {/* 1. Floating Collapsed Chat Bubble Button */}
       {!isOpen && (
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="relative group p-4 rounded-3xl bg-gradient-to-br from-[#1B5E20] via-[#2E7D32] to-[#144919] text-[#FFFFFF] shadow-2xl shadow-emerald-950/30 hover:scale-105 transition-all duration-200 cursor-pointer flex items-center gap-3 ring-4 ring-[#FFFFFF]"
+          className="relative group p-3 sm:p-4 rounded-3xl bg-gradient-to-br from-[#1B5E20] via-[#2E7D32] to-[#144919] text-[#FFFFFF] shadow-2xl shadow-emerald-950/30 hover:scale-105 transition-all duration-200 cursor-pointer flex items-center gap-3 ring-4 ring-[#FFFFFF]"
           title="किसान मित्र AI व्हॉईस असिस्टंट (Open Kisan Mitra Voice AI)"
         >
           <div className="w-10 h-10 rounded-2xl bg-[#FFB300] text-[#0F291E] flex items-center justify-center font-black shadow-inner shrink-0 group-hover:rotate-12 transition-transform duration-200">
@@ -539,17 +539,6 @@ export const VoiceAssistantWidget: React.FC = () => {
                     <p className="whitespace-pre-line">{msg.text}</p>
                   </div>
 
-                  {msg.sender === 'assistant' && (
-                    <button
-                      type="button"
-                      onClick={() => speakText(msg.text)}
-                      className="p-0.5 text-[#1B5E20] hover:text-[#0F291E] cursor-pointer"
-                      title="पुन्हा ऐका (Replay Voice)"
-                    >
-                      <Volume2 className="w-3 h-3 text-[#1B5E20]" />
-                    </button>
-                  )}
-=======
                   <div className="flex items-center gap-1.5 px-1 text-[10px] text-[#526058] font-bold">
                     <span>{msg.timestamp}</span>
                     {msg.sender === 'assistant' && (

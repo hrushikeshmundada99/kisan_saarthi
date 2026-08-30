@@ -115,9 +115,9 @@ export const LandingPage: React.FC = () => {
           <div className="max-w-4xl mx-auto space-y-5">
 
             {/* Location Pill Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFFFFF]/80 border border-[#A5D6A7] text-[#1B5E20] text-xs sm:text-sm font-black shadow-xs">
+            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-[#FFFFFF]/90 border border-[#A5D6A7] text-[#1B5E20] text-xs sm:text-sm font-black shadow-xs max-w-full">
               <MapPin className="w-4 h-4 text-[#FFB300] shrink-0" />
-              <span>
+              <span className="truncate">
                 {isMr
                   ? 'कोपरगाव • लासलगाव • राहाता • श्रीरामपूर • येवला • संगमनेर • नाशिक • अहिल्यानगर'
                   : 'Kopargaon • Lasalgaon • Rahata • Shrirampur • Yeola • Sangamner • Nashik • Ahilyanagar'}
